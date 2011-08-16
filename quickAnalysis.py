@@ -48,15 +48,14 @@ class quickAnalysis:
             print AppCommand.command()
             
 
-    def runSelect(self,run = True,evclsmin=3,evclsmax=4,convtype=-1):
+    def runSelect(self,run = True,evclass=2,convtype=-1):
 
         if(self.binned):
             filter['rad'] = self.rad * math.sqrt(2)
         else:
             filter['rad'] = self.rad
 
-        filter['evclsmin'] = evclsmin
-        filter['evclsmax'] = evclsmax
+        filter['evclass'] = evclass
         filter['infile'] = "@"+self.base+".list"
         filter['outfile'] = self.base+"_filtered.fits"
         filter['ra'] = self.ra
