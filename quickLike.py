@@ -11,7 +11,7 @@ class quickLike:
     def __init__(self,
                  base = 'MySource',
                  configFile = False,
-                 irfs = 'P6_V11_DIFFUSE',
+                 irfs = 'P7SOURCE_V6',
                  model = 'MySource_model.xml',
                  sourceName = 'SourceName', 
                  DRMtol = 0.1,
@@ -25,15 +25,16 @@ class quickLike:
         if(configFile):
             print 'Reading from config file'
             config = ConfigParser.RawConfigParser()
-            config.read(self.base+'_quickLike.cfg')
-            irfs = config.get(self.base,'irfs')
-            model = config.get(self.base,'model')
-            sourceName = config.get(self.base,'sourceName')
-            DRMtol = config.getfloat(self.base,'DRMtol')
-            MINtol = config.getfloat(self.base,'MINtol')
-            binned = config.getboolean(self.base,'binned')
-            verbosity = config.getint(self.base,'verbosity')
+            config.read(self.base+'.cfg')
+            model = config.get('quickLike','model')
+            sourceName = config.get('quickLike','sourceName')
+            DRMtol = config.getfloat('quickLike','DRMtol')
+            MINtol = config.getfloat('quickLike','MINtol')
 
+            binned = config.getboolean('common','binned')
+            verbosity = config.getint('common','verbosity')
+            irfs = config.get('common','irfs')
+            
         self.irfs=irfs
         self.model=model
         self.sourceName=sourceName
@@ -65,17 +66,26 @@ class quickLike:
     def writeConfig(self):
         
         config = ConfigParser.RawConfigParser()
-        config.add_section(self.base)
-        config.set(self.base, 'base', self.base)
-        config.set(self.base, 'irfs', self.irfs)
-        config.set(self.base, 'model', self.model)
-        config.set(self.base, 'sourceName', self.sourceName)
-        config.set(self.base, 'DRMtol', self.DRMtol)
-        config.set(self.base, 'MINtol', self.MINtol)
-        config.set(self.base, 'binned', self.binned)
-        config.set(self.base, 'verbosity', self.verbosity)
+        config.read(self.base+'.cfg')
+        if(not config.has_section('common')):
+            config.add_section('common')
+        if(config.has_section('quickLike')):
+            print 'quickLike config exists, overwriting...'
+        else:
+            config.add_section('quickLike')
+        
+        config.set('common', 'base', self.base)
+        config.set('common', 'binned', self.binned)
+        config.set('common', 'verbosity', self.verbosity)
 
-        with open(self.base+'_quickLike.cfg', 'wb') as configfile:
+        config.set('quickLike', 'irfs', self.irfs)
+        config.set('quickLike', 'model', self.model)
+        config.set('quickLike', 'sourceName', self.sourceName)
+        config.set('quickLike', 'DRMtol', self.DRMtol)
+        config.set('quickLike', 'MINtol', self.MINtol)
+
+
+        with open(self.base+'.cfg', 'wb') as configfile:
             config.write(configfile)
 
 
