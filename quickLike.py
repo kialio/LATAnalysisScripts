@@ -1,6 +1,34 @@
 #!/usr/bin/env python
 
-"""Perform a likelihood analysis for Fermi LAT data.
+"""Perform a likelihood analysis for Fermi LAT data.  You should have
+completed all of the event selection and exposure calculations in
+quickAnalysis before using this moduel.  A usual likelihood analysis
+will consists of running the following functions (assuming you have a
+configuration file):
+
+* qL = quickLike('MySource', True)
+* qL.makeObs()
+* qL.initDRM()
+* qL.fitDRM()
+* qL.initMIN()
+* qL.fitMIN()
+
+This will set up all of the objects needed for the analysis and do an
+initial fit with one of the DRM optimizers.  It'll save these results
+and use them for the second fit with one of the Minuit optimizers.
+
+You can create a configuration file by executing writeConfig().  Or by
+running
+
+> python quickLike -c
+
+from the command line.  
+
+This module will catch any failures from the optimizers and will
+report them to the user.  There are a few functions that are useful to
+use in this case:
+
+
 
 """
 
@@ -101,8 +129,8 @@ class quickLike:
                 self.DRM = BinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer="DRMNGB")
             else:
                 self.DRM = UnbinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer="DRMNGB")
-            self.DRM.tol = self.likelihoodConf['drmtol']
-            self.logger.info(self.ret.subn(', ',str(self.DRM))[0])
+                self.DRM.tol = float(self.likelihoodConf['drmtol'])
+                self.logger.info(self.ret.subn(', ',str(self.DRM))[0])
         except(FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
@@ -114,7 +142,7 @@ class quickLike:
                 self.ALTFIT = BinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer=opt)
             else:
                 self.ALTFIT = UnbinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer=opt)
-            self.ALTFIT.tol = self.likelihoodConf['drmtol']
+            self.ALTFIT.tol = float(self.likelihoodConf['drmtol'])
             self.ALTFITobj = pyLike.Minuit(self.ALTFIT.logLike)
             self.logger.info(self.ret.subn(', ',str(self.ALTFIT))[0])
         except(FileNotFound):
@@ -128,30 +156,29 @@ class quickLike:
                 self.MIN = BinnedAnalysis(self.obs,self.commonConf['base']+'_likeDRM.xml',optimizer='NewMinuit')
             else:
                 self.MIN = UnbinnedAnalysis(self.obs,self.commonConf['base']+'_likeDRM.xml',optimizer='NewMinuit')
-            self.MIN.tol = self.likelihoodConf['mintol']
+            self.MIN.tol = float(self.likelihoodConf['mintol'])
             self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
             self.logger.info(self.ret.subn(', ',str(self.MIN))[0])
         except(FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
 
-                
     def fitDRM(self):
 
         altfit=False
         try:
-            self.DRM.fit(verbosity=self.commonConf['verbosity'])
+            self.DRM.fit(verbosity=int(self.commonConf['verbosity']))
         except:
             self.logger.error("Initial DRM Fit Failed")
             try:
                 self.logger.info("Trying tighter tolerance (DRMtol*0.1)")
-                self.DRM.tol = self.likelihoodConf['drmtol'] * 0.1
+                self.DRM.tol = float(self.likelihoodConf['drmtol']) * 0.1
                 self.DRM.fit(verbosity= self.commonConf['verbosity'])
             except:
                 self.logger.error("Second DRM Fit Failed")
                 try:
                     self.logger.info("Trying looser tolerance (drmtol*10.)")
-                    self.DRM.tol = self.likelihoodConf['drmtol'] * 10.
+                    self.DRM.tol = float(self.likelihoodConf['drmtol']) * 10.
                     self.DRM.fit(verbosity= self.commonConf['verbosity'])
                 except:
                     self.logger.error("Third DRM Fit Failed")
@@ -176,7 +203,7 @@ class quickLike:
             self.logger.info("Saved DRM as "+self.commonConf['base']+"_likeDRM.xml")
 
     def fitMIN(self):
-        self.MIN.fit(covar=True, optObject=self.MINobj,verbosity=self.commonConf['verbosity'])
+        self.MIN.fit(covar=True, optObject=self.MINobj,verbosity=int(self.commonConf['verbosity']))
         self.MIN.logLike.writeXml(self.commonConf['base']+'_likeMinuit.xml')
         self.logger.info("NEWMINUIT Fit Finished.  Total TS: "+str(self.MIN.logLike.value()))
         self.logger.info("NEWMINUIT Fit Status: "+str(self.MINobj.getRetCode()))
