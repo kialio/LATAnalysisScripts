@@ -1,7 +1,15 @@
-import logging
+#!/usr/bin/env python
+
+"""Perform a likelihood analysis for Fermi LAT data.
+
+"""
+
+__author__ = 'Jeremy S. Perkins (FSSC)'
+__version__ = '0.1'
+
 import pyLikelihood
 import re
-import ConfigParser
+from quickUtils import *
 from UnbinnedAnalysis import *
 from BinnedAnalysis import *
 from UpperLimits import UpperLimits
@@ -11,153 +19,146 @@ class quickLike:
     def __init__(self,
                  base = 'MySource',
                  configFile = False,
-                 irfs = 'P7SOURCE_V6',
-                 model = 'MySource_model.xml',
-                 sourceName = 'SourceName', 
-                 DRMtol = 0.1,
-                 MINtol = 1e-4,
-                 binned = False,
-                 verbosity = 0):
-                
+                 likelihoodConfig = {"model" : "MySource_model.xml",
+                                     "sourceName" : "Source Name",
+                                     "drmtol" : 0.1,
+                                     "mintol" : 1e-4},
+                 commonConfig = {"base" : 'MySource',
+                                 "eventClass" : 2,
+                                 "binned" : False,
+                                 "irfs" : "P7SOURCE_V6",
+                                 "verbosity" : 0}):
+                                  
+        commonConfig['base'] = base
 
-        self.base=base
+        self.logger = initLogger(base, 'quickLike')
 
         if(configFile):
-            print 'Reading from config file'
-            config = ConfigParser.RawConfigParser()
-            config.read(self.base+'.cfg')
-            model = config.get('quickLike','model')
-            sourceName = config.get('quickLike','sourceName')
-            DRMtol = config.getfloat('quickLike','DRMtol')
-            MINtol = config.getfloat('quickLike','MINtol')
+            try:
+                commonConfig,analysisConfig,likelihoodConfig = readConfig(self.logger,base)
+            except(FileNotFound):
+                self.logger.critical("One or more needed files do not exist")
+                return
 
-            binned = config.getboolean('common','binned')
-            verbosity = config.getint('common','verbosity')
-            irfs = config.get('common','irfs')
-            
-        self.irfs=irfs
-        self.model=model
-        self.sourceName=sourceName
-        self.DRMtol=DRMtol
-        self.MINtol=MINtol
-        self.binned=binned
-        self.verbosity=verbosity
+        self.commonConf = commonConfig
+        self.likelihoodConf = likelihoodConfig
         
         self.ret = re.compile('\n')
 
-        self.logger = logging.getLogger('quickLike')
-        self.logger.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(self.base+'_quickLike.log')
-        fh.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        fh.setFormatter(formatter)
-        ch.setFormatter(formatter)
-        self.logger.addHandler(fh)
-        self.logger.addHandler(ch)
-        self.logger.info("Created quickLike object: base="+self.base+\
-                             ",irfs="+self.irfs+\
-                             ",model="+self.model+\
-                             ",DRMtol="+str(self.DRMtol)+\
-                             ",MINtol="+str(self.MINtol)+\
-                             ",binned="+str(self.binned))
-
+        self.Print()
+        
     def writeConfig(self):
-        
-        config = ConfigParser.RawConfigParser()
-        config.read(self.base+'.cfg')
-        if(not config.has_section('common')):
-            config.add_section('common')
-        if(config.has_section('quickLike')):
-            print 'quickLike config exists, overwriting...'
-        else:
-            config.add_section('quickLike')
-        
-        config.set('common', 'base', self.base)
-        config.set('common', 'binned', self.binned)
-        config.set('common', 'verbosity', self.verbosity)
 
-        config.set('quickLike', 'irfs', self.irfs)
-        config.set('quickLike', 'model', self.model)
-        config.set('quickLike', 'sourceName', self.sourceName)
-        config.set('quickLike', 'DRMtol', self.DRMtol)
-        config.set('quickLike', 'MINtol', self.MINtol)
+        """Writes all of the initialization variables to the config
+        file called <basename>.cfg"""
 
-
-        with open(self.base+'.cfg', 'wb') as configfile:
-            config.write(configfile)
-
+        writeConfig(quickLogger=self.logger,
+                    commonDictionary=self.commonConf,
+                    likelihoodDictionary=self.likelihoodConf)
 
     def Print(self):
-        self.logger.info("Created quickLike object: base="+self.base+\
-                             ",irfs="+self.irfs+\
-                             ",model="+self.model+\
-                             ",DRMtol="+str(self.DRMtol)+\
-                             ",binned="+str(self.binned))
+        logString = "Created quickLike object: "
+        for variable, value in self.commonConf.iteritems():
+            logString += variable+"="+str(value)+","
+        for variable, value in self.likelihoodConf.iteritems():
+            logString += variable+"="+str(value)+","
+        self.logger.info(logString)
+
     def makeObs(self):
-        if(self.binned):
-            self.obs = BinnedObs(srcMaps=self.base+'_srcMaps.fits',
-                                 expCube=self.base+'_ltcube.fits',
-                                 binnedExpMap=self.base+'_BinnedExpMap.fits',
-                                 irfs=self.irfs)
+        if(self.commonConf['binned']):
+            try:
+                checkForFiles(self.logger,[self.commonConf['base']+'_srcMaps.fits',
+                                          self.commonConf['base']+'_ltcube.fits',
+                                          self.commonConf['base']+'_BinnedExpMap.fits'])
+                self.obs = BinnedObs(srcMaps=self.commonConf['base']+'_srcMaps.fits',
+                                     expCube=self.commonConf['base']+'_ltcube.fits',
+                                     binnedExpMap=self.commonConf['base']+'_BinnedExpMap.fits',
+                                     irfs=self.commonConf['irfs'])
+            except(FileNotFound):
+                self.logger.critical("One or more needed files do not exist")
+                return
         else:
-            self.obs = UnbinnedObs(self.base+'_filtered_gti.fits',
-                                   self.base+'_SC.fits',
-                                   expMap=self.base+'_expMap.fits',
-                                   expCube=self.base+'_ltCube.fits',
-                                   irfs=self.irfs)
+            try:
+                checkForFiles(self.logger,[self.commonConf['base']+'_filtered_gti.fits',
+                                           self.commonConf['base']+'_SC.fits',
+                                           self.commonConf['base']+'_expMap.fits',
+                                           self.commonConf['base']+'_ltCube.fits'])
+                self.obs = UnbinnedObs(self.commonConf['base']+'_filtered_gti.fits',
+                                       self.commonConf['base']+'_SC.fits',
+                                       expMap=self.commonConf['base']+'_expMap.fits',
+                                       expCube=self.commonConf['base']+'_ltCube.fits',
+                                       irfs=self.commonConf['irfs'])
+            except(FileNotFound):
+                self.logger.critical("One or more needed files do not exist")
+                return
         self.logger.info(self.ret.subn(', ',str(self.obs))[0])
 
     def initDRM(self):
-        if(self.binned):
-            self.DRM = BinnedAnalysis(self.obs,self.model,optimizer="DRMNGB")
-        else:
-            self.DRM = UnbinnedAnalysis(self.obs,self.model,optimizer="DRMNGB")
-        self.DRM.tol = self.DRMtol
-        self.logger.info(self.ret.subn(', ',str(self.DRM))[0])
+        
+        try:
+            checkForFiles(self.logger,[self.likelihoodConf['model']])
+            if(self.commonConf['binned']):
+                self.DRM = BinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer="DRMNGB")
+            else:
+                self.DRM = UnbinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer="DRMNGB")
+            self.DRM.tol = self.likelihoodConf['drmtol']
+            self.logger.info(self.ret.subn(', ',str(self.DRM))[0])
+        except(FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            return
 
     def initAltFit(self,opt="MINUIT"):
-        if(self.binned):
-            self.ALTFIT = BinnedAnalysis(self.obs,self.model,optimizer=opt)
-        else:
-            self.ALTFIT = UnbinnedAnalysis(self.obs,self.model,optimizer=opt)
-        self.ALTFIT.tol = self.DRMtol
-        self.ALTFITobj = pyLike.Minuit(self.ALTFIT.logLike)
-        self.logger.info(self.ret.subn(', ',str(self.ALTFIT))[0])
+        try:
+            checkForFiles(self.logger,[self.likelihoodConf['model']])
+            if(self.commonConf['binned']):
+                self.ALTFIT = BinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer=opt)
+            else:
+                self.ALTFIT = UnbinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer=opt)
+            self.ALTFIT.tol = self.likelihoodConf['drmtol']
+            self.ALTFITobj = pyLike.Minuit(self.ALTFIT.logLike)
+            self.logger.info(self.ret.subn(', ',str(self.ALTFIT))[0])
+        except(FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            return
 
     def initMIN(self):
-        if(self.binned):
-            self.MIN = BinnedAnalysis(self.obs,self.base+'_likeDRM.xml',optimizer='NewMinuit')
-        else:
-            self.MIN = UnbinnedAnalysis(self.obs,self.base+'_likeDRM.xml',optimizer='NewMinuit')
-        self.MIN.tol = self.MINtol
-        self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
-        self.logger.info(self.ret.subn(', ',str(self.MIN))[0])
+        try:
+            checkForFiles(self.logger,[self.commonConf['base']+'_likeDRM.xml'])
+            if(self.commonConf['binned']):
+                self.MIN = BinnedAnalysis(self.obs,self.commonConf['base']+'_likeDRM.xml',optimizer='NewMinuit')
+            else:
+                self.MIN = UnbinnedAnalysis(self.obs,self.commonConf['base']+'_likeDRM.xml',optimizer='NewMinuit')
+            self.MIN.tol = self.likelihoodConf['mintol']
+            self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
+            self.logger.info(self.ret.subn(', ',str(self.MIN))[0])
+        except(FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            return
+
                 
     def fitDRM(self):
 
         altfit=False
         try:
-            self.DRM.fit(verbosity=self.verbosity)
+            self.DRM.fit(verbosity=self.commonConf['verbosity'])
         except:
             self.logger.error("Initial DRM Fit Failed")
             try:
                 self.logger.info("Trying tighter tolerance (DRMtol*0.1)")
-                self.DRM.tol = self.DRMtol * 0.1
-                self.DRM.fit(verbosity= self.verbosity)
+                self.DRM.tol = self.likelihoodConf['drmtol'] * 0.1
+                self.DRM.fit(verbosity= self.commonConf['verbosity'])
             except:
                 self.logger.error("Second DRM Fit Failed")
                 try:
-                    self.logger.info("Trying looser tolerance (DRMtol*10.)")
-                    self.DRM.tol = self.DRMtol * 10.
-                    self.DRM.fit(verbosity= self.verbosity)
+                    self.logger.info("Trying looser tolerance (drmtol*10.)")
+                    self.DRM.tol = self.likelihoodConf['drmtol'] * 10.
+                    self.DRM.fit(verbosity= self.commonConf['verbosity'])
                 except:
                     self.logger.error("Third DRM Fit Failed")
                     try:
                         self.logger.info("Trying alternate fit algorithm (MINUIT)")
                         self.initAltFit()
-                        self.ALTFIT.fit(verbosity=self.verbosity,covar=True,optObject=self.ALTFITobj)
+                        self.ALTFIT.fit(verbosity=self.commonConf['verbosity'],covar=True,optObject=self.ALTFITobj)
                         print self.ALTFITobj.getQuality()
                         altfit = True
                     except:
@@ -167,16 +168,16 @@ class quickLike:
 
         if(altfit):
             self.logger.info("ALTFIT Fit Finished.  Total TS: "+str(self.ALTFIT.logLike.value()))
-            self.ALTFIT.logLike.writeXml(self.base+'_likeDRM.xml')
-            self.logger.info("Saved ALTFIT as "+self.base+"_likeDRM.xml")
+            self.ALTFIT.logLike.writeXml(self.commonConf['base']+'_likeDRM.xml')
+            self.logger.info("Saved ALTFIT as "+self.commonConf['base']+"_likeDRM.xml")
         else:
-            self.DRM.logLike.writeXml(self.base+'_likeDRM.xml')
+            self.DRM.logLike.writeXml(self.commonConf['base']+'_likeDRM.xml')
             self.logger.info("DRM Fit Finished.  Total TS: "+str(self.DRM.logLike.value()))
-            self.logger.info("Saved DRM as "+self.base+"_likeDRM.xml")
+            self.logger.info("Saved DRM as "+self.commonConf['base']+"_likeDRM.xml")
 
     def fitMIN(self):
-        self.MIN.fit(covar=True, optObject=self.MINobj,verbosity=self.verbosity)
-        self.MIN.logLike.writeXml(self.base+'_likeMinuit.xml')
+        self.MIN.fit(covar=True, optObject=self.MINobj,verbosity=self.commonConf['verbosity'])
+        self.MIN.logLike.writeXml(self.commonConf['base']+'_likeMinuit.xml')
         self.logger.info("NEWMINUIT Fit Finished.  Total TS: "+str(self.MIN.logLike.value()))
         self.logger.info("NEWMINUIT Fit Status: "+str(self.MINobj.getRetCode()))
         self.logger.info("NEWMINUIT fit Distance: "+str(self.MINobj.getDistance()))
@@ -206,7 +207,7 @@ class quickLike:
 
     def removeWeak(self,mySource = '',tslimit=0,DistLimit=0,RemoveFree=False,RemoveFixed=False):
         if(mySource == ''):
-            mySource = self.sourceName
+            mySource = self.likelihoodConf['sourceName']
         for name in self.MIN.sourceNames():
             remove = False
             distance = 0
@@ -281,10 +282,6 @@ class quickLike:
                 failure = "Full accurate covariance matrix (After MIGRAD, this is the indication of normal convergence.)"
 
             return failure
-
-
-
-
 
     def delObs(self):
         del self.obs

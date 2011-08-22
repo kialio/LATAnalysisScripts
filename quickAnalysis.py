@@ -38,11 +38,8 @@ __version__ = '0.1'
 import sys
 import os
 import math
-import logging
-import ConfigParser
 from gt_apps import *
-
-class FileNotFound: pass
+from quickUtils import *
 
 class quickAnalysis:
 
@@ -62,109 +59,51 @@ class quickAnalysis:
     """
 
     def __init__(self,
-                 base = 'MySource',
+                 base='MySource',
                  configFile = False,
-                 ra = 0,
-                 dec = 0,
-                 rad = 10,
-                 tmin = "INDEF",
-                 tmax = "INDEF",
-                 emin = 100,
-                 emax = 300000,
-                 zmax = 100,
-                 irfs = "P7SOURCE_V6",
-                 binned = False,
-                 verbosity = 0):
+                 analysisConfig = {"ra" : 0,
+                                   "dec" : 0,
+                                   "rad" : 10,
+                                   "tmin" : "INDEF",
+                                   "tmax" : "INDEF",
+                                   "emin" : 100,
+                                   "emax" : 300000,
+                                   "zmax" : 100},
+                 commonConfig = {"base" : 'MySource',
+                                 "binned" : False,
+                                 "eventclass" : 2,
+                                 "irfs" : "P7SOURCE_V6",
+                                 "verbosity" : 0}):
 
-        self.base = base
+        commonConfig['base'] = base
 
-        self.logger = logging.getLogger('quickAnalysis')
-        self.logger.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(self.base+'_quickAnalysis.log')
-        fh.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        fh.setFormatter(formatter)
-        ch.setFormatter(formatter)
-        self.logger.addHandler(fh)
-        self.logger.addHandler(ch)
+        self.logger = initLogger(base, 'quickAnalysis')
 
         if(configFile):
-            self.logger.info('Reading from config file')
-            if(not os.path.exists(self.base+".cfg")):
-                self.logger.criticial(self.base+".cfg doesn't exist.")
+            try:
+                commonConfig,analysisConfig,likelihoodConfig = readConfig(self.logger,base)
+            except(FileNotFound):
+                self.logger.critical("One or more needed files do not exist")
                 return
-            config = ConfigParser.RawConfigParser()
-            config.read(self.base+'.cfg')
-            ra = config.getfloat('quickAnalysis', 'ra')
-            dec = config.getfloat('quickAnalysis', 'dec')
-            rad = config.getfloat('quickAnalysis', 'rad')
-            tmin = config.getfloat('quickAnalysis', 'tmin')
-            tmax = config.getfloat('quickAnalysis', 'tmax')
-            emin = config.getfloat('quickAnalysis', 'emin')
-            emax = config.getfloat('quickAnalysis', 'emax')
-            zmax = config.getfloat('quickAnalysis', 'zmax')
 
-            irfs = config.get('common','irfs')
-            binned = config.getboolean('common', 'binned')
-            verbosity = config.getboolean('common', 'verbosity')
+        self.commonConf = commonConfig
+        self.analysisConf = analysisConfig
 
-        self.ra = ra
-        self.dec = dec
-        self.rad = rad
-        self.tmin = tmin
-        self.tmax = tmax
-        self.emin = emin
-        self.emax = emax
-        self.zmax = zmax
-        self.binned = binned
-        self.verbosity = verbosity
-        self.irfs = irfs
-        
-        self.logger.info("Created quickAnalysis object: base="+self.base+\
-                             ",ra="+str(self.ra)+\
-                             ",dec="+str(self.dec)+\
-                             ",rad="+str(self.rad)+\
-                             ",tmin="+str(self.tmin)+\
-                             ",tmax="+str(self.tmax)+\
-                             ",emin="+str(self.emin)+\
-                             ",emax="+str(self.emax)+\
-                             ",zmax="+str(self.zmax)+\
-                             ",irfs="+self.irfs+\
-                             ",binned="+str(self.binned))
+        logString = "Created quickAnalysis object: "
+        for variable, value in commonConfig.iteritems():
+            logString += variable+"="+str(value)+","
+        for variable, value in analysisConfig.iteritems():
+            logString += variable+"="+str(value)+","
+        self.logger.info(logString)
             
     def writeConfig(self):
 
         """Writes all of the initialization variables to the config
         file called <basename>.cfg."""
 
-
-        config = ConfigParser.RawConfigParser()
-        config.read(self.base+'.cfg')
-        if(not config.has_section('common')):
-            config.add_section('common')
-        if(config.has_section('quickAnalysis')):
-            self.logger.info("quickAnalysis config exists, overwriting...")
-        else:
-            config.add_section('quickAnalysis')
-
-        config.set('common', 'base', self.base)
-        config.set('common', 'binned', self.binned)
-        config.set('common', 'verbosity', self.verbosity)
-        config.set('common', 'irfs', self.irfs)
-        
-        config.set('quickAnalysis', 'ra', self.ra)
-        config.set('quickAnalysis', 'dec', self.dec)
-        config.set('quickAnalysis', 'rad', self.rad)
-        config.set('quickAnalysis', 'tmin', self.tmin)
-        config.set('quickAnalysis', 'tmax', self.tmax)
-        config.set('quickAnalysis', 'emin', self.emin)
-        config.set('quickAnalysis', 'emax', self.emax)
-        config.set('quickAnalysis', 'zmax', self.zmax)
- 
-        with open(self.base+'.cfg', 'wb') as configfile:
-            config.write(configfile)
+        writeConfig(quickLogger=self.logger,
+                    commonDictionary=self.commonConf,
+                    analysisDictionary=self.analysisConf)
 
     def runCommand(self,AppCommand,run=True):
 
@@ -177,41 +116,23 @@ class quickAnalysis:
         else:
             print AppCommand.command()
             
-    def checkForFiles(self):
-        """Checks for existence of needed files.  You need to have two
-        files to start with: <basename>.list and <basename>_SC.fits.
-        The first one is just a text file with a list of the raw data
-        files (one per line) and the other is the spacecraft file.
-        <basename> is a user defined prefix (usually the source name
-        but not necissarily).  Returns an exception if any of the
-        files are not found."""
-
-        if(not os.path.exists(self.base+".list")):
-            self.logger.critical(self.base+".list doesn't exist.")
-            raise FileNotFound
-            return
-        if(not os.path.exists(self.base+"_SC.fits")):
-            self.logger.critical(self.base+"_SC.fits doesn't exist.")
-            raise FileNotFound
-            return
-
-    def runSelect(self,run = True,evclass=2,convtype=-1):
+    def runSelect(self,run = True,convtype=-1):
 
         """Runs gtselect on the data using the initialization
         parameters. User selected parameters include the conversion
         type and the eventclass."""
 
-        filter['rad'] = self.rad
-        filter['evclass'] = evclass
-        filter['infile'] = "@"+self.base+".list"
-        filter['outfile'] = self.base+"_filtered.fits"
-        filter['ra'] = self.ra
-        filter['dec'] = self.dec
-        filter['tmin'] = self.tmin
-        filter['tmax'] = self.tmax
-        filter['emin'] = self.emin
-        filter['emax'] = self.emax
-        filter['zmax'] = self.zmax
+        filter['rad'] = self.analysisConf['rad']
+        filter['evclass'] = self.commonConf['eventclass']
+        filter['infile'] = "@"+self.commonConf['base']+".list"
+        filter['outfile'] = self.commonConf['base']+"_filtered.fits"
+        filter['ra'] = self.analysisConf['ra']
+        filter['dec'] = self.analysisConf['dec']
+        filter['tmin'] = self.analysisConf['tmin']
+        filter['tmax'] = self.analysisConf['tmax']
+        filter['emin'] = self.analysisConf['emin']
+        filter['emax'] = self.analysisConf['emax']
+        filter['zmax'] = self.analysisConf['zmax']
         filter['convtype'] = convtype
 
         self.runCommand(filter,run)
@@ -220,11 +141,11 @@ class quickAnalysis:
 
         """Executes gtmktime with the given filter"""
 
-        maketime['scfile'] = self.base+'_SC.fits'
+        maketime['scfile'] = self.commonConf['base']+'_SC.fits'
         maketime['filter'] = filterString
         maketime['roicut'] = roi
-        maketime['evfile'] = self.base+'_filtered.fits'
-        maketime['outfile'] = self.base+'_filtered_gti.fits'
+        maketime['evfile'] = self.commonConf['base']+'_filtered.fits'
+        maketime['outfile'] = self.commonConf['base']+'_filtered_gti.fits'
 
         self.runCommand(maketime,run)
 
@@ -232,9 +153,9 @@ class quickAnalysis:
 
         """Generates a livetime cube"""
 
-        expCube['evfile'] = self.base+'_filtered_gti.fits'
-        expCube['scfile'] = self.base+'_SC.fits'
-        expCube['outfile'] = self.base+'_ltcube.fits'
+        expCube['evfile'] = self.commonConf['base']+'_filtered_gti.fits'
+        expCube['scfile'] = self.commonConf['base']+'_SC.fits'
+        expCube['outfile'] = self.commonConf['base']+'_ltcube.fits'
         expCube['dcostheta'] = 0.025
         expCube['binsz'] = 1
         expCube['zmax'] = zmax
@@ -246,12 +167,12 @@ class quickAnalysis:
         """Generates an exposure map that is 10 degrees larger than
         the ROI and has 120 pixels in each direction."""
 
-        expMap['evfile'] = self.base+'_filtered_gti.fits'
-        expMap['scfile'] = self.base+'_SC.fits'
-        expMap['expcube'] = self.base+'_ltcube.fits'
-        expMap['outfile'] = self.base+'_expMap.fits'
-        expMap['irfs'] = self.irfs
-        expMap['srcrad'] = self.rad + 10.
+        expMap['evfile'] = self.commonConf['base']+'_filtered_gti.fits'
+        expMap['scfile'] = self.commonConf['base']+'_SC.fits'
+        expMap['expcube'] = self.commonConf['base']+'_ltcube.fits'
+        expMap['outfile'] = self.commonConf['base']+'_expMap.fits'
+        expMap['irfs'] = self.commonConf['irfs']
+        expMap['srcrad'] = float(self.analysisConf['rad']) + 10.
         expMap['nlong'] = 120
         expMap['nlat'] = 120
         expMap['nenergies'] = 20
@@ -267,22 +188,22 @@ class quickAnalysis:
         calculation floors the calculated value.  The number of energy
         bins is logarithmic and is defined by the nbins variable."""
 
-        npix = int((self.rad/math.sqrt(2.0))*2.0 / bin_size)
+        npix = NumberOfPixels(float(self.analysisConf['rad']), bin_size)
 
-        evtbin['evfile'] = self.base+'_filtered_gti.fits'
-        evtbin['outfile'] = self.base+'_CCUBE.fits'
+        evtbin['evfile'] = self.commonConf['base']+'_filtered_gti.fits'
+        evtbin['outfile'] = self.commonConf['base']+'_CCUBE.fits'
         evtbin['algorithm'] = 'CCUBE'
         evtbin['nxpix'] = npix
         evtbin['nypix'] = npix
         evtbin['binsz'] = bin_size
         evtbin['coordsys'] = 'CEL'
-        evtbin['xref'] = self.ra
-        evtbin['yref'] = self.dec
+        evtbin['xref'] = self.analysisConf['ra']
+        evtbin['yref'] = self.analysisConf['dec']
         evtbin['axisrot'] = 0
         evtbin['proj'] = 'AIT'
         evtbin['ebinalg'] = 'LOG'
-        evtbin['emin'] = self.emin
-        evtbin['emax'] = self.emax
+        evtbin['emin'] = self.analysisConf['emin']
+        evtbin['emax'] = self.analysisConf['emax']
         evtbin['enumbins'] = nbins
 
         self.runCommand(evtbin,run)
@@ -295,17 +216,17 @@ class quickAnalysis:
         square might not be the largest posible since the npix
         calculation floors the calculated value."""
 
-        npix = int((self.rad/math.sqrt(2.0))*2.0 / bin_size)
+        npix = NumberOfPixels(float(self.analysisConf['rad']), bin_size)
 
-        evtbin['evfile'] = self.base+'_filtered_gti.fits'
-        evtbin['outfile'] = self.base+'_CMAP.fits'
+        evtbin['evfile'] = self.commonConf['base']+'_filtered_gti.fits'
+        evtbin['outfile'] = self.commonConf['base']+'_CMAP.fits'
         evtbin['algorithm'] = 'CMAP'
         evtbin['nxpix'] = npix
         evtbin['nypix'] = npix
         evtbin['binsz'] = bin_size
         evtbin['coordsys'] = 'CEL'
-        evtbin['xref'] = self.ra
-        evtbin['yref'] = self.dec
+        evtbin['xref'] = self.analysisConf['ra']
+        evtbin['yref'] = self.analysisConf['dec']
         evtbin['axisrot'] = 0
         evtbin['proj'] = 'AIT'
     
@@ -321,14 +242,14 @@ class quickAnalysis:
         and the number of energy bins is defined by the nbins
         variable."""
 
-        npix = int(((self.rad+20.)/math.sqrt(2.0))*2.0 / bin_size)
+        npix = NumberOfPixels(float(self.analysisConf['rad']), bin_size)
 
-        cmd = "gtexpcube2 infile="+self.base+"_ltcube.fits"\
+        cmd = "gtexpcube2 infile="+self.commonConf['base']+"_ltcube.fits"\
             +" cmap=none"\
-            +" outfile="+self.base+"_BinnedExpMap.fits"\
-            +" irfs="+self.irfs\
-            +" xref="+str(self.ra)\
-            +" yref="+str(self.dec)\
+            +" outfile="+self.commonConf['base']+"_BinnedExpMap.fits"\
+            +" irfs="+self.commonConf['irfs']\
+            +" xref="+str(self.analysisConf['ra'])\
+            +" yref="+str(self.analysisConf['dec'])\
             +" nxpix="+str(npix)\
             +" nypix="+str(npix)\
             +" binsz="+str(bin_size)\
@@ -336,8 +257,8 @@ class quickAnalysis:
             +" axisrot=0"\
             +" proj=AIT"\
             +" ebinalg=LOG"\
-            +" emin="+str(self.emin)\
-            +" emax="+str(self.emax)\
+            +" emin="+str(self.analysisConf['emin'])\
+            +" emax="+str(self.analysisConf['emax'])\
             +" enumbins="+str(nbins)
             
         if(run):
@@ -346,46 +267,36 @@ class quickAnalysis:
         else:
             print cmd
 
-    def generateXMLmodel(self, 
-                         galactic_file="gal_2yearp7v6_v0.fits", 
-                         isotropic_file="iso_p7v6source.txt", 
-                         catalog_file="gll_psc_v05.fit"):
-
-        """Checks to see if <basename>_model.xml exists and creates
-        one using the make2FGLXML module if it doesn't.
-        make2FGLXml.py must be in the working directory or accessable
-        to python for this function to work.  The galactic and
-        isotropic models plus the Fermi LAT catalog must also be in
-        the working directory.  Additionally, if any extended sources
-        are in the ROI, the diffuse templates for those sources should
-        be in the working directory."""
-
-        if(os.path.exists(self.base+"_model.xml")):
-            self.logger.info(self.base+"_model.xml exists, won't create a new one.")
-        else:
-            self.logger.info(self.base+"_model.xml doesn't exists, will create a new one.")
-            import make2FGLxml
+    def generateXMLmodel(self):
         
-            mymodel = make2FGLxml.srcList(catalog_file,self.base+"_filtered_gti.fits",self.base+"_model.xml")
-            mymodel.makeModel(galactic_file, 'gal_2yearp7v6_v0', isotropic_file, 'iso_p7v6source')
-
-            self.logger.info("NOTE: if there are extended sources in your ROI, make sure the "\
-                                 +"correspoinding diffuse template is in the working directory.")
+        """Calls the quickUtils function to make an XML model of your
+        region based on the 2FGL. make2FGLXml.py needs to be in your
+        python path.  This needs to have the galactic and isotropic
+        diffuse models in your working directory as well as the 2FGL
+        catalog in FITS format.  See the corresponding function in
+        quickUtils for more details."""
         
+        try:
+            generateXMLmodel(self.logger, self.commonConf['base'])
+        except(FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            return
 
     def runSrcMaps(self, run=True):
 
-        """Generates a source map for your region."""
+        """Generates a source map for your region.  Checks to make
+        sure that there's an XML model to be had and if not, creates
+        one from the 2FGL."""
 
         self.generateXMLmodel()
 
-        srcMaps['scfile'] = self.base+"_SC.fits"
-        srcMaps['expcube'] = self.base+"_ltcube.fits"
-        srcMaps['cmap'] = self.base+"_CCUBE.fits"
-        srcMaps['srcmdl'] = self.base+"_model.xml"
-        srcMaps['bexpmap'] = self.base+"_BinnedExpMap.fits"
-        srcMaps['outfile'] = self.base+"_srcMaps.fits"
-        srcMaps['irfs'] = self.irfs
+        srcMaps['scfile'] = self.commonConf['base']+"_SC.fits"
+        srcMaps['expcube'] = self.commonConf['base']+"_ltcube.fits"
+        srcMaps['cmap'] = self.commonConf['base']+"_CCUBE.fits"
+        srcMaps['srcmdl'] = self.commonConf['base']+"_model.xml"
+        srcMaps['bexpmap'] = self.commonConf['base']+"_BinnedExpMap.fits"
+        srcMaps['outfile'] = self.commonConf['base']+"_srcMaps.fits"
+        srcMaps['irfs'] = self.commonConf['irfs']
         srcMaps['rfactor'] = 4
         srcMaps['emapbnds'] = "no"
 
@@ -395,12 +306,12 @@ class quickAnalysis:
 
         """Generates a model map."""
         
-        model_map['srcmaps'] = self.base+"_srcMaps.fits"
-        model_map['srcmdl'] = self.base+"_model.xml"
-        model_map['outfile'] = self.base+"_modelMap.fits"
-        model_map['expcube'] = self.base+"_ltcube.fits"
-        model_map['irfs'] = self.irfs
-        model_map['bexpmap'] = self.base+"_BinnedExpMap.fits"
+        model_map['srcmaps'] = self.commonConf['base']+"_srcMaps.fits"
+        model_map['srcmdl'] = self.commonConf['base']+"_model.xml"
+        model_map['outfile'] = self.commonConf['base']+"_modelMap.fits"
+        model_map['expcube'] = self.commonConf['base']+"_ltcube.fits"
+        model_map['irfs'] = self.commonConf['irfs']
+        model_map['bexpmap'] = self.commonConf['base']+"_BinnedExpMap.fits"
 
         self.runCommand(model_map,run)
 
@@ -408,11 +319,16 @@ class quickAnalysis:
 
         """Does a full event selection and exposure calculation.  This
         is the function called when this module is run from the
-        command line."""
+        command line.  You need to have two files to start with:
+        <basename>.list and <basename>_SC.fits.  The first one is just
+        a text file with a list of the raw data files (one per line)
+        and the other is the spacecraft file.  <basename> is a user
+        defined prefix (usually the source name but not necissarily).
+        Returns an exception if any of the files are not found."""
 
         self.logger.info("***Checking for files***")
         try:
-            self.checkForFiles()
+            checkForFiles(self.logger,[self.commonConf['base']+".list",self.commonConf['base']+"_SC.fits"])
         except(FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
@@ -423,7 +339,7 @@ class quickAnalysis:
         self.logger.info("***Running gtltcube***")
         self.runLTCube(run)
 
-        if(self.binned):
+        if(self.commonConf['binned']):
             self.logger.info("***Running gtbin***")
             self.runCCUBE(run)
             self.logger.info("***Running gtexpcube2***")
