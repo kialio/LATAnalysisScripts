@@ -155,7 +155,7 @@ class quickAnalysis:
 
         expCube['evfile'] = self.commonConf['base']+'_filtered_gti.fits'
         expCube['scfile'] = self.commonConf['base']+'_SC.fits'
-        expCube['outfile'] = self.commonConf['base']+'_ltcube.fits'
+        expCube['outfile'] = self.commonConf['base']+'_ltCube.fits'
         expCube['dcostheta'] = 0.025
         expCube['binsz'] = 1
         expCube['zmax'] = zmax
