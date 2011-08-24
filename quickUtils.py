@@ -145,7 +145,7 @@ def generateXMLmodel(quickLogger,
     except(FileNotFound):
         quickLogger.info(base+"_model.xml doesn't exist, will create a new one.")        
         try:
-            checkForFiles(quickLogger,[galactic_file,isotropic_file,catalog_file])
+            checkForFiles(quickLogger,[base+"_filtered_gti.fits",galactic_file,isotropic_file,catalog_file])
             import make2FGLxml
             mymodel = make2FGLxml.srcList(catalog_file,base+"_filtered_gti.fits",base+"_model.xml")
             mymodel.makeModel(galactic_file, 'gal_2yearp7v6_v0', isotropic_file, 'iso_p7v6source')

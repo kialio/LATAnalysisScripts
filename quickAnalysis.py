@@ -14,7 +14,7 @@ First, generate a default config file:
 
 > quickAnalysis -c
 
-The, edit the config file to match your specific analysis by filling
+Then edit the config file to match your specific analysis by filling
 out the various options.  Next, run the command again:
 
 > quickAnalysis <basename>
@@ -357,7 +357,7 @@ def cli():
     class BadUsage: pass
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'c')
+        opts, args = getopt.getopt(sys.argv[1:], 'cm')
         
         for opt, val in opts:
             if opt == '-c':
@@ -365,6 +365,14 @@ def cli():
                 qA = quickAnalysis("example")
                 qA.writeConfig()
                 return
+            elif opt == '-m':
+                print "Creating model file from 2FGL called example_model.xml"
+                if(not args): 
+                    raise BadUsage
+                else:
+                    qA = quickAnalysis(sys.argv[2])
+                    qA.generateXMLmodel()
+                    return
 
         if not args: raise BadUsage
         for arg in args:
@@ -373,11 +381,27 @@ def cli():
 
     except (getopt.error, BadUsage):
         cmd = os.path.basename(sys.argv[0])
-        print """quickAnalysis - Perform event selections and exposure calculations for Fermi LAT data.
+        print """quickAnalysis - Perform event selections and exposure
+        calculations for Fermi LAT data.  You can use the command line
+        functions listed below or run this module from within
+        python. For full documentation on this module execute 'pydoc
+        quickAnalysis'.
 
-%s <basename> ...  Perform an analysis on <basename>.  <basename> is
-    the prefix used for this analysis.  You must already have a
-    configuration file if using the command line interface.
-""" %(cmd)
+python %s <basename> ...  Perform an analysis on <basename>.
+    <basename> is the prefix used for this analysis.  You must already
+    have a configuration file if using the command line interface.
+
+python %s -c ... Generate a default config file called example.cfg.
+    Edit this file and rename it <basename>.cfg for use in the
+    quickAnalysis module.
+
+python %s -m <basename> ... Generate a model file from the 2FGL.  You
+    need to already have <basename>_filtered_gti.fits in your working
+    directory.  You can get this file by running the functions
+    runSelect and runGTI on your data.  You also need to have the
+    galactic and isotropic diffuse models in your working directory as
+    well as the 2FGL model file.
+
+""" %(cmd,cmd,cmd)
 
 if __name__ == '__main__': cli()
