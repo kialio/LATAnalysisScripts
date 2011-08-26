@@ -377,7 +377,7 @@ def cli():
         if not args: raise BadUsage
         for arg in args:
             qA = quickAnalysis(arg, True)
-            qA.runAll(False)
+            qA.runAll(True)
 
     except (getopt.error, BadUsage):
         cmd = os.path.basename(sys.argv[0])
