@@ -149,11 +149,11 @@ class quickLike:
                 checkForFiles(self.logger,[self.commonConf['base']+'_filtered_gti.fits',
                                            self.commonConf['base']+'_SC.fits',
                                            self.commonConf['base']+'_expMap.fits',
-                                           self.commonConf['base']+'_ltCube.fits'])
+                                           self.commonConf['base']+'_ltcube.fits'])
                 self.obs = UnbinnedObs(self.commonConf['base']+'_filtered_gti.fits',
                                        self.commonConf['base']+'_SC.fits',
                                        expMap=self.commonConf['base']+'_expMap.fits',
-                                       expCube=self.commonConf['base']+'_ltCube.fits',
+                                       expCube=self.commonConf['base']+'_ltcube.fits',
                                        irfs=self.commonConf['irfs'])
             except(FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
