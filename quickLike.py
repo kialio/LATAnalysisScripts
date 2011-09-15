@@ -170,7 +170,7 @@ class quickLike:
         try:
             self.obs
         except AttributeError:
-            self.logger.critical("Obs object does not exsist.  Create it first with the makeObs function")
+            self.logger.critical("Obs object does not exist.  Create it first with the makeObs function")
             return
 
         try:
@@ -196,7 +196,7 @@ class quickLike:
         try:
             self.obs
         except AttributeError:
-            self.logger.critical("Obs object does not exsist.  Create it first with the makeObs function")
+            self.logger.critical("Obs object does not exist.  Create it first with the makeObs function")
             return
 
         try:
@@ -371,7 +371,28 @@ class quickLike:
             logString += paramName + ": " + str(paramValue) + " "
 
         self.logger.info(logString)
-        
+
+    def customERange(self,Emin,Emax):
+
+        """Sets a smaller energy range for the fitting of both the DRM
+        and MIN optimization steps."""
+
+        try:
+            self.DRM
+        except AttributeError:
+            self.logger.warn("DRM object doesn't exist.  Energy range not modified.")
+        else:
+            self.DRM.setEnergyRange(Emin,Emax)
+            self.logger.info("Set energy range for DRM to "+str(self.DRM.emin)+","+str(self.DRM.emax))
+
+        try:
+            self.MIN
+        except AttributeError:
+            self.logger.warn("MIN object doesn't exist.  Energy range not modified.")
+        else:
+            self.MIN.setEnergyRange(Emin,Emax)
+            self.logger.info("Set energy range for MIN to "+str(self.MIN.emin)+","+str(self.MIN.emax))
+                
     def calcUpper(self,source,Emin=100,Emax=300000):
 
         """Calculates an upper limit for a source in your model."""
