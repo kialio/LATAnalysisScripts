@@ -365,6 +365,14 @@ def cli():
                 qA = quickAnalysis("example")
                 qA.writeConfig()
                 return
+            elif opt == '-M':
+                print "Creating model map"
+                if(not args):
+                    raise BadUsage
+                else:
+                    qA = quickAnalysis(sys.argv[2])
+                    qA.runModel()
+                    return
             elif opt == '-m':
                 print "Creating model file from 2FGL called example_model.xml"
                 if(not args): 
@@ -401,6 +409,10 @@ python %s -m <basename> ... Generate a model file from the 2FGL.  You
     runSelect and runGTI on your data.  You also need to have the
     galactic and isotropic diffuse models in your working directory as
     well as the 2FGL model file.
+
+python %s -M <basename> ... Generate a model map based on the model
+    file in your config file.  You need to have several files already
+    computed.  It's best to do the runAll script before trying this.
 
 """ %(cmd,cmd,cmd)
 
