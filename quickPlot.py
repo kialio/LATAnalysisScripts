@@ -3,6 +3,8 @@ from gt_apps import *
 from math import *
 from ds9 import *
 
+"ciao"
+
 class quickPlot:
 
     def __init__(self,base='MySource',irfs='P6_V11_DIFFUSE',model='MySource_model.xml'):
