@@ -105,17 +105,6 @@ class quickAnalysis:
                     commonDictionary=self.commonConf,
                     analysisDictionary=self.analysisConf)
 
-    def runCommand(self,AppCommand,run=True):
-
-        """Runs a giving command if run is True.  If run is False,
-        prints out what the function would run."""
-
-        if(run):
-            AppCommand.run()
-            self.logger.info(AppCommand.command())
-        else:
-            print AppCommand.command()
-            
     def runSelect(self,run = True,convtype=-1):
 
         """Runs gtselect on the data using the initialization
@@ -135,7 +124,7 @@ class quickAnalysis:
         filter['zmax'] = self.analysisConf['zmax']
         filter['convtype'] = convtype
 
-        self.runCommand(filter,run)
+        self.runCommand(filter,self.logger,run)
         
     def runGTI(self, run = True, filterString="DATA_QUAL==1 && LAT_CONFIG==1 && ABS(ROCK_ANGLE)<52",roi = 'yes'):
 
@@ -147,7 +136,7 @@ class quickAnalysis:
         maketime['evfile'] = self.commonConf['base']+'_filtered.fits'
         maketime['outfile'] = self.commonConf['base']+'_filtered_gti.fits'
 
-        self.runCommand(maketime,run)
+        self.runCommand(maketime,self.logger,run)
 
     def runLTCube(self, run=True, zmax=180):
 
@@ -160,7 +149,7 @@ class quickAnalysis:
         expCube['binsz'] = 1
         expCube['zmax'] = zmax
 
-        self.runCommand(expCube,run)
+        self.runCommand(expCube,self.logger,run)
 
     def runExpMap(self, run=True):
 
@@ -177,7 +166,7 @@ class quickAnalysis:
         expMap['nlat'] = 120
         expMap['nenergies'] = 20
 
-        self.runCommand(expMap,run)
+        self.runCommand(expMap,self.logger,run)
 
     def runCCUBE(self, run=True,bin_size=0.1,nbins=30):
 
@@ -206,7 +195,7 @@ class quickAnalysis:
         evtbin['emax'] = self.analysisConf['emax']
         evtbin['enumbins'] = nbins
 
-        self.runCommand(evtbin,run)
+        self.runCommand(evtbin,self.logger,run)
 
     def runCMAP(self, run=True,bin_size=0.1):
         
@@ -230,7 +219,7 @@ class quickAnalysis:
         evtbin['axisrot'] = 0
         evtbin['proj'] = 'AIT'
     
-        self.runCommand(evtbin,run)
+        self.runCommand(evtbin,self.logger,run)
 
     def runExpCube(self,run=True,bin_size=0.1,nbins=30):
 
@@ -300,20 +289,7 @@ class quickAnalysis:
         srcMaps['rfactor'] = 4
         srcMaps['emapbnds'] = "no"
 
-        self.runCommand(srcMaps,run)
-
-    def runModel(self,run=True):
-
-        """Generates a model map."""
-        
-        model_map['srcmaps'] = self.commonConf['base']+"_srcMaps.fits"
-        model_map['srcmdl'] = self.commonConf['base']+"_model.xml"
-        model_map['outfile'] = self.commonConf['base']+"_modelMap.fits"
-        model_map['expcube'] = self.commonConf['base']+"_ltcube.fits"
-        model_map['irfs'] = self.commonConf['irfs']
-        model_map['bexpmap'] = self.commonConf['base']+"_BinnedExpMap.fits"
-
-        self.runCommand(model_map,run)
+        self.runCommand(srcMaps,self.logger,run)
 
     def runAll(self, run=True):
 
@@ -371,7 +347,7 @@ def cli():
                     raise BadUsage
                 else:
                     qA = quickAnalysis(sys.argv[2])
-                    qA.runModel()
+                    runModel(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
                     return
             elif opt == '-m':
                 print "Creating model file from 2FGL called example_model.xml"
