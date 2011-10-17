@@ -62,7 +62,9 @@ def writeConfig(quickLogger, commonDictionary, analysisDictionary = {}, likeliho
 def readConfig(quickLogger,basename):
 
     """Returns all of the needed information from the config file
-    called <basename>.cfg"""
+    called <basename>.cfg.  Also checks to make sure all of the 
+    config parameters are set based on the configure dictionaries
+    given in the configDictionaryList."""
 
     commonDictionary = {}
     analysisDictionary = {}
@@ -96,6 +98,19 @@ def readConfig(quickLogger,basename):
         raise FileNotFound
         return
 
+def checkConfig(referenceDictionary,testDictionary):
+
+    """Checks a dictionary against a refernece to make sure that all
+    of the parameters are there."""
+
+    try:
+        for key in referenceDictionary:
+            item = testDictionary[key]
+        return 0
+    except KeyError as inst:
+        return inst.args[0]
+    
+        
 def initLogger(base, name):
 
     """Sets up and returns a properly configured logging object."""

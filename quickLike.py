@@ -76,11 +76,11 @@ class quickLike:
                  base = 'MySource',
                  configFile = False,
                  likelihoodConfig = {"model" : "MySource_model.xml",
-                                     "sourceName" : "Source Name",
+                                     "sourcename" : "Source Name",
                                      "drmtol" : 0.1,
                                      "mintol" : 1e-4},
                  commonConfig = {"base" : 'MySource',
-                                 "eventClass" : 2,
+                                 "eventclass" : 2,
                                  "binned" : False,
                                  "irfs" : "P7SOURCE_V6",
                                  "verbosity" : 0}):
@@ -91,10 +91,24 @@ class quickLike:
 
         if(configFile):
             try:
-                commonConfig,analysisConfig,likelihoodConfig = readConfig(self.logger,base)
+                commonConfigRead,analysisConfigRead,likelihoodConfigRead = readConfig(self.logger,base)
             except(FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
+        
+        badConfigItem = checkConfig(commonConfig,commonConfigRead)
+        if(badConfigItem):
+            self.logger.critical("Cannont find "+badConfigItem+" in the config file")
+            return
+        else:
+           commmonConfig = commonConfigRead 
+
+        badConfigItem = checkConfig(likelihoodConfig,likelihoodConfigRead)
+        if(badConfigItem):
+            self.logger.critical("Cannont find "+badConfigItem+" in the config file")
+            return
+        else:
+           likelihoodConfig = likelihoodConfigRead 
 
         self.commonConf = commonConfig
         self.likelihoodConf = likelihoodConfig
@@ -436,7 +450,7 @@ class quickLike:
             self.logger.warn("Fit isn't current, these values might not be correct.  Run fitMIN first.")
 
         if(mySource == ''):
-            mySource = self.likelihoodConf['sourceName']
+            mySource = self.likelihoodConf['sourcename']
         for name in self.MIN.sourceNames():
             remove = False
             distance = 0
