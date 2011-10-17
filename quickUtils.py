@@ -23,7 +23,7 @@ def checkForFiles(quickLogger, fileList):
             quickLogger.critical(filename+" doesn't exist.")
             raise FileNotFound
         
-def writeConfig(quickLogger, commonDictionary, analysisDictionary = {}, likelihoodDictionary = {}):
+def writeConfig(quickLogger, commonDictionary, analysisDictionary = {}, likelihoodDictionary = {}, plotDictionary = {}):
 
     """Writes all of the needed information to the config file called
     <basename>.cfg"""
@@ -56,6 +56,15 @@ def writeConfig(quickLogger, commonDictionary, analysisDictionary = {}, likeliho
         for variable, value in likelihoodDictionary.iteritems():
             config.set('quickLike', variable, value)
 
+    if(plotDictionary):
+        if(config.has_section('quickPlot')):
+            print "quickPlot config exists, overwriting..."
+            quickLogger.info("quickPlot config exists, overwriting...")        
+        else:
+            config.add_section('quickPlot')            
+        for variable, value in plotDictionary.iteritems():
+            config.set('quickPlot', variable, value)
+
     with open(basename+'.cfg', 'wb') as configfile:
         config.write(configfile)
 
@@ -67,6 +76,7 @@ def readConfig(quickLogger,basename):
     commonDictionary = {}
     analysisDictionary = {}
     likelihoodDictionary = {}
+    plotDictionary = {}
 
     try:
         checkForFiles(quickLogger,[basename+".cfg"])
@@ -90,7 +100,11 @@ def readConfig(quickLogger,basename):
             quickLogger.info('Reading quickLike variables...')
             likelihoodDictionary = dict(config.items('quickLike'))
 
-        return commonDictionary,analysisDictionary,likelihoodDictionary
+        if(config.has_section('quickPlot')):
+            quickLogger.info('Reading quickPlot variables...')
+            likelihoodDictionary = dict(config.items('quickPlot'))
+
+        return commonDictionary,analysisDictionary,likelihoodDictionary,plotDictionary
 
     except(FileNotFound):
         raise FileNotFound
@@ -154,4 +168,31 @@ def generateXMLmodel(quickLogger,
         except(FileNotFound):
             raise FileNotFound
         
+      
+
+def runCommand(AppCommand,quickLogger,run=True):
+
+    """Runs a giving command if run is True.  If run is False,
+    prints out what the function would run."""
+
+    if(run):
+        AppCommand.run()
+        quickLogger.info(AppCommand.command())
+    else:
+        print AppCommand.command()
+            
+
+def runModel(quickLogger,
+	     base,
+	     irfs="P7SOURCE_V6"):
+	
+    """Generates a model map."""
         
+    model_map['srcmaps'] = base+"_srcMaps.fits"
+    model_map['srcmdl']  = base+"_model.xml"
+    model_map['outfile'] = base+"_modelMap.fits"
+    model_map['expcube'] = base+"_ltcube.fits"
+    model_map['irfs']    = irfs
+    model_map['bexpmap'] = base+"_BinnedExpMap.fits"
+  
+    runCommand(createModel,quickLogger,run)
