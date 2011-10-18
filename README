@@ -10,13 +10,44 @@ package which can be found at http://hea-www.harvard.edu/RD/ds9/.
 
 To install:
 
+   # verify that you have installed pyds9 and that the Fermi
+   # Science tools are properly installed and set up
 
+   # unpack the source tar file and change to the source directory
+   > tar zxvf LATAnalysisScripts-0.1.0.tar.gz
+   > cd LATAnalysisScripts-0.1.0
 
+   # install in the default python directory in the Fermi Science
+   # tools directory
+   > python setup.py install
 
+To run:
+   
+   # start up python
+   > python
+   >>> from quickAnalysis import *
+   >>> qA = quickAnalysis()
+   ...
 
+or
 
+   # from the command line
+   > python quickAnalysis.py
 
+   
+The LAT Analysis Scripts are a collection of three modules
+(quickAnalysis, quickLike and quickPlot) as well as a helper module
+called quickUtils.  For more information and help on these individual
+modules check the documentation.
 
+From the command line:
+
+   > pydoc quickAnalysis.py
+
+or from python:
+
+   > python
+   >>> help(quickAnalysis)
 
 The setup.py install will install the LATAnalysisScripts into the
 FERMI_DIR python directory if you have set up the Fermi Science Tools
