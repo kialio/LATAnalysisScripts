@@ -1,0 +1,27 @@
+			Fermi LAT Analysis Scripts (version 0.1)
+
+The Fermi Science Tools (http://fermi.gsfc.nasa.gov/ssc) are a suite
+of tools developed for the analysis of both Fermi LAT and GBM
+data. This suite was developed by the FSSC and the instrument teams,
+and was reviewed by the Fermi Users' Group.  The LATAnalysisScripts
+module is a set of python modules to facilitate the analysis of LAT
+data.  This package depends on the Fermi Science Tools and the pyds9
+package which can be found at http://hea-www.harvard.edu/RD/ds9/.
+
+To install:
+
+
+
+
+
+
+
+
+
+The setup.py install will install the LATAnalysisScripts into the
+FERMI_DIR python directory if you have set up the Fermi Science Tools
+prior to the install process.
+
+Contact fermihelp@milkyway.gsfc.nasa.gov for help.
+
+Jeremy Perkins
