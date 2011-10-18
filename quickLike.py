@@ -91,24 +91,18 @@ class quickLike:
 
         if(configFile):
             try:
-                commonConfigRead,analysisConfigRead,likelihoodConfigRead = readConfig(self.logger,base)
+                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = readConfig(self.logger,base)
             except(FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
-        
-        badConfigItem = checkConfig(commonConfig,commonConfigRead)
-        if(badConfigItem):
-            self.logger.critical("Cannont find "+badConfigItem+" in the config file")
-            return
-        else:
-           commmonConfig = commonConfigRead 
-
-        badConfigItem = checkConfig(likelihoodConfig,likelihoodConfigRead)
-        if(badConfigItem):
-            self.logger.critical("Cannont find "+badConfigItem+" in the config file")
-            return
-        else:
-           likelihoodConfig = likelihoodConfigRead 
+            try:
+                commonConfig = checkConfig(self.logger,commonConfig,commonConfigRead)
+            except(KeyError):
+                return
+            try:
+                likelihoodConfig = checkConfig(self.logger,likelihoodConfig,likelihoodConfigRead)
+            except(KeyError):
+                return
 
         self.commonConf = commonConfig
         self.likelihoodConf = likelihoodConfig

@@ -81,9 +81,17 @@ class quickAnalysis:
 
         if(configFile):
             try:
-                commonConfig,analysisConfig,likelihoodConfig = readConfig(self.logger,base)
+                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = readConfig(self.logger,base)
             except(FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
+                return
+            try:
+                commonConfig = checkConfig(self.logger,commonConfig,commonConfigRead)
+            except(KeyError):
+                return
+            try:
+                analysisConfig = checkConfig(self.logger,analysisConfig,analysisConfigRead)
+            except(KeyError):
                 return
 
         self.commonConf = commonConfig
@@ -124,7 +132,7 @@ class quickAnalysis:
         filter['zmax'] = self.analysisConf['zmax']
         filter['convtype'] = convtype
 
-        self.runCommand(filter,self.logger,run)
+        runCommand(filter,self.logger,run)
         
     def runGTI(self, run = True, filterString="DATA_QUAL==1 && LAT_CONFIG==1 && ABS(ROCK_ANGLE)<52",roi = 'yes'):
 
@@ -136,7 +144,7 @@ class quickAnalysis:
         maketime['evfile'] = self.commonConf['base']+'_filtered.fits'
         maketime['outfile'] = self.commonConf['base']+'_filtered_gti.fits'
 
-        self.runCommand(maketime,self.logger,run)
+        runCommand(maketime,self.logger,run)
 
     def runLTCube(self, run=True, zmax=180):
 
@@ -149,7 +157,7 @@ class quickAnalysis:
         expCube['binsz'] = 1
         expCube['zmax'] = zmax
 
-        self.runCommand(expCube,self.logger,run)
+        runCommand(expCube,self.logger,run)
 
     def runExpMap(self, run=True):
 
@@ -166,7 +174,7 @@ class quickAnalysis:
         expMap['nlat'] = 120
         expMap['nenergies'] = 20
 
-        self.runCommand(expMap,self.logger,run)
+        runCommand(expMap,self.logger,run)
 
     def runCCUBE(self, run=True,bin_size=0.1,nbins=30):
 
@@ -195,7 +203,7 @@ class quickAnalysis:
         evtbin['emax'] = self.analysisConf['emax']
         evtbin['enumbins'] = nbins
 
-        self.runCommand(evtbin,self.logger,run)
+        runCommand(evtbin,self.logger,run)
 
     def runCMAP(self, run=True,bin_size=0.1):
         
@@ -219,7 +227,7 @@ class quickAnalysis:
         evtbin['axisrot'] = 0
         evtbin['proj'] = 'AIT'
     
-        self.runCommand(evtbin,self.logger,run)
+        runCommand(evtbin,self.logger,run)
 
     def runExpCube(self,run=True,bin_size=0.1,nbins=30):
 
@@ -279,6 +287,15 @@ class quickAnalysis:
 
         self.generateXMLmodel()
 
+        try:
+            checkForFiles(self.logger,[self.commonConf['base']+"_CCUBE.fits",
+                                       self.commonConf['base']+"_ltcube.fits",
+                                       self.commonConf['base']+"_BinnedExpMap.fits",
+                                       self.commonConf['base']+"_SC.fits",])
+        except(FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            return
+
         srcMaps['scfile'] = self.commonConf['base']+"_SC.fits"
         srcMaps['expcube'] = self.commonConf['base']+"_ltcube.fits"
         srcMaps['cmap'] = self.commonConf['base']+"_CCUBE.fits"
@@ -289,7 +306,13 @@ class quickAnalysis:
         srcMaps['rfactor'] = 4
         srcMaps['emapbnds'] = "no"
 
-        self.runCommand(srcMaps,self.logger,run)
+        runCommand(srcMaps,self.logger,run)
+
+    def runModel(self, run=True):
+
+        """Wrapper for the same function in quickUtils"""
+
+        runModel(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
 
     def runAll(self, run=True):
 

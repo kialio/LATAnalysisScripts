@@ -11,8 +11,10 @@ import os
 import logging
 import math
 import ConfigParser
+from gt_apps import *
 
 class FileNotFound: pass
+class CommandNotFound: pass
 
 def checkForFiles(quickLogger, fileList):
     
@@ -22,6 +24,20 @@ def checkForFiles(quickLogger, fileList):
         if(not os.path.exists(filename)):
             quickLogger.critical(filename+" doesn't exist.")
             raise FileNotFound
+
+def checkForCommand(quickLogger, commandList):
+
+    """Checks for the existence of a certain command."""
+
+    for command in commandList:
+
+        cmd = "which -s " + command + " > " + os.devnull + " 2>&1"
+        retcode = os.system(cmd)
+        
+        if(retcode):
+            quickLogger.critical("unix command "+command+" not found.")
+            raise CommandNotFound
+        
         
 def writeConfig(quickLogger, commonDictionary, analysisDictionary = {}, likelihoodDictionary = {}, plotDictionary = {}):
 
@@ -37,33 +53,34 @@ def writeConfig(quickLogger, commonDictionary, analysisDictionary = {}, likeliho
 
     for variable, value in commonDictionary.iteritems():
         config.set('common', variable, value)
+    quickLogger.info("wrote common config to "+basename+".cfg.")
 
     if(analysisDictionary):
         if(config.has_section('quickAnalysis')):
-            print "quickAnalysis config exists, overwriting..."
             quickLogger.info("quickAnalysis config exists, overwriting...")        
         else:
             config.add_section('quickAnalysis')            
         for variable, value in analysisDictionary.iteritems():
             config.set('quickAnalysis', variable, value)
+        quickLogger.info("wrote quickAnalysis config to "+basename+".cfg.")
 
     if(likelihoodDictionary):
         if(config.has_section('quickLike')):
-            print "quickLike config exists, overwriting..."
             quickLogger.info("quickLike config exists, overwriting...")        
         else:
             config.add_section('quickLike')            
         for variable, value in likelihoodDictionary.iteritems():
             config.set('quickLike', variable, value)
+        quickLogger.info("wrote quickLikeconfig to "+basename+".cfg.")
 
     if(plotDictionary):
         if(config.has_section('quickPlot')):
-            print "quickPlot config exists, overwriting..."
             quickLogger.info("quickPlot config exists, overwriting...")        
         else:
             config.add_section('quickPlot')            
         for variable, value in plotDictionary.iteritems():
             config.set('quickPlot', variable, value)
+        quickLogger.info("wrote quickPlot config to "+basename+".cfg.")
 
     with open(basename+'.cfg', 'wb') as configfile:
         config.write(configfile)
@@ -104,7 +121,7 @@ def readConfig(quickLogger,basename):
 
         if(config.has_section('quickPlot')):
             quickLogger.info('Reading quickPlot variables...')
-            likelihoodDictionary = dict(config.items('quickPlot'))
+            plotDictionary = dict(config.items('quickPlot'))
 
         return commonDictionary,analysisDictionary,likelihoodDictionary,plotDictionary
 
@@ -112,18 +129,22 @@ def readConfig(quickLogger,basename):
         raise FileNotFound
         return
 
-def checkConfig(referenceDictionary,testDictionary):
+def checkConfig(quickLogger, referenceDictionary,testDictionary):
 
     """Checks a dictionary against a refernece to make sure that all
-    of the parameters are there."""
+    of the parameters are there.  If all is good, it'll returen the 
+    checked dictionary.  If not, it'll return the reference dictionary
+    and raise an exception."""
 
     try:
         for key in referenceDictionary:
             item = testDictionary[key]
-        return 0
+        return testDictionary
     except KeyError as inst:
-        return inst.args[0]
-    
+        quickLogger.critical("Cannont find "+inst.args[0]+" in the config file.")
+        raise KeyError
+        return referenceDictionary
+
         
 def initLogger(base, name):
 
@@ -199,10 +220,21 @@ def runCommand(AppCommand,quickLogger,run=True):
 
 def runModel(quickLogger,
 	     base,
-	     irfs="P7SOURCE_V6"):
+	     irfs="P7SOURCE_V6",
+             run=True):
 	
     """Generates a model map."""
-        
+
+    try:
+        checkForFiles(quickLogger,
+                      [base+"_srcMaps.fits",
+                       base+"_model.xml",
+                       base+"_ltcube.fits",
+                       base+"_BinnedExpMap.fits"])
+    except(FileNotFound):
+        quickLogger.critical("One or more needed files do not exist.")
+        return
+
     model_map['srcmaps'] = base+"_srcMaps.fits"
     model_map['srcmdl']  = base+"_model.xml"
     model_map['outfile'] = base+"_modelMap.fits"
@@ -210,4 +242,4 @@ def runModel(quickLogger,
     model_map['irfs']    = irfs
     model_map['bexpmap'] = base+"_BinnedExpMap.fits"
   
-    runCommand(createModel,quickLogger,run)
+    runCommand(model_map,quickLogger,run)

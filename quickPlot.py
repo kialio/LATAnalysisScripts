@@ -39,12 +39,9 @@ __version__ = '0.1'
 import sys
 import os
 import pyfits
-from gt_apps import *
 from math import *
 from ds9 import *
 from quickUtils import *
-from quickAnalysis import *
-
 
 class quickPlot:
 
@@ -62,14 +59,18 @@ class quickPlot:
     just execute the runAll function to execute all of the steps, or
     use the functions individually as needed.
     """
+    #sourcename and model are already in the config file in the likelihood 
+    #section.  I suggest using those and not adding two more which will just
+    #add to confusion.
 
     def __init__(self,
                  base='MySource',
                  configFile = False,
                  plotConfig = {"model" : "MySource_model.xml",
-                               "sourceName" : "Source Name"},
+                               "sourcename" : "Source Name"},
                  commonConfig = {"base" : 'MySource',
                                  "binned" : False,
+                                 "eventclass" : 2, 
                                  "irfs" : "P7SOURCE_V6",
                                  "verbosity" : 0}):
 
@@ -79,11 +80,19 @@ class quickPlot:
 
         if(configFile):
             try:
-                commonConfig,analysisConfig,likelihoodConfig,plotConfig = readConfig(self.logger,base)
+                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = readConfig(self.logger,base)
             except(FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
-
+            try:
+                commonConfig = checkConfig(self.logger,commonConfig,commonConfigRead)
+            except(KeyError):
+                return
+            try:
+                plotConfig = checkConfig(self.logger,plotConfig,plotConfigRead)
+            except(KeyError):
+                return
+                
         self.commonConf = commonConfig
         self.plotConf = plotConfig
 
@@ -94,7 +103,6 @@ class quickPlot:
             logString += variable+"="+str(value)+","
         self.logger.info(logString)
             
-	    
     def writeConfig(self):
 
         """Writes all of the initialization variables to the config
@@ -104,10 +112,22 @@ class quickPlot:
                     commonDictionary=self.commonConf,
                     plotDictionary=self.plotConf)
 
+    def createModelMap(self,run=True):
+
+        """Wrapper for the model map routine in quickUtils"""
+
+        runModel(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
 
     def createResidMap(self,run=True):
 
         """Generates a residual map using the ftool command "farith"."""
+
+        #JSP - Need file check here.
+        
+        try:
+            checkForCommand(self.logger, ["farith"])
+        except(CommandNotFound):
+            return
 
         cmd = "farith "+self.commonConf['base']+"_CMAP.fits "+self.commonConf['base']+"_modelMap.fits "+self.commonConf['base']+"_residMap.fits SUB clobber=yes"
             
@@ -116,13 +136,13 @@ class quickPlot:
             self.logger.info(cmd)
         else:
             print cmd
- 
-        self.runCommand(createResidMap,self.logger,run)
-
+             
 
     def createSigMap(self,run=True):
 
         """Generates a significance map."""
+
+        #JSP - Need file check here.
 
         onImage  = pyfits.open(self.commonConf['base']+"_CMAP.fits")
         onData   = onImage[0].data.copy()
@@ -142,12 +162,13 @@ class quickPlot:
         hdulist = pyfits.HDUList([newImage])
         hdulist.writeto(self.commonConf['base']+"_sigMap.fits",clobber=True)
 
-        self.runCommand(createSigMap,self.logger,run)
-
-
+ 
     def plotMaps(self,run=True):
 
 	""""Uses ds9 to plot the count, model, residual and significance maps"""
+
+        #Think about what options to put in the config file.  The user should
+        #be able to turn labeling on and off and choose which plots they want.
 
         try:
             checkForFiles(self.logger,
@@ -252,11 +273,17 @@ class quickPlot:
         d.set('grid numlab fontsize 14')
 
 
+# Needs a function that wraps all the needed functions.  Like the 'runAll' function in 
+# quickAnalysis.  This would create all the maps and then run the ds9 command.
+
 def cli():
     """Command-line interface.  Call this without any options for usage notes."""
     import getopt
     class BadUsage: pass
     
+    #make sure you get the command line interface to work.  You should have access to all of the
+    #individual functions from the command line as well as an overall runall command.
+
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'cm')
         
