@@ -59,21 +59,41 @@ class quickPlot:
     just execute the runAll function to execute all of the steps, or
     use the functions individually as needed.
     """
-    #sourcename and model are already in the config file in the likelihood 
-    #section.  I suggest using those and not adding two more which will just
-    #add to confusion.
 
     def __init__(self,
                  base='MySource',
                  configFile = False,
-                 plotConfig = {"model" : "MySource_model.xml",
-                               "sourcename" : "Source Name"},
-                 commonConfig = {"base" : 'MySource',
-                                 "binned" : False,
+                 plotConfig = {"scaletypeframe1"   : "log",
+                               "scalmodeframe1"    : "minmax",
+			       "colorframe1"       : "aips0",
+                               "scaletypeframe2"   : "log",
+                               "scalmodeframe2"    : "minmax",
+			       "colorframe2"       : "a",
+                               "scaletypeframe3"   : "sqrt",
+                               "scalmodeframe3"    : "zscale",
+			       "colorframe3"       : "aips0",
+                               "scaletypeframe4"   : "sqrt",
+                               "scalmodeframe4"    : "minmax",
+			       "colorframe4"       : "aips0",
+                               "sourceregioncolor" : "black",
+                               "sourceregionwidth" : 3,
+                               "sourceregionfont"  : "helvetica 14 bold",
+                               "sourceregiontype"  : "cross 15",
+                               "labelcolor"        : "black",
+                               "labelwidth"        : 3,
+                               "labelfont"         : "helvetica 10 bold",
+                               "labelposition"     : "40 15",
+                               "grid"              : "yes",
+                               "gridcolor"         : "black",
+                               "gridfont"          : 14},
+                 likelihoodConfig = {"model"      : "MySource_model.xml",
+                                     "sourcename" : "Source Name"},
+                 commonConfig = {"base"       : 'MySource',
+                                 "binned"     : False,
                                  "eventclass" : 2, 
-                                 "irfs" : "P7SOURCE_V6",
-                                 "verbosity" : 0}):
-
+                                 "irfs"       : "P7SOURCE_V6",
+                                 "verbosity"  : 0}):
+ 
         commonConfig['base'] = base
 
         self.logger = initLogger(base, 'quickPlot')
@@ -92,9 +112,14 @@ class quickPlot:
                 plotConfig = checkConfig(self.logger,plotConfig,plotConfigRead)
             except(KeyError):
                 return
+            try:
+                likelihoodConfig = checkConfig(self.logger,likelihoodConfig,likelihoodConfigRead)
+            except(KeyError):
+                return
                 
         self.commonConf = commonConfig
         self.plotConf = plotConfig
+        self.likelihoodConf = likelihoodConfig
 
         logString = "Created quickPlot object: "
         for variable, value in commonConfig.iteritems():
@@ -103,6 +128,7 @@ class quickPlot:
             logString += variable+"="+str(value)+","
         self.logger.info(logString)
             
+	    
     def writeConfig(self):
 
         """Writes all of the initialization variables to the config
@@ -112,37 +138,56 @@ class quickPlot:
                     commonDictionary=self.commonConf,
                     plotDictionary=self.plotConf)
 
+
     def createModelMap(self,run=True):
 
         """Wrapper for the model map routine in quickUtils"""
 
         runModel(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
 
+
     def createResidMap(self,run=True):
 
-        """Generates a residual map using the ftool command "farith"."""
+        """Generates a residual map"""
 
-        #JSP - Need file check here.
-        
         try:
-            checkForCommand(self.logger, ["farith"])
-        except(CommandNotFound):
+            checkForFiles(self.logger,
+	    		 [self.commonConf['base']+"_CMap.fits",
+			  self.commonConf['base']+"_modelMap.fits"])
+        except(FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
             return
 
-        cmd = "farith "+self.commonConf['base']+"_CMAP.fits "+self.commonConf['base']+"_modelMap.fits "+self.commonConf['base']+"_residMap.fits SUB clobber=yes"
-            
-        if(run):
-            os.system(cmd)
-            self.logger.info(cmd)
-        else:
-            print cmd
+        onImage  = pyfits.open(self.commonConf['base']+"_CMAP.fits")
+        onData   = onImage[0].data.copy()
+        onHeader = onImage[0].header
+        offImage = pyfits.open(self.commonConf['base']+"_modelMap.fits")
+        offData  = offImage[0].data.copy()
+        resData  = offImage[0].data.copy()
+
+        for x,row in enumerate(resData):
+            for y in enumerate(row):
+                resData[x,y[0]] = (onData[x,y[0]]-offData[x,y[0]])
+
+        newImage = pyfits.PrimaryHDU(resData)
+        newImage.header = onHeader
+        newImage.update_header()
+
+        hdulist = pyfits.HDUList([newImage])
+        hdulist.writeto(self.commonConf['base']+"_resMap.fits",clobber=True)        
              
 
     def createSigMap(self,run=True):
 
         """Generates a significance map."""
 
-        #JSP - Need file check here.
+        try:
+            checkForFiles(self.logger,
+	    		 [self.commonConf['base']+"_CMap.fits",
+			  self.commonConf['base']+"_modelMap.fits"])
+        except(FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            return
 
         onImage  = pyfits.open(self.commonConf['base']+"_CMAP.fits")
         onData   = onImage[0].data.copy()
@@ -167,40 +212,47 @@ class quickPlot:
 
 	""""Uses ds9 to plot the count, model, residual and significance maps"""
 
-        #Think about what options to put in the config file.  The user should
-        #be able to turn labeling on and off and choose which plots they want.
-
         try:
             checkForFiles(self.logger,
 	    		 [self.commonConf['base']+"_CMap.fits",
 			  self.commonConf['base']+"_modelMap.fits",
 			  self.commonConf['base']+"_residMap.fits",
-			  self.commonConf['base']+"_sigMap.fits"])
+			  self.commonConf['base']+"_sigMap.fits",
+			  self.commonConf['base']+"_model.xml"])
         except(FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
 
         d = ds9()
+	
         d.set('file '+self.commonConf['base']+"_CMAP.fits")
-        d.set('scale log')
-        d.set('scale mode minmax')
-        d.set('cmap aips0')
-        d.set('regions', 'image; text 40 15 # color=black width=3 font="helvetica 10 bold" text={Count map}')
+        d.set('scale '+self.plotConfig['scaletypeframe1'])
+        d.set('scale mode '+self.plotConfig['scalemodeframe1'])
+        d.set('cmap '+self.plotConfig['colorframe1'])
+        d.set('regions', 'image; text '+self.plotConfig['labelposition']+' # color='+self.plotConfig['labelcolor']+' width='+self.plotConfig['labelwidth']+'font="'+self.plotConfig['labelfont']+'" text={Count map}')
+
         d.set('tile')
+
         d.set('frame new')
         d.set('file '+self.commonConf['base']+"_modelMap.fits")
-        d.set('cmap a')
-        d.set('regions', 'image; text 40 15 # color=black width=3 font="helvetica 10 bold" text={Model map}')
+        d.set('scale '+self.plotConfig['scaletypeframe2'])
+        d.set('scale mode '+self.plotConfig['scalemodeframe2'])
+        d.set('cmap '+self.plotConfig['colorframe2'])
+        d.set('regions', 'image; text '+self.plotConfig['labelposition']+' # color='+self.plotConfig['labelcolor']+' width='+self.plotConfig['labelwidth']+'font="'+self.plotConfig['labelfont']+'" text={Model map}')
+
         d.set('frame new')
         d.set('file '+self.commonConf['base']+"_residMap.fits")
-        d.set('scale sqrt')
-        d.set('scale mode zscale')
-        d.set('cmap aips0')
-        d.set('regions', 'image; text 40 15 # color=black width=3 font="helvetica 10 bold" text={Residual}')
+        d.set('scale '+self.plotConfig['scaletypeframe3'])
+        d.set('scale mode '+self.plotConfig['scalemodeframe3'])
+        d.set('cmap '+self.plotConfig['colorframe3'])
+        d.set('regions', 'image; text '+self.plotConfig['labelposition']+' # color='+self.plotConfig['labelcolor']+' width='+self.plotConfig['labelwidth']+'font="'+self.plotConfig['labelfont']+'" text={Residual}')
+
         d.set('frame new')
         d.set('file '+self.commonConf['base']+"_sigMap.fits")
-        d.set('scale mode minmax')
-        d.set('regions', 'image; text 40 15 # color=black width=3 font="helvetica 10 bold" text={Significance}')
+        d.set('scale '+self.plotConfig['scaletypeframe4'])
+        d.set('scale mode '+self.plotConfig['scalemodeframe4'])
+        d.set('cmap '+self.plotConfig['colorframe4'])
+        d.set('regions', 'image; text '+self.plotConfig['labelposition']+' # color='+self.plotConfig['labelcolor']+' width='+self.plotConfig['labelwidth']+'font="'+self.plotConfig['labelfont']+'" text={Significance}')
  
 
  	""""Searches through the model file for the sources (RA, Dec and name) to plot on the count map"""
@@ -255,37 +307,63 @@ class quickPlot:
         i = -1
         for value in ra:
             i += 1
-            d.set('regions', 'fk5; point '+ ra[i]+ ' '+ dec[i]+ ' # point=cross 15 color=black width=3 font="helvetica 14 bold" text={'+ name[i]+ '}')
-	   
+            d.set('regions', 'fk5; point '+ ra[i]+ ' '+ dec[i]+ ' # point='+self.plotConfig['sourceregiontype']+' color='+self.plotConfig['sourceregioncolor']+' width='+self.plotConfig['sourceregionwidth']+' font="'+self.plotConfig['sourceregionfont']+'" text={'+ name[i]+ '}')
 
 	""""Makes ds9 look pretty"""       
 	     
         d.set('zoom to fit')
         d.set('match frames wcs')
-        d.set('grid yes')
-        d.set('grid axes type exterior')
-        d.set('grid numlab vertical yes')
-        d.set('grid skyformat degrees')
-        d.set('grid axes color black')
-        d.set('grid tick color black')
-        d.set('grid grid color black')
-        d.set('grid numlab color black')
-        d.set('grid numlab fontsize 14')
+
+        if(self.plotConfig['grid'] == 'yes'):       
+	    d.set('grid yes')
+            d.set('grid axes type exterior')
+            d.set('grid numlab vertical yes')
+            d.set('grid skyformat degrees')
+            d.set('grid axes color '+self.plotConfig['gridcolor'])
+            d.set('grid tick color '+self.plotConfig['gridcolor'])
+            d.set('grid grid color '+self.plotConfig['gridcolor'])
+            d.set('grid numlab color '+self.plotConfig['gridcolor'])
+            d.set('grid numlab fontsize '+self.plotConfig['gridfont'])
 
 
-# Needs a function that wraps all the needed functions.  Like the 'runAll' function in 
-# quickAnalysis.  This would create all the maps and then run the ds9 command.
+
+    def runAll(self, run=True):
+
+        """Generates the model, residual and significance maps and
+	plot them together with the input count map.  This is the 
+	function called when this module is run from the command 
+        line.  You need to have two files to start with:
+        <basename>_CMAP.fits (count map) and <basename>_model.xml 
+	(source model). <basename> is a user defined prefix (usually 
+	the source name but not necessarily).
+        Returns an exception if any of the files are not found."""
+
+        self.logger.info("***Checking for files***")
+	
+        try:
+            checkForFiles(self.logger,[self.commonConf['base']+"_CMAP.fits",self.commonConf['base']+"_model.xml"])
+        except(FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            return
+
+        self.logger.info("***Creating model map***")
+        self.createModelMap(run)
+        self.logger.info("***Creating residual map***")
+        self.createResidMap(run)
+        self.logger.info("***Creating significance map***")
+        self.createSigMap(run)
+        self.logger.info("***Plotting maps with DS9***")
+        self.plotMaps(run)
+
+
 
 def cli():
     """Command-line interface.  Call this without any options for usage notes."""
     import getopt
     class BadUsage: pass
     
-    #make sure you get the command line interface to work.  You should have access to all of the
-    #individual functions from the command line as well as an overall runall command.
-
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'cm')
+        opts, args = getopt.getopt(sys.argv[1:], 'cMRSP')
         
         for opt, val in opts:
             if opt == '-c':
@@ -293,29 +371,37 @@ def cli():
                 qP = quickPlot("example")
                 qP.writeConfig()
                 return
-            elif opt == '-m':
-                print "Creating model file from 2FGL called example_model.xml"
+            elif opt == '-M':
+                print "Creating model map"
                 if(not args): 
                     raise BadUsage
                 else:
-                    qA = quickAnalysis(sys.argv[2])
-                    qA.generateXMLmodel()
+                    qP = quickPlot(sys.argv[2])
+                    runModel(qP.logger,qP.commonConf['base'],qP.commonConf['irfs'])
                     return
-            elif opt == '-C':
-                print "Creating count map"
+            elif opt == '-R':
+                print "Creating residual map"
                 if(not args):
                     raise BadUsage
                 else:
-                    qA = quickAnalysis(sys.argv[2])
-                    qA.runCMAP()
+                    qP = quickPlot(sys.argv[2])
+                    qP.createResMap()
                     return
-            elif opt == '-M':
-                print "Creating model map"
+            elif opt == '-S':
+                print "Creating significance map"
                 if(not args):
                     raise BadUsage
                 else:
-                    qA = quickAnalysis(sys.argv[2])
-                    qA.runModel()
+                    qP = quickPlot(sys.argv[2])
+                    qP.createSigMap()
+                    return
+            elif opt == '-P':
+                print "Creating ds9 plots"
+                if(not args):
+                    raise BadUsage
+                else:
+                    qP = quickPlot(sys.argv[2])
+                    qP.plotMaps()
                     return
 
         if not args: raise BadUsage
@@ -325,34 +411,37 @@ def cli():
 
     except (getopt.error, BadUsage):
         cmd = os.path.basename(sys.argv[0])
-        print """quickAnalysis - Perform event selections and exposure
-        calculations for Fermi LAT data.  You can use the command line
-        functions listed below or run this module from within
-        python. For full documentation on this module execute 'pydoc
-        quickAnalysis'.
+        print """quickPlot - Generates the model, residual, and 
+	significance maps starting from the count map and plots
+	them using ds9.  You can use the command line functions 
+	listed below or run this module from within python. For 
+	full documentation on this module execute 'pydoc quickPlot'.
 
-python %s <basename> ...  Perform an analysis on <basename>.
-    <basename> is the prefix used for this analysis.  You must already
-    have a configuration file if using the command line interface.
+python %s <basename> ...  Plots the results of the Fermi LAT analysis
+    for the source <basename>. <basename> is the prefix used for this 
+    analysis.  You must already have a configuration file if using the 
+    command line interface.
 
 python %s -c ... Generate a default config file called example.cfg.
     Edit this file and rename it <basename>.cfg for use in the
     quickPlot module.
 
-python %s -m <basename> ... Generate a model file from the 2FGL.  You
+python %s -M <basename> ... Generate a model map from the 2FGL.  You
     need to already have <basename>_filtered_gti.fits in your working
     directory.  You can get this file by running the functions
-    runSelect and runGTI on your data.  You also need to have the
-    galactic and isotropic diffuse models in your working directory as
-    well as the 2FGL model file.
+    runSelect and runGTI (within quickAnalysis) on your data.  You also 
+    need to have the Galactic and isotropic diffuse models in your 
+    working directory as well as the 2FGL model file.
 
-python %s -C <basename> ... Generate a count map based on the model
-    file in your config file.  You need to have several files already
-    computed.  It's best to do the runAll script before trying this.
+python %s -R <basename> ... Generate a residual map based on the count
+    and model map.
 
-python %s -M <basename> ... Generate a model map based on the model
-    file in your config file.  You need to have several files already
-    computed.  It's best to do the runAll script before trying this.
+python %s -S <basename> ... Generate a significance map based on the count
+    and model map.
+
+python %s -P <basename> ... Plot the count, model, residual, and 
+	significance maps using ds9.
+
 
 """ %(cmd,cmd,cmd)
 
