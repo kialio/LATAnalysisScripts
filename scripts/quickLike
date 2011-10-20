@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+
+import quickLike
+if __name__ == '__main__':
+    quickLike.cli()
