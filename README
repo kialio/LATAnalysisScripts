@@ -1,4 +1,4 @@
-	Fermi LAT Analysis Scripts (version 0.1.0)
+	Fermi LAT Analysis Scripts (version 0.1.1)
 
 The Fermi Science Tools (http://fermi.gsfc.nasa.gov/ssc) are a suite
 of tools developed for the analysis of both Fermi LAT and GBM
@@ -32,9 +32,14 @@ To run:
 or
 
    # from the command line
-   > python quickAnalysis.py
+   > quickAnalysis
 
-   
+You might want to run
+
+    > quickAnalysis -c 
+
+to generate an example config file before you run the scripts.
+
 The LAT Analysis Scripts are a collection of three modules
 (quickAnalysis, quickLike and quickPlot) as well as a helper module
 called quickUtils.  For more information and help on these individual
@@ -42,7 +47,7 @@ modules check the documentation.
 
 From the command line:
 
-   > pydoc quickAnalysis.py
+   > pydoc quickAnalysis
 
 or from python:
 

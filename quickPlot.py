@@ -33,8 +33,7 @@ This module logs all of the steps to a file called
 """
 
 __author__ = 'Davide Donato (FSSC)'
-__version__ = '0.1'
-
+__version__ = '0.1.1'
 
 import sys
 import os
@@ -64,16 +63,16 @@ class quickPlot:
                  base='MySource',
                  configFile = False,
                  plotConfig = {"scaletypeframe1"   : "log",
-                               "scalmodeframe1"    : "minmax",
+                               "scalemodeframe1"    : "minmax",
 			       "colorframe1"       : "aips0",
                                "scaletypeframe2"   : "log",
-                               "scalmodeframe2"    : "minmax",
+                               "scalemodeframe2"    : "minmax",
 			       "colorframe2"       : "a",
                                "scaletypeframe3"   : "sqrt",
-                               "scalmodeframe3"    : "zscale",
+                               "scalemodeframe3"    : "zscale",
 			       "colorframe3"       : "aips0",
                                "scaletypeframe4"   : "sqrt",
-                               "scalmodeframe4"    : "minmax",
+                               "scalemodeframe4"    : "minmax",
 			       "colorframe4"       : "aips0",
                                "sourceregioncolor" : "black",
                                "sourceregionwidth" : 3,
@@ -226,33 +225,33 @@ class quickPlot:
         d = ds9()
 	
         d.set('file '+self.commonConf['base']+"_CMAP.fits")
-        d.set('scale '+self.plotConfig['scaletypeframe1'])
-        d.set('scale mode '+self.plotConfig['scalemodeframe1'])
-        d.set('cmap '+self.plotConfig['colorframe1'])
-        d.set('regions', 'image; text '+self.plotConfig['labelposition']+' # color='+self.plotConfig['labelcolor']+' width='+self.plotConfig['labelwidth']+'font="'+self.plotConfig['labelfont']+'" text={Count map}')
+        d.set('scale '+self.plotConf['scaletypeframe1'])
+        d.set('scale mode '+self.plotConf['scalemodeframe1'])
+        d.set('cmap '+self.plotConf['colorframe1'])
+        d.set('regions', 'image; text '+self.plotConf['labelposition']+' # color='+self.plotConf['labelcolor']+' width='+self.plotConf['labelwidth']+' font="'+self.plotConf['labelfont']+'" text={Count map}')
 
         d.set('tile')
 
         d.set('frame new')
         d.set('file '+self.commonConf['base']+"_modelMap.fits")
-        d.set('scale '+self.plotConfig['scaletypeframe2'])
-        d.set('scale mode '+self.plotConfig['scalemodeframe2'])
-        d.set('cmap '+self.plotConfig['colorframe2'])
-        d.set('regions', 'image; text '+self.plotConfig['labelposition']+' # color='+self.plotConfig['labelcolor']+' width='+self.plotConfig['labelwidth']+'font="'+self.plotConfig['labelfont']+'" text={Model map}')
+        d.set('scale '+self.plotConf['scaletypeframe2'])
+        d.set('scale mode '+self.plotConf['scalemodeframe2'])
+        d.set('cmap '+self.plotConf['colorframe2'])
+        d.set('regions', 'image; text '+self.plotConf['labelposition']+' # color='+self.plotConf['labelcolor']+' width='+self.plotConf['labelwidth']+' font="'+self.plotConf['labelfont']+'" text={Model map}')
 
         d.set('frame new')
         d.set('file '+self.commonConf['base']+"_residMap.fits")
-        d.set('scale '+self.plotConfig['scaletypeframe3'])
-        d.set('scale mode '+self.plotConfig['scalemodeframe3'])
-        d.set('cmap '+self.plotConfig['colorframe3'])
-        d.set('regions', 'image; text '+self.plotConfig['labelposition']+' # color='+self.plotConfig['labelcolor']+' width='+self.plotConfig['labelwidth']+'font="'+self.plotConfig['labelfont']+'" text={Residual}')
+        d.set('scale '+self.plotConf['scaletypeframe3'])
+        d.set('scale mode '+self.plotConf['scalemodeframe3'])
+        d.set('cmap '+self.plotConf['colorframe3'])
+        d.set('regions', 'image; text '+self.plotConf['labelposition']+' # color='+self.plotConf['labelcolor']+' width='+self.plotConf['labelwidth']+' font="'+self.plotConf['labelfont']+'" text={Residual}')
 
         d.set('frame new')
         d.set('file '+self.commonConf['base']+"_sigMap.fits")
-        d.set('scale '+self.plotConfig['scaletypeframe4'])
-        d.set('scale mode '+self.plotConfig['scalemodeframe4'])
-        d.set('cmap '+self.plotConfig['colorframe4'])
-        d.set('regions', 'image; text '+self.plotConfig['labelposition']+' # color='+self.plotConfig['labelcolor']+' width='+self.plotConfig['labelwidth']+'font="'+self.plotConfig['labelfont']+'" text={Significance}')
+        d.set('scale '+self.plotConf['scaletypeframe4'])
+        d.set('scale mode '+self.plotConf['scalemodeframe4'])
+        d.set('cmap '+self.plotConf['colorframe4'])
+        d.set('regions', 'image; text '+self.plotConf['labelposition']+' # color='+self.plotConf['labelcolor']+' width='+self.plotConf['labelwidth']+' font="'+self.plotConf['labelfont']+'" text={Significance}')
  
 
  	""""Searches through the model file for the sources (RA, Dec and name) to plot on the count map"""
@@ -307,23 +306,23 @@ class quickPlot:
         i = -1
         for value in ra:
             i += 1
-            d.set('regions', 'fk5; point '+ ra[i]+ ' '+ dec[i]+ ' # point='+self.plotConfig['sourceregiontype']+' color='+self.plotConfig['sourceregioncolor']+' width='+self.plotConfig['sourceregionwidth']+' font="'+self.plotConfig['sourceregionfont']+'" text={'+ name[i]+ '}')
+            d.set('regions', 'fk5; point '+ ra[i]+ ' '+ dec[i]+ ' # point='+self.plotConf['sourceregiontype']+' color='+self.plotConf['sourceregioncolor']+' width='+self.plotConf['sourceregionwidth']+' font="'+self.plotConf['sourceregionfont']+'" text={'+ name[i]+ '}')
 
 	""""Makes ds9 look pretty"""       
 	     
         d.set('zoom to fit')
         d.set('match frames wcs')
 
-        if(self.plotConfig['grid'] == 'yes'):       
+        if(self.plotConf['grid'] == 'yes'):       
 	    d.set('grid yes')
             d.set('grid axes type exterior')
             d.set('grid numlab vertical yes')
             d.set('grid skyformat degrees')
-            d.set('grid axes color '+self.plotConfig['gridcolor'])
-            d.set('grid tick color '+self.plotConfig['gridcolor'])
-            d.set('grid grid color '+self.plotConfig['gridcolor'])
-            d.set('grid numlab color '+self.plotConfig['gridcolor'])
-            d.set('grid numlab fontsize '+self.plotConfig['gridfont'])
+            d.set('grid axes color '+self.plotConf['gridcolor'])
+            d.set('grid tick color '+self.plotConf['gridcolor'])
+            d.set('grid grid color '+self.plotConf['gridcolor'])
+            d.set('grid numlab color '+self.plotConf['gridcolor'])
+            d.set('grid numlab fontsize '+self.plotConf['gridfont'])
 
 
 
@@ -376,7 +375,7 @@ def cli():
                 if(not args): 
                     raise BadUsage
                 else:
-                    qP = quickPlot(sys.argv[2])
+                    qP = quickPlot(sys.argv[2],True)
                     runModel(qP.logger,qP.commonConf['base'],qP.commonConf['irfs'])
                     return
             elif opt == '-R':
@@ -384,7 +383,7 @@ def cli():
                 if(not args):
                     raise BadUsage
                 else:
-                    qP = quickPlot(sys.argv[2])
+                    qP = quickPlot(sys.argv[2],True)
                     qP.createResMap()
                     return
             elif opt == '-S':
@@ -392,7 +391,7 @@ def cli():
                 if(not args):
                     raise BadUsage
                 else:
-                    qP = quickPlot(sys.argv[2])
+                    qP = quickPlot(sys.argv[2],True)
                     qP.createSigMap()
                     return
             elif opt == '-P':
@@ -400,7 +399,7 @@ def cli():
                 if(not args):
                     raise BadUsage
                 else:
-                    qP = quickPlot(sys.argv[2])
+                    qP = quickPlot(sys.argv[2], True)
                     qP.plotMaps()
                     return
 
@@ -411,38 +410,39 @@ def cli():
 
     except (getopt.error, BadUsage):
         cmd = os.path.basename(sys.argv[0])
-        print """quickPlot - Generates the model, residual, and 
-	significance maps starting from the count map and plots
-	them using ds9.  You can use the command line functions 
-	listed below or run this module from within python. For 
-	full documentation on this module execute 'pydoc quickPlot'.
+        print """
+                           - quickPlot - 
 
-python %s <basename> ...  Plots the results of the Fermi LAT analysis
-    for the source <basename>. <basename> is the prefix used for this 
-    analysis.  You must already have a configuration file if using the 
+Generates the model, residual, and significance maps starting from the
+count map and plots them using ds9.  You can use the command line
+functions listed below or run this module from within python. For full
+documentation on this module execute 'pydoc quickPlot'.
+
+%s <basename> ...  Plots the results of the Fermi LAT analysis for the
+    source <basename>. <basename> is the prefix used for this
+    analysis.  You must already have a configuration file if using the
     command line interface.
 
-python %s -c ... Generate a default config file called example.cfg.
-    Edit this file and rename it <basename>.cfg for use in the
-    quickPlot module.
+%s -c ... Generate a default config file called example.cfg.  Edit
+    this file and rename it <basename>.cfg for use in the quickPlot
+    module.
 
-python %s -M <basename> ... Generate a model map from the 2FGL.  You
-    need to already have <basename>_filtered_gti.fits in your working
+%s -M <basename> ... Generate a model map from the 2FGL.  You need to
+    already have <basename>_filtered_gti.fits in your working
     directory.  You can get this file by running the functions
-    runSelect and runGTI (within quickAnalysis) on your data.  You also 
-    need to have the Galactic and isotropic diffuse models in your 
-    working directory as well as the 2FGL model file.
+    runSelect and runGTI (within quickAnalysis) on your data.  You
+    also need to have the Galactic and isotropic diffuse models in
+    your working directory as well as the 2FGL model file.
 
-python %s -R <basename> ... Generate a residual map based on the count
+%s -R <basename> ... Generate a residual map based on the count and
+    model map.
+
+%s -S <basename> ... Generate a significance map based on the count
     and model map.
 
-python %s -S <basename> ... Generate a significance map based on the count
-    and model map.
+%s -P <basename> ... Plot the count, model, residual, and significance
+	maps using ds9.
 
-python %s -P <basename> ... Plot the count, model, residual, and 
-	significance maps using ds9.
-
-
-""" %(cmd,cmd,cmd)
+""" %(cmd,cmd,cmd,cmd,cmd,cmd)
 
 if __name__ == '__main__': cli()

@@ -33,7 +33,7 @@ This module logs all of the steps to a file called
 """
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1'
+__version__ = '0.1.1'
 
 import sys
 import os
@@ -356,7 +356,7 @@ def cli():
     class BadUsage: pass
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'cm')
+        opts, args = getopt.getopt(sys.argv[1:], 'cmM')
         
         for opt, val in opts:
             if opt == '-c':
@@ -388,31 +388,33 @@ def cli():
 
     except (getopt.error, BadUsage):
         cmd = os.path.basename(sys.argv[0])
-        print """quickAnalysis - Perform event selections and exposure
-        calculations for Fermi LAT data.  You can use the command line
-        functions listed below or run this module from within
-        python. For full documentation on this module execute 'pydoc
-        quickAnalysis'.
+        print """
+                        - quickAnalysis - 
 
-python %s <basename> ...  Perform an analysis on <basename>.
-    <basename> is the prefix used for this analysis.  You must already
-    have a configuration file if using the command line interface.
+Perform event selections and exposure calculations for Fermi LAT data.
+You can use the command line functions listed below or run this module
+from within python. For full documentation on this module execute
+'pydoc quickAnalysis'.
 
-python %s -c ... Generate a default config file called example.cfg.
-    Edit this file and rename it <basename>.cfg for use in the
+%s <basename> ...  Perform an analysis on <basename>.  <basename> is
+    the prefix used for this analysis.  You must already have a
+    configuration file if using the command line interface.
+
+%s -c ... Generate a default config file called example.cfg.  Edit
+    this file and rename it <basename>.cfg for use in the
     quickAnalysis module.
 
-python %s -m <basename> ... Generate a model file from the 2FGL.  You
-    need to already have <basename>_filtered_gti.fits in your working
+%s -m <basename> ... Generate a model file from the 2FGL.  You need to
+    already have <basename>_filtered_gti.fits in your working
     directory.  You can get this file by running the functions
     runSelect and runGTI on your data.  You also need to have the
     galactic and isotropic diffuse models in your working directory as
     well as the 2FGL model file.
 
-python %s -M <basename> ... Generate a model map based on the model
-    file in your config file.  You need to have several files already
+%s -M <basename> ... Generate a model map based on the model file in
+    your config file.  You need to have several files already
     computed.  It's best to do the runAll script before trying this.
 
-""" %(cmd,cmd,cmd)
+""" %(cmd,cmd,cmd,cmd)
 
 if __name__ == '__main__': cli()
