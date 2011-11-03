@@ -12,12 +12,12 @@ line.
 
 First, generate a default config file:
 
-> quickAnalysis -c
+> quickAnalysis (-i|--initialize)
 
 Then edit the config file to match your specific analysis by filling
 out the various options.  Next, run the command again:
 
-> quickAnalysis <basename>
+> quickAnalysis -a (-n |--basename==)<basename>
 
 where <basename> is the prefix you've chosen to use; usually the name
 of your source of interest but not necissarily so.
@@ -33,7 +33,7 @@ This module logs all of the steps to a file called
 """
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import sys
 import os
@@ -68,7 +68,8 @@ class quickAnalysis:
                                    "tmax" : "INDEF",
                                    "emin" : 100,
                                    "emax" : 300000,
-                                   "zmax" : 100},
+                                   "zmax" : 100,
+                                   "binsize" : 0.1},
                  commonConfig = {"base" : 'MySource',
                                  "binned" : False,
                                  "eventclass" : 2,
@@ -121,6 +122,8 @@ class quickAnalysis:
 
         filter['rad'] = self.analysisConf['rad']
         filter['evclass'] = self.commonConf['eventclass']
+        filter['evclsmin'] = 0
+        filter['evclsmax'] = 10
         filter['infile'] = "@"+self.commonConf['base']+".list"
         filter['outfile'] = self.commonConf['base']+"_filtered.fits"
         filter['ra'] = self.analysisConf['ra']
@@ -176,7 +179,7 @@ class quickAnalysis:
 
         runCommand(expMap,self.logger,run)
 
-    def runCCUBE(self, run=True,bin_size=0.1,nbins=30):
+    def runCCUBE(self, run=True,nbins=30):
 
         """Generates a counts cube.  The dimensions of which are the
         largest square subtended by the ROI.  Note that if the ROI is
@@ -185,14 +188,14 @@ class quickAnalysis:
         calculation floors the calculated value.  The number of energy
         bins is logarithmic and is defined by the nbins variable."""
 
-        npix = NumberOfPixels(float(self.analysisConf['rad']), bin_size)
+        npix = NumberOfPixels(float(self.analysisConf['rad']), float(self.analysisConf['binsize']))
 
         evtbin['evfile'] = self.commonConf['base']+'_filtered_gti.fits'
         evtbin['outfile'] = self.commonConf['base']+'_CCUBE.fits'
         evtbin['algorithm'] = 'CCUBE'
         evtbin['nxpix'] = npix
         evtbin['nypix'] = npix
-        evtbin['binsz'] = bin_size
+        evtbin['binsz'] = self.analysisConf['binsize']
         evtbin['coordsys'] = 'CEL'
         evtbin['xref'] = self.analysisConf['ra']
         evtbin['yref'] = self.analysisConf['dec']
@@ -205,7 +208,7 @@ class quickAnalysis:
 
         runCommand(evtbin,self.logger,run)
 
-    def runCMAP(self, run=True,bin_size=0.1):
+    def runCMAP(self, run=True):
         
         """Generates a counts map.  The dimensions of which are the
         largest square subtended by the ROI.  Note that if the ROI is
@@ -213,23 +216,14 @@ class quickAnalysis:
         square might not be the largest posible since the npix
         calculation floors the calculated value."""
 
-        npix = NumberOfPixels(float(self.analysisConf['rad']), bin_size)
+        runCMAP(self.logger, 
+                self.commonConf['base'],
+                self.analysisConf['rad'],
+                self.analysisConf['binsize'],
+                self.analysisConf['ra'],
+                self.analysisConf['dec'])
 
-        evtbin['evfile'] = self.commonConf['base']+'_filtered_gti.fits'
-        evtbin['outfile'] = self.commonConf['base']+'_CMAP.fits'
-        evtbin['algorithm'] = 'CMAP'
-        evtbin['nxpix'] = npix
-        evtbin['nypix'] = npix
-        evtbin['binsz'] = bin_size
-        evtbin['coordsys'] = 'CEL'
-        evtbin['xref'] = self.analysisConf['ra']
-        evtbin['yref'] = self.analysisConf['dec']
-        evtbin['axisrot'] = 0
-        evtbin['proj'] = 'AIT'
-    
-        runCommand(evtbin,self.logger,run)
-
-    def runExpCube(self,run=True,bin_size=0.1,nbins=30):
+    def runExpCube(self,run=True,nbins=30):
 
         """Generates a binned exposure map that is 20 degrees larger
         than the ROI.  The binned exposure map needs to take into
@@ -239,7 +233,7 @@ class quickAnalysis:
         and the number of energy bins is defined by the nbins
         variable."""
 
-        npix = NumberOfPixels(float(self.analysisConf['rad']), bin_size)
+        npix = NumberOfPixels(float(self.analysisConf['rad']), float(self.analysisConf['binsize']))
 
         cmd = "gtexpcube2 infile="+self.commonConf['base']+"_ltcube.fits"\
             +" cmap=none"\
@@ -249,7 +243,7 @@ class quickAnalysis:
             +" yref="+str(self.analysisConf['dec'])\
             +" nxpix="+str(npix)\
             +" nypix="+str(npix)\
-            +" binsz="+str(bin_size)\
+            +" binsz="+str(self.analysisConf['binsize'])\
             +" coordsys=CEL"\
             +" axisrot=0"\
             +" proj=AIT"\
@@ -348,45 +342,65 @@ class quickAnalysis:
         else:
             self.logger.info("***Running gtexpmap***")
             self.runExpMap(run)
-   
+
 # Command-line interface             
 def cli():
     """Command-line interface.  Call this without any options for usage notes."""
     import getopt
-    class BadUsage: pass
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'cmM')
-        
+        opts, args = getopt.getopt(sys.argv[1:], 'iamxcb:n:', ['analyze',
+                                                             'initialize',
+                                                             'modelmap',
+                                                             'xml',
+                                                             'cmap',
+                                                             'basename=',
+                                                             'binsize=',
+                                                             ])
+        #Loop through first and check for the basename
+        haveBase = False
+        basename = 'example'
+        for opt,val in opts:
+            if opt in ('-n','--basename'):
+                haveBase = True
+                basename = val
+
         for opt, val in opts:
-            if opt == '-c':
+            if opt in ('-a', '--analyze'):
+                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
+                qA = quickAnalysis(basename, True)
+                qA.runAll(True)         
+                return
+            elif opt in ('-i', '--initialize'):
                 print "Creating example configuration file called example.cfg"
-                qA = quickAnalysis("example")
+                qA = quickAnalysis(basename)
                 qA.writeConfig()
                 return
-            elif opt == '-M':
+            elif opt in ('-m','--modelmap'):
+                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
                 print "Creating model map"
-                if(not args):
-                    raise BadUsage
-                else:
-                    qA = quickAnalysis(sys.argv[2])
-                    runModel(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
-                    return
-            elif opt == '-m':
-                print "Creating model file from 2FGL called example_model.xml"
-                if(not args): 
-                    raise BadUsage
-                else:
-                    qA = quickAnalysis(sys.argv[2])
-                    qA.generateXMLmodel()
-                    return
+                qA = quickAnalysis(basename, True)
+                runModel(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
+                return
+            elif opt in ('-x', '--xml'):
+                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
+                print "Creating XML model file from 2FGL"
+                qA = quickAnalysis(basename, True)
+                qA.generateXMLmodel()
+                return
+            elif opt in ('-c', '--cmap'):
+                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
+                print "Creating counts map"
+                qA = quickAnalysis(basename, True)
+                for option,value in opts:
+                    if option in ('--binsize'): qA.analysisConf['binsize'] = value
+                qA.runCMAP()
+                return
+                
+        if not opts: raise getopt.GetoptError("Must specify an option, printing help.")
 
-        if not args: raise BadUsage
-        for arg in args:
-            qA = quickAnalysis(arg, True)
-            qA.runAll(True)
-
-    except (getopt.error, BadUsage):
+    except getopt.error as e:
+        print "Command Line Error: " + e.msg
         cmd = os.path.basename(sys.argv[0])
         print """
                         - quickAnalysis - 
@@ -396,25 +410,35 @@ You can use the command line functions listed below or run this module
 from within python. For full documentation on this module execute
 'pydoc quickAnalysis'.
 
-%s <basename> ...  Perform an analysis on <basename>.  <basename> is
-    the prefix used for this analysis.  You must already have a
-    configuration file if using the command line interface.
+%s (-a|--analyze) (-b |--basename=)<basename> ...  Perform an analysis
+    on <basename>.  <basename> is the prefix used for this analysis.
+    You must already have a configuration file if using the command
+    line interface.
 
-%s -c ... Generate a default config file called example.cfg.  Edit
-    this file and rename it <basename>.cfg for use in the
-    quickAnalysis module.
+%s (-i|--initialize) ... Generate a default config file called
+    example.cfg.  Edit this file and rename it <basename>.cfg for use
+    in the quickAnalysis module.
 
-%s -m <basename> ... Generate a model file from the 2FGL.  You need to
-    already have <basename>_filtered_gti.fits in your working
-    directory.  You can get this file by running the functions
-    runSelect and runGTI on your data.  You also need to have the
-    galactic and isotropic diffuse models in your working directory as
-    well as the 2FGL model file.
+%s (-x|--xml) (-b |--basename=)<basename> ... Generate a model file
+    from the 2FGL.  You need to already have
+    <basename>_filtered_gti.fits in your working directory.  You can
+    get this file by running the functions runSelect and runGTI on
+    your data.  You also need to have the galactic and isotropic
+    diffuse models in your working directory as well as the 2FGL model
+    file.
 
-%s -M <basename> ... Generate a model map based on the model file in
-    your config file.  You need to have several files already
-    computed.  It's best to do the runAll script before trying this.
+%s (-m|--model) (-b |--basename=)<basename> ... Generate a model map
+    based on the model file in your config file.  You need to have
+    several files already computed.  It's best to do the runAll script
+    before trying this.
 
-""" %(cmd,cmd,cmd,cmd)
+%s (-c|--cmap) (-b |--basename=)<basename> {--binsize=<binsz>} ...
+    Generate a counts map for the specific analysis defined by
+    <basename>.  You must have generated several files already.  It's
+    best to do the runAll script (or execute this script without any
+    options) first.  You can give it a bin size (in deg/bin) if you
+    want.
+
+""" %(cmd,cmd,cmd,cmd, cmd)
 
 if __name__ == '__main__': cli()

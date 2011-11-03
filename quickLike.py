@@ -7,7 +7,7 @@ calculations in quickAnalysis before using this moduel.
 
 First, generate a default config file:
 
-> quickLike -c
+> quickLike (-i|--initialize)
 
 Then edit the config file to match your specific analysis by filling
 out the various options.  Rename the config file from example.cfg to
@@ -18,7 +18,7 @@ If you haven't created a model file (if you have, make sure it's
 called <basename>_model.xml before you use this module) you can create
 one from the 2FGL by running
 
-> quickAnalysis -m <basename>
+> quickAnalysis (-x|--xml=)<basename>
 
 To run this, you need to have all of the relevant diffuse model files
 and the 2FGL catalog file in your working directory as well as
@@ -35,7 +35,7 @@ This module logs all of the steps to a file called
 """
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import pyLikelihood
 import re
@@ -560,23 +560,21 @@ class quickLike:
 def cli():
     """Command-line interface.  Call this without any options for usage notes."""
     import getopt
-    class BadUsage: pass
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'c')
+        opts, args = getopt.getopt(sys.argv[1:], 'i', ['initialize'])
 
         for opt, val in opts:
-            if opt == '-c':
+            if opt in ('-i','--initialize'):
                 print "Creating example configuration file called example.cfg"
                 qL = quickLike("example")
                 qL.writeConfig()
                 return
 
-        if not args: raise BadUsage
-        for arg in args:
-            print arg
+        if not opts: raise getopt.GetoptError("Must specify an option, printing help.")
 
-    except (getopt.error, BadUsage):
+    except getopt.error as e:
+        print "Command Line Error: " + e.msg
         cmd = os.path.basename(sys.argv[0])
         print """
                         - quickLike - 
@@ -586,9 +584,9 @@ command line functins listed below or run this module from withing
 python. For full documentation on this module execute 'pydoc
 quickLike'.
                                               
-%s -c ... Generate a default config file called example.cfg.  Edit
-    this file and rename it <basename>.cfg for use in the quickLike
-    module.
+%s (-i|--initialize) ... Generate a default config file called
+    example.cfg.  Edit this file and rename it <basename>.cfg for use
+    in the quickLike module.
 
 """ %(cmd)
                                                                                                                                             

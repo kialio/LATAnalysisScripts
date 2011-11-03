@@ -5,7 +5,7 @@
 """
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1'
+__version__ = '0.1.2'
 
 import os
 import logging
@@ -223,12 +223,14 @@ def runModel(quickLogger,
 	     irfs="P7SOURCE_V6",
              run=True):
 	
-    """Generates a model map."""
+    """Generates a model map.  You need to have already run
+    the general quickAnlysis tool and then fit your model with 
+    quickLike so that all of the needed files exsist."""
 
     try:
         checkForFiles(quickLogger,
                       [base+"_srcMaps.fits",
-                       base+"_model.xml",
+                       base+"_likeMinuit.xml",
                        base+"_ltcube.fits",
                        base+"_BinnedExpMap.fits"])
     except(FileNotFound):
@@ -236,10 +238,40 @@ def runModel(quickLogger,
         return
 
     model_map['srcmaps'] = base+"_srcMaps.fits"
-    model_map['srcmdl']  = base+"_model.xml"
+    model_map['srcmdl']  = base+"_likeMinuit.xml"
     model_map['outfile'] = base+"_modelMap.fits"
     model_map['expcube'] = base+"_ltcube.fits"
     model_map['irfs']    = irfs
     model_map['bexpmap'] = base+"_BinnedExpMap.fits"
   
     runCommand(model_map,quickLogger,run)
+
+def runCMAP(quickLogger,
+            base,
+            rad,
+            binsize,
+            ra,
+            dec,
+            run=True):
+        
+        """Generates a counts map.  The dimensions of which are the
+        largest square subtended by the ROI.  Note that if the ROI is
+        exceptionally small or the bin size exceptionally large, the
+        square might not be the largest posible since the npix
+        calculation floors the calculated value."""
+
+        npix = NumberOfPixels(float(rad),float(binsize))
+
+        evtbin['evfile'] = base+'_filtered_gti.fits'
+        evtbin['outfile'] = base+'_CMAP.fits'
+        evtbin['algorithm'] = 'CMAP'
+        evtbin['nxpix'] = npix
+        evtbin['nypix'] = npix
+        evtbin['binsz'] = binsize
+        evtbin['coordsys'] = 'CEL'
+        evtbin['xref'] = ra
+        evtbin['yref'] = dec
+        evtbin['axisrot'] = 0
+        evtbin['proj'] = 'AIT'
+    
+        runCommand(evtbin,quickLogger,run)
