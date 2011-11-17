@@ -393,7 +393,7 @@ def cli():
                 print "Creating counts map"
                 qA = quickAnalysis(basename, True)
                 for option,value in opts:
-                    if option in ('--binsize'): qA.analysisConf['binsize'] = value
+                    if option in ('-b', '--binsize'): qA.analysisConf['binsize'] = value
                 qA.runCMAP()
                 return
                 
@@ -410,7 +410,7 @@ You can use the command line functions listed below or run this module
 from within python. For full documentation on this module execute
 'pydoc quickAnalysis'.
 
-%s (-a|--analyze) (-b |--basename=)<basename> ...  Perform an analysis
+%s (-a|--analyze) (-n |--basename=)<basename> ...  Perform an analysis
     on <basename>.  <basename> is the prefix used for this analysis.
     You must already have a configuration file if using the command
     line interface.
@@ -419,7 +419,7 @@ from within python. For full documentation on this module execute
     example.cfg.  Edit this file and rename it <basename>.cfg for use
     in the quickAnalysis module.
 
-%s (-x|--xml) (-b |--basename=)<basename> ... Generate a model file
+%s (-x|--xml) (-n |--basename=)<basename> ... Generate a model file
     from the 2FGL.  You need to already have
     <basename>_filtered_gti.fits in your working directory.  You can
     get this file by running the functions runSelect and runGTI on
@@ -427,12 +427,12 @@ from within python. For full documentation on this module execute
     diffuse models in your working directory as well as the 2FGL model
     file.
 
-%s (-m|--model) (-b |--basename=)<basename> ... Generate a model map
+%s (-m|--model) (-n |--basename=)<basename> ... Generate a model map
     based on the model file in your config file.  You need to have
     several files already computed.  It's best to do the runAll script
     before trying this.
 
-%s (-c|--cmap) (-b |--basename=)<basename> {--binsize=<binsz>} ...
+%s (-c|--cmap) (-n |--basename=)<basename> {(-b |--binsize=)<binsz>} ...
     Generate a counts map for the specific analysis defined by
     <basename>.  You must have generated several files already.  It's
     best to do the runAll script (or execute this script without any
