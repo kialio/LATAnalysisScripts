@@ -294,18 +294,19 @@ class quickLike:
                     self.DRM.fit(verbosity= int(self.commonConf['verbosity']))
                 except:
                     self.logger.error("Third DRM Fit Failed")
-                    try:
-                        self.logger.info("Trying alternate fit algorithm (MINUIT)")
-                        self.initAltFit()
-                        self.ALTFIT.fit(verbosity=int(self.commonConf['verbosity']),covar=True,optObject=self.ALTFITobj)
-                        print self.ALTFITobj.getQuality()
-                        altfit = True
-                    except:
+                    self.logger.info("Trying alternate fit algorithm (MINUIT)")
+                    self.initAltFit()
+                    self.ALTFIT.fit(verbosity=int(self.commonConf['verbosity']),covar=True,optObject=self.ALTFITobj)
+                    print self.ALTFITobj.getQuality()
+                    if(self.ALTFITobj.getQuality() < 3):
                         self.logger.error("Alternative fit algorithm failed, bailing")
                         self.logger.error(self.decodeRetCode('Minuit',self.ALTFITobj.getRetCode()))
                         self.ALTFIT.logLike.writeXml(self.commonConf['base']+'_badDRMFit.xml')
                         self.logger.info("Saved ALTFIT as "+self.commonConf['base']+"_badDRMFit.xml")
                         return
+                    else:
+                        self.logger.info(self.decodeRetCode('Minuit',self.ALTFITobj.getRetCode()))
+                        altfit = True
 
         if(altfit):
             self.logger.info("ALTFIT Fit Finished.  Total TS: "+str(self.ALTFIT.logLike.value()))
