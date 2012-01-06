@@ -37,9 +37,9 @@ This module logs all of the steps to a file called
 __author__ = 'Jeremy S. Perkins (FSSC)'
 __version__ = '0.1.2'
 
+from quickUtils import *
 import pyLikelihood
 import re
-from quickUtils import *
 from UnbinnedAnalysis import *
 from BinnedAnalysis import *
 from UpperLimits import UpperLimits
@@ -465,8 +465,30 @@ class quickLike:
                 self.MIN.deleteSource(name)
             else:
                 self.logger.info("Retaining "+name+", TS: "+str(sourceTS)+", Frozen?: "+str(indexFree)+", Distance: "+str(distance))
-                    
 
+    def unLoadSource(self, name):
+
+        """This function removes a source from the model and stores it so that
+        you can use it later if you would like.  This is useful if you are
+        working on an upper limit and need to get a fit to work before you can
+        calculate the upper limit."""
+                    
+        self.saved_src = self.MIN.deleteSource(name)
+        self.logger.info("Removed "+name+" from the model and saved it.")
+        
+    def reLoadSource(self):
+        
+        """This function puts the source removed by the unLoadSource function
+        back into the model."""
+
+        try:
+            self.MIN.addSource(self.saved_src)        
+            self.logger.info("Reloaded saved source.")
+        except AttributeError:
+            self.logger.critical("Saved Source does not exist. "+\
+                                     "Make sure that you've run the unLoadSource function.")
+            return
+        
     def paramsAtLimit(self, limit = 0.1):
 
         """This function will print out any sources whoes parameters
