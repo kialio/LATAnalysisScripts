@@ -233,7 +233,7 @@ class quickAnalysis:
         and the number of energy bins is defined by the nbins
         variable."""
 
-        npix = NumberOfPixels(float(self.analysisConf['rad']), float(self.analysisConf['binsize']))
+        npix = NumberOfPixels(float(self.analysisConf['rad'])+20., float(self.analysisConf['binsize']))
 
         cmd = "gtexpcube2 infile="+self.commonConf['base']+"_ltcube.fits"\
             +" cmap=none"\
@@ -298,7 +298,7 @@ class quickAnalysis:
         srcMaps['outfile'] = self.commonConf['base']+"_srcMaps.fits"
         srcMaps['irfs'] = self.commonConf['irfs']
         srcMaps['rfactor'] = 4
-        srcMaps['emapbnds'] = "no"
+        srcMaps['emapbnds'] = "yes"
 
         runCommand(srcMaps,self.logger,run)
 
