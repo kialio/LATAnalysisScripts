@@ -492,27 +492,9 @@ class quickLike:
             self.logger.info("Reloaded saved source.")
         except AttributeError:
             self.logger.critical("Saved Source does not exist. "+\
-                                 "Make sure that you've run the unLoadSource function.")
+                                     "Make sure that you've run the unLoadSource function.")
             return
 
-    def restoreSource(self, name, freeze=False):
-
-        """This function restores a source to the values it had when
-        the MIN object was created.  It optionally freezes all of the
-        parameters."""
-
-        try:
-            self.pristine.restore(name)
-            self.logger.info("Restored "+name+" to it's pristine state.")
-        except AttributeError:
-            self.logger.critical("Pristine state doesn't exist. "+\
-                                 "Make sure that the MIN object has been created.")
-            return
-        
-        if(freeze):
-            self.logger.info("Froze all parameters of "+name+".")
-
-        
     def paramsAtLimit(self, limit = 0.1):
 
         """This function will print out any sources whoes parameters
