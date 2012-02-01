@@ -37,12 +37,13 @@ This module logs all of the steps to a file called
 __author__ = 'Jeremy S. Perkins (FSSC)'
 __version__ = '0.1.2'
 
+from quickUtils import *
 import pyLikelihood
 import re
-from quickUtils import *
 from UnbinnedAnalysis import *
 from BinnedAnalysis import *
 from UpperLimits import UpperLimits
+from LikelihoodState import LikelihoodState
 
 class quickLike:
 
@@ -220,7 +221,7 @@ class quickLike:
             self.logger.critical("One or more needed files do not exist")
             return
 
-    def initMIN(self, useBadFit=False):
+    def initMIN(self, useBadFit=False, modelFile=""):
 
         """Initiallizes a New Minuit optimizer to use as a backup to
         the DRM optimizer.  This is usually run after you have
@@ -231,7 +232,8 @@ class quickLike:
         working directory. You need to run makeObs before you run this
         function.  If it hasn't been run, this function will exit.  If
         you want to use the non convergant fit from fitDRM, set
-        useBadFit to True."""
+        useBadFit to True.  You can also pass a custom model file name
+        via the modelFile parameter."""
 
         try:
             self.obs
@@ -244,6 +246,9 @@ class quickLike:
         else:
             model = self.commonConf['base']+'_likeDRM.xml'
 
+        if(modelFile):
+            model = modelFile
+
         try:
             checkForFiles(self.logger,[model])
             if(self.commonConf['binned']):
@@ -252,6 +257,7 @@ class quickLike:
                 self.MIN = UnbinnedAnalysis(self.obs,model,optimizer='NewMinuit')
             self.MIN.tol = float(self.likelihoodConf['mintol'])
             self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
+            self.pristine = LikelihoodState(self.MIN)
             self.logger.info(self.ret.subn(', ',str(self.MIN))[0])
         except(FileNotFound):
             self.logger.critical("One or more needed files do not exist")
@@ -465,8 +471,48 @@ class quickLike:
                 self.MIN.deleteSource(name)
             else:
                 self.logger.info("Retaining "+name+", TS: "+str(sourceTS)+", Frozen?: "+str(indexFree)+", Distance: "+str(distance))
-                    
 
+    def unLoadSource(self, name):
+
+        """This function removes a source from the model and stores it so that
+        you can use it later if you would like.  This is useful if you are
+        working on an upper limit and need to get a fit to work before you can
+        calculate the upper limit."""
+                    
+        self.saved_src = self.MIN.deleteSource(name)
+        self.logger.info("Removed "+name+" from the model and saved it.")
+        
+    def reLoadSource(self):
+        
+        """This function puts the source removed by the unLoadSource function
+        back into the model."""
+
+        try:
+            self.MIN.addSource(self.saved_src)        
+            self.logger.info("Reloaded saved source.")
+        except AttributeError:
+            self.logger.critical("Saved Source does not exist. "+\
+                                 "Make sure that you've run the unLoadSource function.")
+            return
+
+    def restoreSource(self, name, freeze=False):
+
+        """This function restores a source to the values it had when
+        the MIN object was created.  It optionally freezes all of the
+        parameters."""
+
+        try:
+            self.pristine.restore(name)
+            self.logger.info("Restored "+name+" to it's pristine state.")
+        except AttributeError:
+            self.logger.critical("Pristine state doesn't exist. "+\
+                                 "Make sure that the MIN object has been created.")
+            return
+        
+        if(freeze):
+            self.logger.info("Froze all parameters of "+name+".")
+
+        
     def paramsAtLimit(self, limit = 0.1):
 
         """This function will print out any sources whoes parameters
