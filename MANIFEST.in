@@ -1,0 +1,4 @@
+include README
+include setup.cfg
+include *.py
+include scripts/*
