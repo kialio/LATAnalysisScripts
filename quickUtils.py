@@ -221,17 +221,24 @@ def runCommand(AppCommand,quickLogger,run=True):
 
 def runModel(quickLogger,
 	     base,
+             modelFile="",
 	     irfs="P7SOURCE_V6",
              run=True):
 	
     """Generates a model map.  You need to have already run
     the general quickAnlysis tool and then fit your model with 
     quickLike so that all of the needed files exsist."""
+    
+    if(modelFile):
+        model = modelFile
+    else:
+        model = base+"_likeMinuit.xml"
+
 
     try:
         checkForFiles(quickLogger,
                       [base+"_srcMaps.fits",
-                       base+"_likeMinuit.xml",
+                       model,
                        base+"_ltcube.fits",
                        base+"_BinnedExpMap.fits"])
     except(FileNotFound):
@@ -239,7 +246,7 @@ def runModel(quickLogger,
         return
 
     model_map['srcmaps'] = base+"_srcMaps.fits"
-    model_map['srcmdl']  = base+"_likeMinuit.xml"
+    model_map['srcmdl']  = model
     model_map['outfile'] = base+"_modelMap.fits"
     model_map['expcube'] = base+"_ltcube.fits"
     model_map['irfs']    = irfs

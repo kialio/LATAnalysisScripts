@@ -205,11 +205,13 @@ class quickPlot:
         if(self.plotConf['binfactor']):
             self.rebinMap("CMAP")
 
-    def createModelMap(self,run=True):
+    def createModelMap(self,modelFile="",run=True):
 
         """Wrapper for the model map routine in quickUtils"""
 
-        runModel(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
+        print modelFile
+
+        runModel(self.logger,self.commonConf['base'],modelFile,self.commonConf['irfs'],run)
         
         if(self.plotConf['binfactor']):
             self.rebinMap("modelMap")
@@ -418,7 +420,7 @@ class quickPlot:
 
 
 
-    def runAll(self, run=True):
+    def runAll(self, modelFile="",run=True):
 
         """Generates the model, residual and significance maps and
 	plot them together with the input count map.  This is the 
@@ -437,7 +439,7 @@ class quickPlot:
         self.logger.info("***Creating counts map***")
         self.createCMAP(run)
         self.logger.info("***Creating model map***")
-        self.createModelMap(run)
+        self.createModelMap(modelFile,run)
         self.logger.info("***Creating residual map***")
         self.createResidMap(run)
         self.logger.info("***Creating significance map***")
@@ -452,14 +454,15 @@ def cli():
     import getopt
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'icmrspPn:', ['initialize',
-                                                               'cmap',
-                                                               'modelmap',
-                                                               'residmap',
-                                                               'sigmap',
-                                                               'plot',
-                                                               'Plot',
-                                                               'basename=',
+        opts, args = getopt.getopt(sys.argv[1:], 'icmrspPn:M:', ['initialize',
+                                                                'cmap',
+                                                                'modelmap',
+                                                                'residmap',
+                                                                'sigmap',
+                                                                'plot',
+                                                                'Plot',
+                                                                'basename=',
+                                                                'modelFile=',
                                                                ])
 
         #Loop through first and check for the basename
@@ -469,7 +472,14 @@ def cli():
             if opt in ('-n','--basename'):
                 haveBase = True
                 basename = val
-        
+                        
+        for opt,val in opts:
+            if opt in ('-M', '--modelFile'):
+                haveModel = True
+                modelFile = val
+            else:
+                modelFile = ""
+
         for opt, val in opts:
             if opt in ('-i','--initialize'):
                 print "Creating example configuration file called example.cfg"
@@ -486,7 +496,7 @@ def cli():
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
                 print "Creating model map"
                 qP = quickPlot(basename, True)
-                qP.createModelMap()
+                qP.createModelMap(modelFile)
                 return
             elif opt in ('-r', '--residmap'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
@@ -510,7 +520,7 @@ def cli():
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
                 print "Creating all maps and then plotting them" 
                 qP = quickPlot(basename, True)
-                qP.runAll(True)
+                qP.runAll(modelFile,True)
 
         if not opts: raise getopt.GetoptError("Must specify an option, printing help.")
 
@@ -558,6 +568,10 @@ documentation on this module execute 'pydoc quickPlot'.
     analysis.  You must already have a configuration file if using the
     command line interface.
 
-""" %(cmd,cmd,cmd,cmd,cmd,cmd,cmd)
+%s (-M|--modelFile)<modelFileName> ... Uses a custom xml model file
+    (instead of <basename>_likeMinuit.xml).  This is only used with
+    the -P or -m options.
+
+""" %(cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd)
 
 if __name__ == '__main__': cli()
