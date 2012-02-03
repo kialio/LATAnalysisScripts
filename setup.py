@@ -12,6 +12,14 @@ except ImportError:
 else:
     print "pyds9 found."
 
+try:
+    import make2FGLxml
+except ImportError:
+    print "make2FGLxml not found (required for making an XML model)."
+    sys.exit(1)
+else:
+    print "make2FGLxml found."
+
 
 if os.environ.get("FERMI_DIR"):
     print "The Fermi Science tools seem to be set up."
