@@ -179,7 +179,7 @@ def generateXMLmodel(quickLogger,
                      base,
                      galactic_file="gal_2yearp7v6_v0.fits",
                      isotropic_file="iso_p7v6source.txt",
-                     catalog_file="gll_psc_v05.fit"):
+                     catalog_file="gll_psc_v06.fit"):
     
     """Checks to see if <basename>_model.xml exists and creates one
     using the make2FGLXML module if it doesn't.  make2FGLXml.py must
