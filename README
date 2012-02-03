@@ -6,7 +6,10 @@ data. This suite was developed by the FSSC and the instrument teams,
 and was reviewed by the Fermi Users' Group.  The LATAnalysisScripts
 module is a set of python modules to facilitate the analysis of LAT
 data.  This package depends on the Fermi Science Tools and the pyds9
-package which can be found at http://hea-www.harvard.edu/RD/ds9/.
+package which can be found at http://hea-www.harvard.edu/RD/ds9/.  You
+also need to locate the make2FGLxml.py module in your PYTHONPATH.
+Usually this is done by copying it into
+$FERMI_DIR/lib/python2.6/site-packages/.
 
 To install:
 
