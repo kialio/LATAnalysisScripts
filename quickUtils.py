@@ -5,7 +5,7 @@
 """
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1.2'
+__version__ = '0.1.4rc'
 
 import os
 import logging

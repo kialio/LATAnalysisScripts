@@ -28,3 +28,13 @@ Changelog for LATAnalysisScripts
 			Added the ability to remove and store a source for
 			reloading later.  Bugfixes as well that are listed
 			in the git repository.
+
+	version 0.1.4rc	February 2012
+
+			Fixed bug that determines the size of the exposure
+			map in a binned analysis.  Checks for make2FGLxml.
+			Updated the point source catalog name.  Can now
+			use a custom XML model for the NewMinuit optimizer
+			and in the calculation of the ModelMap.  This is a
+			release candidate to prepare for an initial public
+			release.
