@@ -160,8 +160,18 @@ class quickPlot:
 
     def rebinMap(self, filebase, run=True, method="adapt"):
 
+        """Rebins the maps so that the resulting images are easier to see.
+        Can either do a flat rebinning (pass 'rebin' to the method) or
+        adaptive smoothing to use fadapt."""
+
         infile = self.commonConf['base']+"_"+str(filebase)+".fits"
         outfile = self.commonConf['base']+"_"+str(filebase)+"_rebin.fits"
+        
+        try:
+            heasoft = os.environ["HEADAS"]
+        except(KeyError):
+            self.logger.critical("HEASOFT is not setup.  It's needed to run fadapt or fimgbin.")
+            return
         
         if(method == "adapt"):
             if(filebase == "modelMap"):
@@ -526,13 +536,12 @@ documentation on this module execute 'pydoc quickPlot'.
 %s (-m|--modelmap) (-n |--basename=)<basename> ... Generate a model
     map.  You need to have already performed a low level analysis of
     your data using quickAnalysis and quickLike so that all of the
-    required files are created.
-
-You need to already have <basename>_filtered_gti.fits in
-    your working directory.  You can get this file by running the
-    functions runSelect and runGTI (within quickAnalysis) on your
-    data.  You also need to have the Galactic and isotropic diffuse
-    models in your working directory as well as the 2FGL model file.
+    required files are created. You need to already have
+    <basename>_filtered_gti.fits in your working directory.  You can
+    get this file by running the functions runSelect and runGTI
+    (within quickAnalysis) on your data.  You also need to have the
+    Galactic and isotropic diffuse models in your working directory as
+    well as the 2FGL model file.
 
 %s (-r|--residmap) (-n |--basename=)<basename> ... Generate a residual
     map based on the count and model map.
