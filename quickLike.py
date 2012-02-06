@@ -545,11 +545,11 @@ class quickLike:
         functions.  Used in the fitting functions in this module.
         You'll probably never use this function."""
 
+        failure = ""
+        
         if(optimizer == 'NewMinuit'):
 
             retCode -= 100
-            
-            failure = ""
             
             if(retCode & 1):
                 failure += " IsAboveMaxEdm"
