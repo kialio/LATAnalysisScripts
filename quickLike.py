@@ -545,10 +545,10 @@ class quickLike:
         functions.  Used in the fitting functions in this module.
         You'll probably never use this function."""
 
-        failure = ""
-        
         if(optimizer == 'NewMinuit'):
-
+            
+            failure = ""
+        
             retCode -= 100
             
             if(retCode & 1):
@@ -573,7 +573,9 @@ class quickLike:
             return failure
 
         if(optimizer == 'Minuit'):
-            
+
+            failure = "Unknown."
+
             if(retCode == 0):
                 failure = "Error matrix not calculated at all"
             if(retCode == 1):
@@ -585,7 +587,7 @@ class quickLike:
 
             return failure
 
-# Command-line interface                                                                                                                      
+# Command-line interface    
 def cli():
     """Command-line interface.  Call this without any options for usage notes."""
     import getopt
