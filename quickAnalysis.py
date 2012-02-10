@@ -386,7 +386,19 @@ from within python. For full documentation on this module execute
     options) first.  You can give it a bin size (in deg/bin) if you
     want.
 
-""" %(cmd,cmd,cmd,cmd,cmd,cmd)
+%s --sourcemap (-n | --basename=)<basename> ... Generate a source map
+    based on the model file in your config file.  You need to have
+    already produced several other files.
+
+%s --ccube (-n | --basename=)<basename> ... Generate a counts cube for
+    your analysis.  You need to have already produced several other
+    files.
+
+%s --bexpmap (-n | --basename=)<basename> ... Generate a binned
+    exposure map for your analysis.  You need to have already produced
+    several other files.
+
+""" %(cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd)
 
 # Command-line interface             
 def cli():
@@ -398,6 +410,9 @@ def cli():
                                                                 'analyze',
                                                                 'initialize',
                                                                 'modelmap',
+                                                                'sourcemap',
+                                                                'ccube',
+                                                                'bexpmap',
                                                                 'xml',
                                                                 'cmap',
                                                                 'basename=',
@@ -430,6 +445,24 @@ def cli():
                 print "Creating model map"
                 qA = quickAnalysis(basename, True)
                 runModel(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
+                return
+            elif opt in ('--sourcemap'):
+                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
+                print "Creating source map"
+                qA = quickAnalysis(basename, True)
+                qA.runSrcMaps()
+                return
+            elif opt in ('--ccube'):
+                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
+                print "Creating counts cube"
+                qA = quickAnalysis(basename, True)
+                qA.runCCUBE()
+                return
+            elif opt in ('--bexpmap'):
+                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
+                print "Creating binned exposure map"
+                qA = quickAnalysis(basename, True)
+                qA.runExpCube()
                 return
             elif opt in ('-x', '--xml'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
