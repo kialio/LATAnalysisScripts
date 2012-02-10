@@ -35,7 +35,7 @@ This module logs all of the steps to a file called
 """
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1.4rc'
+__version__ = '0.1.5'
 
 from quickUtils import *
 from quickUtils import __version__

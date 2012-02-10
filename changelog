@@ -38,3 +38,11 @@ Changelog for LATAnalysisScripts
 			and in the calculation of the ModelMap.  This is a
 			release candidate to prepare for an initial public
 			release.
+
+	version 0.1.5	February 2012
+
+			Added several CLI options to quickAnalyis.  Fixed
+			-h/--help CLI options.  Added check that the
+			source of interest is in the model in the
+			removeWeak function.  Almost ready for release
+			here.
