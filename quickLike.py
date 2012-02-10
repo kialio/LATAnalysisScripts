@@ -587,38 +587,48 @@ class quickLike:
 
             return failure
 
-# Command-line interface    
-def cli():
-    """Command-line interface.  Call this without any options for usage notes."""
-    import getopt
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], 'i', ['initialize'])
-
-        for opt, val in opts:
-            if opt in ('-i','--initialize'):
-                print "Creating example configuration file called example.cfg"
-                qL = quickLike("example")
-                qL.writeConfig()
-                return
-
-        if not opts: raise getopt.GetoptError("Must specify an option, printing help.")
-
-    except getopt.error as e:
-        print "Command Line Error: " + e.msg
-        cmd = os.path.basename(sys.argv[0])
-        print """
+def printCLIHelp():
+    """This function prints out the help for the CLI."""
+    
+    cmd = os.path.basename(sys.argv[0])
+    print """
                         - quickLike - 
 
 Perform a liklihood analysis on Fermi LAT data.  You can use the
 command line functins listed below or run this module from withing
 python. For full documentation on this module execute 'pydoc
 quickLike'.
-                                              
+                        
+%s (-h|--help) ... This help text.
+                      
 %s (-i|--initialize) ... Generate a default config file called
     example.cfg.  Edit this file and rename it <basename>.cfg for use
     in the quickLike module.
 
-""" %(cmd)
+""" %(cmd,cmd)
+
+# Command-line interface    
+def cli():
+    """Command-line interface.  Call this without any options for usage notes."""
+    import getopt
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hi', ['help',
+                                                        'initialize'])
+
+        for opt, val in opts:
+            if opt in ('-h','--help'):
+                printCLIHelp()
+            elif opt in ('-i','--initialize'):
+                print "Creating example configuration file called example.cfg"
+                qL = quickLike("example")
+                qL.writeConfig()
+                return
+            
+        if not opts: raise getopt.GetoptError("Must specify an option, printing help.")
+            
+    except getopt.error as e:
+        print "Command Line Error: " + e.msg
+        printCLIHelp()
                                                                                                                                             
 if __name__ == '__main__': cli()

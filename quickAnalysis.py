@@ -343,20 +343,66 @@ class quickAnalysis:
             self.logger.info("***Running gtexpmap***")
             self.runExpMap(run)
 
+def printCLIHelp():
+    """This function prints out the help for the CLI."""
+
+    cmd = os.path.basename(sys.argv[0])
+    print """
+                        - quickAnalysis - 
+
+Perform event selections and exposure calculations for Fermi LAT data.
+You can use the command line functions listed below or run this module
+from within python. For full documentation on this module execute
+'pydoc quickAnalysis'.
+
+%s (-h|--help) ... This help text.
+
+%s (-a|--analyze) (-n |--basename=)<basename> ...  Perform an analysis
+    on <basename>.  <basename> is the prefix used for this analysis.
+    You must already have a configuration file if using the command
+    line interface.
+
+%s (-i|--initialize) ... Generate a default config file called
+    example.cfg.  Edit this file and rename it <basename>.cfg for use
+    in the quickAnalysis module.
+
+%s (-x|--xml) (-n |--basename=)<basename> ... Generate a model file
+    from the 2FGL.  You need to already have
+    <basename>_filtered_gti.fits in your working directory.  You can
+    get this file by running the functions runSelect and runGTI on
+    your data.  You also need to have the galactic and isotropic
+    diffuse models in your working directory as well as the 2FGL model
+    file.
+
+%s (-m|--model) (-n |--basename=)<basename> ... Generate a model map
+    based on the model file in your config file.  You need to have
+    several files already computed.  It's best to do the runAll script
+    before trying this.
+
+%s (-c|--cmap) (-n |--basename=)<basename> {(-b |--binsize=)<binsz>} ...
+    Generate a counts map for the specific analysis defined by
+    <basename>.  You must have generated several files already.  It's
+    best to do the runAll script (or execute this script without any
+    options) first.  You can give it a bin size (in deg/bin) if you
+    want.
+
+""" %(cmd,cmd,cmd,cmd,cmd,cmd)
+
 # Command-line interface             
 def cli():
     """Command-line interface.  Call this without any options for usage notes."""
     import getopt
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'iamxcb:n:', ['analyze',
-                                                             'initialize',
-                                                             'modelmap',
-                                                             'xml',
-                                                             'cmap',
-                                                             'basename=',
-                                                             'binsize=',
-                                                             ])
+        opts, args = getopt.getopt(sys.argv[1:], 'hiamxcb:n:', ['help',
+                                                                'analyze',
+                                                                'initialize',
+                                                                'modelmap',
+                                                                'xml',
+                                                                'cmap',
+                                                                'basename=',
+                                                                'binsize=',
+                                                                ])
         #Loop through first and check for the basename
         haveBase = False
         basename = 'example'
@@ -366,7 +412,10 @@ def cli():
                 basename = val
 
         for opt, val in opts:
-            if opt in ('-a', '--analyze'):
+            if opt in ('-h', '--help'):
+                printCLIHelp()
+                return
+            elif opt in ('-a', '--analyze'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
                 qA = quickAnalysis(basename, True)
                 qA.runAll(True)         
@@ -401,44 +450,7 @@ def cli():
 
     except getopt.error as e:
         print "Command Line Error: " + e.msg
-        cmd = os.path.basename(sys.argv[0])
-        print """
-                        - quickAnalysis - 
+        printCLIHelp()
 
-Perform event selections and exposure calculations for Fermi LAT data.
-You can use the command line functions listed below or run this module
-from within python. For full documentation on this module execute
-'pydoc quickAnalysis'.
-
-%s (-a|--analyze) (-n |--basename=)<basename> ...  Perform an analysis
-    on <basename>.  <basename> is the prefix used for this analysis.
-    You must already have a configuration file if using the command
-    line interface.
-
-%s (-i|--initialize) ... Generate a default config file called
-    example.cfg.  Edit this file and rename it <basename>.cfg for use
-    in the quickAnalysis module.
-
-%s (-x|--xml) (-n |--basename=)<basename> ... Generate a model file
-    from the 2FGL.  You need to already have
-    <basename>_filtered_gti.fits in your working directory.  You can
-    get this file by running the functions runSelect and runGTI on
-    your data.  You also need to have the galactic and isotropic
-    diffuse models in your working directory as well as the 2FGL model
-    file.
-
-%s (-m|--model) (-n |--basename=)<basename> ... Generate a model map
-    based on the model file in your config file.  You need to have
-    several files already computed.  It's best to do the runAll script
-    before trying this.
-
-%s (-c|--cmap) (-n |--basename=)<basename> {(-b |--binsize=)<binsz>} ...
-    Generate a counts map for the specific analysis defined by
-    <basename>.  You must have generated several files already.  It's
-    best to do the runAll script (or execute this script without any
-    options) first.  You can give it a bin size (in deg/bin) if you
-    want.
-
-""" %(cmd,cmd,cmd,cmd, cmd)
 
 if __name__ == '__main__': cli()

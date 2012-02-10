@@ -447,6 +447,58 @@ class quickPlot:
         self.logger.info("***Plotting maps with DS9***")
         self.plotMaps(run)
 
+def printCLIHelp():
+    """This function prints out the help for the CLI."""
+
+    cmd = os.path.basename(sys.argv[0])
+    print """
+                           - quickPlot - 
+
+Generates the model, residual, and significance maps starting from the
+count map and plots them using ds9.  You can use the command line
+functions listed below or run this module from within python. For full
+documentation on this module execute 'pydoc quickPlot'.
+                                                                                                                                
+%s (-h|--help) ... This help text.
+
+%s -i ... Generate a default config file called example.cfg.  Edit
+    this file and rename it <basename>.cfg for use in the quickPlot
+    module.
+
+%s (-c|--cmap) (-n | --basename=)<basename> ... Create a counts map.
+    You need to have already filtered and cleaned your data using the
+    quickAnalysis tool.
+
+%s (-m|--modelmap) (-n |--basename=)<basename> ... Generate a model
+    map.  You need to have already performed a low level analysis of
+    your data using quickAnalysis and quickLike so that all of the
+    required files are created. You need to already have
+    <basename>_filtered_gti.fits in your working directory.  You can
+    get this file by running the functions runSelect and runGTI
+    (within quickAnalysis) on your data.  You also need to have the
+    Galactic and isotropic diffuse models in your working directory as
+    well as the 2FGL model file.
+
+%s (-r|--residmap) (-n |--basename=)<basename> ... Generate a residual
+    map based on the count and model map.
+
+%s (-s|--sigmap) (-n |--basename=)<basename> ... Generate a
+    significance map based on the count and model map.
+
+%s (-p|--plot) (-n |--basename=)<basename> ... Plot the count, model,
+    residual, and significance maps using ds9.
+
+%s (-P|--Plot) (-n |--basename=)<basename> ...  Creates all of the
+    needed maps (model, residual, significance) and then plots the
+    results using ds9.  <basename> is the prefix used for this
+    analysis.  You must already have a configuration file if using the
+    command line interface.
+
+%s (-M|--modelFile)<modelFileName> ... Uses a custom xml model file
+    (instead of <basename>_likeMinuit.xml).  This is only used with
+    the -P or -m options.
+
+""" %(cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd)
 
 
 def cli():
@@ -454,16 +506,17 @@ def cli():
     import getopt
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'icmrspPn:M:', ['initialize',
-                                                                'cmap',
-                                                                'modelmap',
-                                                                'residmap',
-                                                                'sigmap',
-                                                                'plot',
-                                                                'Plot',
-                                                                'basename=',
-                                                                'modelFile=',
-                                                               ])
+        opts, args = getopt.getopt(sys.argv[1:], 'hicmrspPn:M:', ['help',
+                                                                  'initialize',
+                                                                  'cmap',
+                                                                  'modelmap',
+                                                                  'residmap',
+                                                                  'sigmap',
+                                                                  'plot',
+                                                                  'Plot',
+                                                                  'basename=',
+                                                                  'modelFile=',
+                                                                  ])
 
         #Loop through first and check for the basename
         haveBase = False
@@ -481,6 +534,9 @@ def cli():
                 modelFile = ""
 
         for opt, val in opts:
+            if opt in ('-h', '--help'):
+                printCLIHelp()
+                return
             if opt in ('-i','--initialize'):
                 print "Creating example configuration file called example.cfg"
                 qP = quickPlot(basename)
@@ -526,52 +582,6 @@ def cli():
 
     except getopt.error as e:
         print "Command Line Error: " + e.msg
-        cmd = os.path.basename(sys.argv[0])
-        print """
-                           - quickPlot - 
-
-Generates the model, residual, and significance maps starting from the
-count map and plots them using ds9.  You can use the command line
-functions listed below or run this module from within python. For full
-documentation on this module execute 'pydoc quickPlot'.
-
-%s -i ... Generate a default config file called example.cfg.  Edit
-    this file and rename it <basename>.cfg for use in the quickPlot
-    module.
-
-%s (-c|--cmap) (-n | --basename=)<basename> ... Create a counts map.
-    You need to have already filtered and cleaned your data using the
-    quickAnalysis tool.
-
-%s (-m|--modelmap) (-n |--basename=)<basename> ... Generate a model
-    map.  You need to have already performed a low level analysis of
-    your data using quickAnalysis and quickLike so that all of the
-    required files are created. You need to already have
-    <basename>_filtered_gti.fits in your working directory.  You can
-    get this file by running the functions runSelect and runGTI
-    (within quickAnalysis) on your data.  You also need to have the
-    Galactic and isotropic diffuse models in your working directory as
-    well as the 2FGL model file.
-
-%s (-r|--residmap) (-n |--basename=)<basename> ... Generate a residual
-    map based on the count and model map.
-
-%s (-s|--sigmap) (-n |--basename=)<basename> ... Generate a
-    significance map based on the count and model map.
-
-%s (-p|--plot) (-n |--basename=)<basename> ... Plot the count, model,
-    residual, and significance maps using ds9.
-
-%s (-P|--Plot) (-n |--basename=)<basename> ...  Creates all of the
-    needed maps (model, residual, significance) and then plots the
-    results using ds9.  <basename> is the prefix used for this
-    analysis.  You must already have a configuration file if using the
-    command line interface.
-
-%s (-M|--modelFile)<modelFileName> ... Uses a custom xml model file
-    (instead of <basename>_likeMinuit.xml).  This is only used with
-    the -P or -m options.
-
-""" %(cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd)
+        printCLIHelp()
 
 if __name__ == '__main__': cli()
