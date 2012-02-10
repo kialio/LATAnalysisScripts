@@ -38,6 +38,7 @@ __author__ = 'Jeremy S. Perkins (FSSC)'
 __version__ = '0.1.4rc'
 
 from quickUtils import *
+from quickUtils import __version__
 import pyLikelihood
 import re
 from UnbinnedAnalysis import *
@@ -452,6 +453,15 @@ class quickLike:
 
         if(mySource == ''):
             mySource = self.likelihoodConf['sourcename']
+
+        try:
+            self.MIN.model[mySource].src.getName()
+        except AttributeError:
+            self.logger.critical(mySource+" is not in the model.  Either pass a valid "+
+                                 " sourcename to this function or modify your model "+
+                                 "and/or config file to indicate which source you are considering.")
+            return
+
         for name in self.MIN.sourceNames():
             remove = False
             distance = 0
