@@ -386,6 +386,9 @@ from within python. For full documentation on this module execute
     options) first.  You can give it a bin size (in deg/bin) if you
     want.
 
+%s --filter (-n | --basename=)<basename> ... Generated a file that has
+    been event and GTI selected.
+
 %s --sourcemap (-n | --basename=)<basename> ... Generate a source map
     based on the model file in your config file.  You need to have
     already produced several other files.
@@ -398,7 +401,7 @@ from within python. For full documentation on this module execute
     exposure map for your analysis.  You need to have already produced
     several other files.
 
-""" %(cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd)
+""" %(cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd)
 
 # Command-line interface             
 def cli():
@@ -413,6 +416,7 @@ def cli():
                                                                 'sourcemap',
                                                                 'ccube',
                                                                 'bexpmap',
+                                                                'filter',
                                                                 'xml',
                                                                 'cmap',
                                                                 'basename=',
@@ -463,6 +467,13 @@ def cli():
                 print "Creating binned exposure map"
                 qA = quickAnalysis(basename, True)
                 qA.runExpCube()
+                return
+            elif opt in ('--filter'):
+                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
+                print "Creating filtered (selected and GTI'd) file"
+                qA = quickAnalysis(basename, True)
+                qA.runSelect()
+                qA.runGTI()
                 return
             elif opt in ('-x', '--xml'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
