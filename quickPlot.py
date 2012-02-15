@@ -85,7 +85,7 @@ class quickPlot:
                                "grid"              : "yes",
                                "gridcolor"         : "black",
                                "gridfont"          : 14,
-                               "binfactor"         : 0},
+                               "binfactor"         : 25},
                  likelihoodConfig = {"model"      : "MySource_model.xml",
                                      "sourcename" : "Source Name",
                                      "drmtol" : 0.1,
@@ -166,13 +166,11 @@ class quickPlot:
 
         infile = self.commonConf['base']+"_"+str(filebase)+".fits"
         outfile = self.commonConf['base']+"_"+str(filebase)+"_rebin.fits"
-        
-        try:
-            heasoft = os.environ["HEADAS"]
-        except(KeyError):
+
+        if(os.system('fversion')):
             self.logger.critical("HEASOFT is not setup.  It's needed to run fadapt or fimgbin.")
             return
-        
+
         if(method == "adapt"):
             if(filebase == "modelMap"):
                 cmd = "cp "+infile+" "+outfile
