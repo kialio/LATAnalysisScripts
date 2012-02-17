@@ -39,10 +39,19 @@ Changelog for LATAnalysisScripts
 			release candidate to prepare for an initial public
 			release.
 
-	version 0.1.5	February 2012
+	version 0.1.5	February 10, 2012
 
 			Added several CLI options to quickAnalyis.  Fixed
 			-h/--help CLI options.  Added check that the
 			source of interest is in the model in the
 			removeWeak function.  Almost ready for release
 			here.
+
+	version 0.1.6	February 15, 2012
+
+			Added a default of 25 for the binning in fadapt in
+			quickPlot.  Checks for fversion instead of HEADAS
+			to verify that the ftools are setup.  Added a
+			--filter option to quickAnalysis which runs
+			gtselect and gtmktime.  This version will be
+			released.
