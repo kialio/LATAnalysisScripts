@@ -33,7 +33,7 @@ This module logs all of the steps to a file called
 """
 
 __author__ = 'Davide Donato (FSSC)'
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 
 import sys
 import os
