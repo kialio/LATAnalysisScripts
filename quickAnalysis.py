@@ -223,17 +223,18 @@ class quickAnalysis:
                 self.analysisConf['ra'],
                 self.analysisConf['dec'])
 
-    def runExpCube(self,run=True,nbins=30):
+    def runExpCube(self,run=True,nbins=30, ExpBuffer=30):
 
-        """Generates a binned exposure map that is 20 degrees larger
+        """Generates a binned exposure map that is 30 degrees larger
         than the ROI.  The binned exposure map needs to take into
-        account the exposure on sources outside of the ROI.  20
-        degrees is the size of the PSF at low energies plus an extra
-        10 degrees for security.  The energy binning is logarithmic
-        and the number of energy bins is defined by the nbins
-        variable."""
+        account the exposure on sources outside of the ROI.  30
+        degrees is the size of the PSF at low energies plus some extra
+        tens of degrees for security.  You can adjust this buffer by
+        setting the ExpBuffer option.  The energy binning is
+        logarithmic and the number of energy bins is defined by the
+        nbins variable."""
 
-        npix = NumberOfPixels(float(self.analysisConf['rad'])+20., float(self.analysisConf['binsize']))
+        npix = NumberOfPixels(float(self.analysisConf['rad'])+ExpBuffer., float(self.analysisConf['binsize']))
 
         cmd = "gtexpcube2 infile="+self.commonConf['base']+"_ltcube.fits"\
             +" cmap=none"\
