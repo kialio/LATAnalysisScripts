@@ -340,7 +340,6 @@ class quickLike:
             return
 
         self.MIN.fit(covar=True, optObject=self.MINobj,verbosity=int(self.commonConf['verbosity']))
-        self.MIN.logLike.writeXml(self.commonConf['base']+'_likeMinuit.xml')
         self.logger.info("NEWMINUIT Fit Finished.  Total TS: "+str(self.MIN.logLike.value()))
         self.logger.info("NEWMINUIT Fit Status: "+str(self.MINobj.getRetCode()))
         self.logger.info("NEWMINUIT fit Distance: "+str(self.MINobj.getDistance()))
@@ -348,8 +347,9 @@ class quickLike:
         if(self.MINobj.getRetCode() > 0):
             self.logger.error("NEWMINUIT DID NOT CONVERGE!!!")
             self.logger.error("The fit failed the following tests: "+self.decodeRetCode('NewMinuit',self.MINobj.getRetCode()))
-            self.MIN.fit(covar=True, optObject=self.MINobj,verbosity=int(self.commonConf['verbosity']))
             self.MIN.logLike.writeXml(self.commonConf['base']+'_badMINFit.xml')
+        else:
+            self.MIN.logLike.writeXml(self.commonConf['base']+'_likeMinuit.xml')
             
 
     def printSource(self,source,Emin=100,Emax=300000):
