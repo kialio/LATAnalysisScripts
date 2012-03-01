@@ -28,7 +28,7 @@ else:
     sys.exit()
 
 setup(name='LATAnalysisScripts',
-      version='0.1.7',
+      version='0.1.8',
       description='Fermi LAT Analysis Scripts (quickScripts)',
       author='Jeremy S. Perkins and Davide Donato (FSSC)',
       author_email='fermihelp@milkyway.gsfc.nasa.gov',
