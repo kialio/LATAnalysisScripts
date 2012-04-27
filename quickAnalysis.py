@@ -234,7 +234,7 @@ class quickAnalysis:
         logarithmic and the number of energy bins is defined by the
         nbins variable."""
 
-        npix = NumberOfPixels(float(self.analysisConf['rad'])+ExpBuffer., float(self.analysisConf['binsize']))
+        npix = NumberOfPixels(float(self.analysisConf['rad'])+ExpBuffer, float(self.analysisConf['binsize']))
 
         cmd = "gtexpcube2 infile="+self.commonConf['base']+"_ltcube.fits"\
             +" cmap=none"\
