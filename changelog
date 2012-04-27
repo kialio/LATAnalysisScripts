@@ -60,3 +60,7 @@ Changelog for LATAnalysisScripts
 			Changed the default size of the binned exposure
 			cube (and thus the source map) to 30 degrees larger than the ROI.
 			Made this variable user adjustable.
+
+	version 0.1.8	March 1, 2012
+
+			Fixed a double fitting bug in fitMIN.
