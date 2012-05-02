@@ -309,12 +309,6 @@ class quickPlot:
         significance map.  Note that this is not a statistically
         rigorous test."""
 
-        try:
-            import matplotlib.pyplot as plt
-            import pylab
-        except(ImportError):
-            self.logger.critical("pyplot and pylab are needed to run this function.")
-            return
 
         if(self.plotConf['binfactor']):
             suffix = "_rebin.fits"
@@ -328,10 +322,26 @@ class quickPlot:
             self.logger.critical("One or more needed files do not exist")
             return
 
+        plotDist = True
+        try:
+            import matplotlib.pyp as plt
+            import pylab
+        except(ImportError):
+            self.logger.warning("pyplot and pylab are needed for plotting. "\
+                                    +"The moments of the distribution will "\
+                                    +"still be calculated but the distribution "\
+                                    +"will not be plotted.")
+            plotDist = False
+
         sigImage  = pyfits.open(self.commonConf['base']+"_sigMap"+suffix)
         sigData = sigImage[0].data.copy()
-        plt.clf()
-        n, bins, patches = plt.hist(sigData.flatten(), 50, normed=True)
+
+        if(plotDist):
+            plt.clf()
+            n, bins, patches = plt.hist(sigData.flatten(), 50, normed=True)
+        else:
+            n, bins = numpy.histogram(sigData.flatten(),50, normed=True)
+
         X = bins[:-1] + numpy.diff(bins)
         if(mean):
             x = mean
@@ -342,10 +352,11 @@ class quickPlot:
         else:
             width = sqrt(abs(sum((X-x)**2*n)/sum(n)))
         max = n.max()
-        fit = lambda t : max*pylab.exp(-(t-x)**2/(2*width**2))
-
-        plt.plot(X,fit(X))
-        plt.show()
+        
+        if(plotDist):
+            fit = lambda t : max*pylab.exp(-(t-x)**2/(2*width**2))
+            plt.plot(X,fit(X))
+            plt.show()
 
         self.logger.info("The significance distribtion has a mean of "
                          + str(x) + " and a width of "+ str(width) + ".")
