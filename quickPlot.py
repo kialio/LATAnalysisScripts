@@ -324,7 +324,7 @@ class quickPlot:
 
         plotDist = True
         try:
-            import matplotlib.pyp as plt
+            import matplotlib.pyplot as plt
             import pylab
         except(ImportError):
             self.logger.warning("pyplot and pylab are needed for plotting. "\

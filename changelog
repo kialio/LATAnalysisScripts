@@ -3,10 +3,11 @@ Changelog for LATAnalysisScripts
 	version	0.1.0	September 2011
 			initial version
 
-	version 0.1.1 	October 2011
-			trial release, includes all changes to
-			quickPlot including implementing logging
-			and a configuration file
+	version 0.1.1 	October 2011 
+
+			trial release, includes all changes to quickPlot
+			including implementing logging and a configuration
+			file
 
 	version 0.1.2 	November 2011
 
@@ -58,8 +59,9 @@ Changelog for LATAnalysisScripts
 	version 0.1.7	February 24, 2012
 
 			Changed the default size of the binned exposure
-			cube (and thus the source map) to 30 degrees larger than the ROI.
-			Made this variable user adjustable.
+			cube (and thus the source map) to 30 degrees
+			larger than the ROI.  Made this variable user
+			adjustable.
 
 	version 0.1.8	March 1, 2012
 
@@ -68,8 +70,10 @@ Changelog for LATAnalysisScripts
 	version 0.1.9	May 1, 2012
 
 			Added a function to quickPlot that plots the
-			significance distribution of the significance map as well as
-			overplots a gaussian based on the moments of that distribution.
-			This is useful in figuring out what features are actually
-			significant in the significance map.  Also changed the method for
-			calculating the significance in the significance map.
+			significance distribution of the significance map
+			as well as overplots a gaussian based on the
+			moments of that distribution.  This is useful in
+			figuring out what features are actually
+			significant in the significance map.  Also changed
+			the method for calculating the significance in the
+			significance map.
