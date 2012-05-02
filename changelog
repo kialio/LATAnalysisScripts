@@ -64,3 +64,12 @@ Changelog for LATAnalysisScripts
 	version 0.1.8	March 1, 2012
 
 			Fixed a double fitting bug in fitMIN.
+
+	version 0.1.9	May 1, 2012
+
+			Added a function to quickPlot that plots the
+			significance distribution of the significance map as well as
+			overplots a gaussian based on the moments of that distribution.
+			This is useful in figuring out what features are actually
+			significant in the significance map.  Also changed the method for
+			calculating the significance in the significance map.
