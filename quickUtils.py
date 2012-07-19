@@ -5,7 +5,7 @@
 """
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1.8'
+__version__ = '0.1.9'
 
 import os
 import logging
@@ -283,3 +283,4 @@ def runCMAP(quickLogger,
         evtbin['proj'] = 'AIT'
     
         runCommand(evtbin,quickLogger,run)
+

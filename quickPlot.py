@@ -33,7 +33,7 @@ This module logs all of the steps to a file called
 """
 
 __author__ = 'Davide Donato (FSSC)'
-__version__ = '0.1.8'
+__version__ = '0.1.9'
 
 import sys
 import os
@@ -255,7 +255,7 @@ class quickPlot:
                          +self.commonConf['base']+"_modelMap"+suffix+".")
              
 
-    def createSigMap(self,run=True):
+    def createSigMap(self,run=True, method=2, generateDistribution=False):
 
         """Generates a significance map."""
 
@@ -281,8 +281,11 @@ class quickPlot:
 
         for x,row in enumerate(sigData):
             for y in enumerate(row):
-                sigData[x,y[0]] = ((onData[x,y[0]]-offData[x,y[0]])*(onData[x,y[0]]-offData[x,y[0]]))/sqrt(offData[x,y[0]])
-            
+                if method == 1:
+                    sigData[x,y[0]] = ((onData[x,y[0]]-offData[x,y[0]])*(onData[x,y[0]]-offData[x,y[0]]))/sqrt(offData[x,y[0]])
+                elif method == 2:
+                    sigData[x,y[0]] = (onData[x,y[0]]-offData[x,y[0]])/sqrt(offData[x,y[0]])
+
         newImage = pyfits.PrimaryHDU(sigData)
         newImage.header = onHeader
         newImage.update_header()
@@ -294,6 +297,70 @@ class quickPlot:
                          +self.commonConf['base']+"_CMAP"+suffix+" and "
                          +self.commonConf['base']+"_modelMap"+suffix+".") 
 
+    def analyzeSigMap(self, mean="", sigma=""):
+
+        """Analyzes an already created significance map.  Will plot
+        the significance distribution and overplot a gaussian.  The
+        mean and width of the gaussian is determined from the moments
+        of the distribution, and not from actually fitting the data.
+        You will probably have to adjust the values via the mean and
+        sigma options.  The final numbers will guide you in finding
+        significant features (3 times sigma pluse the mean) in the
+        significance map.  Note that this is not a statistically
+        rigorous test."""
+
+
+        if(self.plotConf['binfactor']):
+            suffix = "_rebin.fits"
+        else:
+            suffix = ".fits"
+
+        try:
+            checkForFiles(self.logger,
+                          [self.commonConf['base']+"_sigMap"+suffix])
+        except(FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            return
+
+        plotDist = True
+        try:
+            import matplotlib.pyplot as plt
+            import pylab
+        except(ImportError):
+            self.logger.warning("pyplot and pylab are needed for plotting. "\
+                                    +"The moments of the distribution will "\
+                                    +"still be calculated but the distribution "\
+                                    +"will not be plotted.")
+            plotDist = False
+
+        sigImage  = pyfits.open(self.commonConf['base']+"_sigMap"+suffix)
+        sigData = sigImage[0].data.copy()
+
+        if(plotDist):
+            plt.clf()
+            n, bins, patches = plt.hist(sigData.flatten(), 50, normed=True)
+        else:
+            n, bins = numpy.histogram(sigData.flatten(),50, normed=True)
+
+        X = bins[:-1] + numpy.diff(bins)
+        if(mean):
+            x = mean
+        else:
+            x = sum(X*n)/sum(n)
+        if(sigma):
+            width = sigma
+        else:
+            width = sqrt(abs(sum((X-x)**2*n)/sum(n)))
+        max = n.max()
+        
+        if(plotDist):
+            fit = lambda t : max*pylab.exp(-(t-x)**2/(2*width**2))
+            plt.plot(X,fit(X))
+            plt.show()
+
+        self.logger.info("The significance distribtion has a mean of "
+                         + str(x) + " and a width of "+ str(width) + ".")
+        
     def plotMaps(self,run=True):
 
 	""""Uses ds9 to plot the count, model, residual and significance maps"""
