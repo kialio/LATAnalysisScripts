@@ -77,3 +77,11 @@ Changelog for LATAnalysisScripts
 			significant in the significance map.  Also changed
 			the method for calculating the significance in the
 			significance map.
+
+	version 0.1.10	Sep 19, 2012
+
+			Added 'convtype' to the analysis section of the
+			config file so that you can do a front/back
+			analysis directly.  Make sure you update your
+			config file to add this option otherwise you'll
+			get an error on start.

@@ -33,7 +33,7 @@ This module logs all of the steps to a file called
 """
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1.9'
+__version__ = '0.1.10'
 
 import sys
 import os
@@ -69,7 +69,8 @@ class quickAnalysis:
                                    "emin" : 100,
                                    "emax" : 300000,
                                    "zmax" : 100,
-                                   "binsize" : 0.1},
+                                   "binsize" : 0.1,
+                                   "convtype" : -1},
                  commonConfig = {"base" : 'MySource',
                                  "binned" : False,
                                  "eventclass" : 2,
@@ -114,7 +115,7 @@ class quickAnalysis:
                     commonDictionary=self.commonConf,
                     analysisDictionary=self.analysisConf)
 
-    def runSelect(self,run = True,convtype=-1):
+    def runSelect(self,run = True):
 
         """Runs gtselect on the data using the initialization
         parameters. User selected parameters include the conversion
@@ -133,7 +134,7 @@ class quickAnalysis:
         filter['emin'] = self.analysisConf['emin']
         filter['emax'] = self.analysisConf['emax']
         filter['zmax'] = self.analysisConf['zmax']
-        filter['convtype'] = convtype
+        filter['convtype'] = self.analysisConf['convtype']
 
         runCommand(filter,self.logger,run)
         
