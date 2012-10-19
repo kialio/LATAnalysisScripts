@@ -84,4 +84,6 @@ Changelog for LATAnalysisScripts
 			config file so that you can do a front/back
 			analysis directly.  Make sure you update your
 			config file to add this option otherwise you'll
-			get an error on start.
+			get an error on start.  Also changed the runCCUBE
+			to provide the spacecraft file as an
+			option (needed for the newer science tools).

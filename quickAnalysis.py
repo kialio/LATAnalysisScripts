@@ -37,9 +37,8 @@ __version__ = '0.1.10'
 
 import sys
 import os
-import math
-from gt_apps import *
-from quickUtils import *
+from gt_apps import filter, maketime, expMap, expCube, evtbin, srcMaps
+import quickUtils as qU
 
 class quickAnalysis:
 
@@ -79,20 +78,20 @@ class quickAnalysis:
 
         commonConfig['base'] = base
 
-        self.logger = initLogger(base, 'quickAnalysis')
+        self.logger = qU.initLogger(base, 'quickAnalysis')
 
         if(configFile):
             try:
-                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = readConfig(self.logger,base)
+                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = qU.readConfig(self.logger,base)
             except(FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
             try:
-                commonConfig = checkConfig(self.logger,commonConfig,commonConfigRead)
+                commonConfig = qU.checkConfig(self.logger,commonConfig,commonConfigRead)
             except(KeyError):
                 return
             try:
-                analysisConfig = checkConfig(self.logger,analysisConfig,analysisConfigRead)
+                analysisConfig = qU.checkConfig(self.logger,analysisConfig,analysisConfigRead)
             except(KeyError):
                 return
 
@@ -111,9 +110,9 @@ class quickAnalysis:
         """Writes all of the initialization variables to the config
         file called <basename>.cfg."""
 
-        writeConfig(quickLogger=self.logger,
-                    commonDictionary=self.commonConf,
-                    analysisDictionary=self.analysisConf)
+        qU.writeConfig(quickLogger=self.logger,
+                       commonDictionary=self.commonConf,
+                       analysisDictionary=self.analysisConf)
 
     def runSelect(self,run = True):
 
@@ -136,7 +135,7 @@ class quickAnalysis:
         filter['zmax'] = self.analysisConf['zmax']
         filter['convtype'] = self.analysisConf['convtype']
 
-        runCommand(filter,self.logger,run)
+        qU.runCommand(filter,self.logger,run)
         
     def runGTI(self, run = True, filterString="DATA_QUAL==1 && LAT_CONFIG==1 && ABS(ROCK_ANGLE)<52",roi = 'yes'):
 
@@ -148,7 +147,7 @@ class quickAnalysis:
         maketime['evfile'] = self.commonConf['base']+'_filtered.fits'
         maketime['outfile'] = self.commonConf['base']+'_filtered_gti.fits'
 
-        runCommand(maketime,self.logger,run)
+        qU.runCommand(maketime,self.logger,run)
 
     def runLTCube(self, run=True, zmax=180):
 
@@ -161,7 +160,7 @@ class quickAnalysis:
         expCube['binsz'] = 1
         expCube['zmax'] = zmax
 
-        runCommand(expCube,self.logger,run)
+        qU.runCommand(expCube,self.logger,run)
 
     def runExpMap(self, run=True):
 
@@ -178,7 +177,7 @@ class quickAnalysis:
         expMap['nlat'] = 120
         expMap['nenergies'] = 20
 
-        runCommand(expMap,self.logger,run)
+        qU.runCommand(expMap,self.logger,run)
 
     def runCCUBE(self, run=True,nbins=30):
 
@@ -189,7 +188,7 @@ class quickAnalysis:
         calculation floors the calculated value.  The number of energy
         bins is logarithmic and is defined by the nbins variable."""
 
-        npix = NumberOfPixels(float(self.analysisConf['rad']), float(self.analysisConf['binsize']))
+        npix = qU.NumberOfPixels(float(self.analysisConf['rad']), float(self.analysisConf['binsize']))
 
         evtbin['evfile'] = self.commonConf['base']+'_filtered_gti.fits'
         evtbin['outfile'] = self.commonConf['base']+'_CCUBE.fits'
@@ -206,8 +205,9 @@ class quickAnalysis:
         evtbin['emin'] = self.analysisConf['emin']
         evtbin['emax'] = self.analysisConf['emax']
         evtbin['enumbins'] = nbins
+        evtbin['scfile'] = self.commonConf['base']+"_SC.fits"
 
-        runCommand(evtbin,self.logger,run)
+        qU.runCommand(evtbin,self.logger,run)
 
     def runCMAP(self, run=True):
         
@@ -217,12 +217,12 @@ class quickAnalysis:
         square might not be the largest posible since the npix
         calculation floors the calculated value."""
 
-        runCMAP(self.logger, 
-                self.commonConf['base'],
-                self.analysisConf['rad'],
-                self.analysisConf['binsize'],
-                self.analysisConf['ra'],
-                self.analysisConf['dec'])
+        qU.runCMAP(self.logger, 
+                   self.commonConf['base'],
+                   self.analysisConf['rad'],
+                   self.analysisConf['binsize'],
+                   self.analysisConf['ra'],
+                   self.analysisConf['dec'])
 
     def runExpCube(self,run=True,nbins=30, ExpBuffer=30):
 
@@ -235,7 +235,7 @@ class quickAnalysis:
         logarithmic and the number of energy bins is defined by the
         nbins variable."""
 
-        npix = NumberOfPixels(float(self.analysisConf['rad'])+ExpBuffer, float(self.analysisConf['binsize']))
+        npix = qU.NumberOfPixels(float(self.analysisConf['rad'])+ExpBuffer, float(self.analysisConf['binsize']))
 
         cmd = "gtexpcube2 infile="+self.commonConf['base']+"_ltcube.fits"\
             +" cmap=none"\
@@ -270,7 +270,7 @@ class quickAnalysis:
         quickUtils for more details."""
         
         try:
-            generateXMLmodel(self.logger, self.commonConf['base'])
+            qU.generateXMLmodel(self.logger, self.commonConf['base'])
         except(FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
@@ -284,7 +284,7 @@ class quickAnalysis:
         self.generateXMLmodel()
 
         try:
-            checkForFiles(self.logger,[self.commonConf['base']+"_CCUBE.fits",
+            qU.checkForFiles(self.logger,[self.commonConf['base']+"_CCUBE.fits",
                                        self.commonConf['base']+"_ltcube.fits",
                                        self.commonConf['base']+"_BinnedExpMap.fits",
                                        self.commonConf['base']+"_SC.fits",])
@@ -302,13 +302,13 @@ class quickAnalysis:
         srcMaps['rfactor'] = 4
         srcMaps['emapbnds'] = "yes"
 
-        runCommand(srcMaps,self.logger,run)
+        qU.runCommand(srcMaps,self.logger,run)
 
     def runModel(self, run=True):
 
         """Wrapper for the same function in quickUtils"""
 
-        runModel(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
+        qU.runModel(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
 
     def runAll(self, run=True):
 
@@ -323,7 +323,7 @@ class quickAnalysis:
 
         self.logger.info("***Checking for files***")
         try:
-            checkForFiles(self.logger,[self.commonConf['base']+".list",self.commonConf['base']+"_SC.fits"])
+            qU.checkForFiles(self.logger,[self.commonConf['base']+".list",self.commonConf['base']+"_SC.fits"])
         except(FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
@@ -450,7 +450,7 @@ def cli():
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
                 print "Creating model map"
                 qA = quickAnalysis(basename, True)
-                runModel(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
+                qU.runModel(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
                 return
             elif opt in ('--sourcemap'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")

@@ -37,12 +37,13 @@ This module logs all of the steps to a file called
 __author__ = 'Jeremy S. Perkins (FSSC)'
 __version__ = '0.1.9'
 
-from quickUtils import *
-from quickUtils import __version__
-import pyLikelihood
 import re
-from UnbinnedAnalysis import *
-from BinnedAnalysis import *
+import os
+import sys
+import quickUtils as qU
+import pyLikelihood as pyLike
+import UnbinnedAnlaysis as UbAn
+import BinnedAnalysis as BAn
 from UpperLimits import UpperLimits
 from LikelihoodState import LikelihoodState
 
@@ -89,20 +90,20 @@ class quickLike:
                                   
         commonConfig['base'] = base
 
-        self.logger = initLogger(base, 'quickLike')
+        self.logger = qU.initLogger(base, 'quickLike')
 
         if(configFile):
             try:
-                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = readConfig(self.logger,base)
+                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = qU.readConfig(self.logger,base)
             except(FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
             try:
-                commonConfig = checkConfig(self.logger,commonConfig,commonConfigRead)
+                commonConfig = qU.checkConfig(self.logger,commonConfig,commonConfigRead)
             except(KeyError):
                 return
             try:
-                likelihoodConfig = checkConfig(self.logger,likelihoodConfig,likelihoodConfigRead)
+                likelihoodConfig = qU.checkConfig(self.logger,likelihoodConfig,likelihoodConfigRead)
             except(KeyError):
                 return
 
@@ -118,9 +119,9 @@ class quickLike:
         """Writes all of the initialization variables to the config
         file called <basename>.cfg"""
 
-        writeConfig(quickLogger=self.logger,
-                    commonDictionary=self.commonConf,
-                    likelihoodDictionary=self.likelihoodConf)
+        qU.writeConfig(quickLogger=self.logger,
+                       commonDictionary=self.commonConf,
+                       likelihoodDictionary=self.likelihoodConf)
 
     def Print(self):
 
@@ -144,23 +145,23 @@ class quickLike:
 
         if(self.commonConf['binned']):
             try:
-                checkForFiles(self.logger,[self.commonConf['base']+'_srcMaps.fits',
+                qU.checkForFiles(self.logger,[self.commonConf['base']+'_srcMaps.fits',
                                           self.commonConf['base']+'_ltcube.fits',
                                           self.commonConf['base']+'_BinnedExpMap.fits'])
-                self.obs = BinnedObs(srcMaps=self.commonConf['base']+'_srcMaps.fits',
-                                     expCube=self.commonConf['base']+'_ltcube.fits',
-                                     binnedExpMap=self.commonConf['base']+'_BinnedExpMap.fits',
-                                     irfs=self.commonConf['irfs'])
+                self.obs = BAn.BinnedObs(srcMaps=self.commonConf['base']+'_srcMaps.fits',
+                                         expCube=self.commonConf['base']+'_ltcube.fits',
+                                         binnedExpMap=self.commonConf['base']+'_BinnedExpMap.fits',
+                                         irfs=self.commonConf['irfs'])
             except(FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
         else:
             try:
-                checkForFiles(self.logger,[self.commonConf['base']+'_filtered_gti.fits',
-                                           self.commonConf['base']+'_SC.fits',
-                                           self.commonConf['base']+'_expMap.fits',
-                                           self.commonConf['base']+'_ltcube.fits'])
-                self.obs = UnbinnedObs(self.commonConf['base']+'_filtered_gti.fits',
+                qU.checkForFiles(self.logger,[self.commonConf['base']+'_filtered_gti.fits',
+                                              self.commonConf['base']+'_SC.fits',
+                                              self.commonConf['base']+'_expMap.fits',
+                                              self.commonConf['base']+'_ltcube.fits'])
+                self.obs = UbAn.UnbinnedObs(self.commonConf['base']+'_filtered_gti.fits',
                                        self.commonConf['base']+'_SC.fits',
                                        expMap=self.commonConf['base']+'_expMap.fits',
                                        expCube=self.commonConf['base']+'_ltcube.fits',
@@ -184,11 +185,11 @@ class quickLike:
             return
 
         try:
-            checkForFiles(self.logger,[self.likelihoodConf['model']])
+            qU.checkForFiles(self.logger,[self.likelihoodConf['model']])
             if(self.commonConf['binned']):
-                self.DRM = BinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer="DRMNGB")
+                self.DRM = BAn.BinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer="DRMNGB")
             else:
-                self.DRM = UnbinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer="DRMNGB")
+                self.DRM = UbAn.UnbinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer="DRMNGB")
                 self.DRM.tol = float(self.likelihoodConf['drmtol'])
                 self.logger.info(self.ret.subn(', ',str(self.DRM))[0])
         except(FileNotFound):
@@ -210,11 +211,11 @@ class quickLike:
             return
 
         try:
-            checkForFiles(self.logger,[self.likelihoodConf['model']])
+            qU.checkForFiles(self.logger,[self.likelihoodConf['model']])
             if(self.commonConf['binned']):
-                self.ALTFIT = BinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer=opt)
+                self.ALTFIT = BAn.BinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer=opt)
             else:
-                self.ALTFIT = UnbinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer=opt)
+                self.ALTFIT = UbAn.UnbinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer=opt)
             self.ALTFIT.tol = float(self.likelihoodConf['drmtol'])
             self.ALTFITobj = pyLike.Minuit(self.ALTFIT.logLike)
             self.logger.info(self.ret.subn(', ',str(self.ALTFIT))[0])
@@ -251,11 +252,11 @@ class quickLike:
             model = modelFile
 
         try:
-            checkForFiles(self.logger,[model])
+            qU.checkForFiles(self.logger,[model])
             if(self.commonConf['binned']):
-                self.MIN = BinnedAnalysis(self.obs,model,optimizer='NewMinuit')
+                self.MIN = BAn.BinnedAnalysis(self.obs,model,optimizer='NewMinuit')
             else:
-                self.MIN = UnbinnedAnalysis(self.obs,model,optimizer='NewMinuit')
+                self.MIN = UbAn.UnbinnedAnalysis(self.obs,model,optimizer='NewMinuit')
             self.MIN.tol = float(self.likelihoodConf['mintol'])
             self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
             self.pristine = LikelihoodState(self.MIN)
