@@ -42,7 +42,7 @@ import os
 import sys
 import quickUtils as qU
 import pyLikelihood as pyLike
-import UnbinnedAnlaysis as UbAn
+import UnbinnedAnalysis as UbAn
 import BinnedAnalysis as BAn
 from UpperLimits import UpperLimits
 from LikelihoodState import LikelihoodState
@@ -384,8 +384,9 @@ class quickLike:
             logString += "Flux Error: "+str(fluxErr)
         for paramName in self.MIN.model[source].funcs['Spectrum'].paramNames:
             paramValue = self.MIN.model[source].funcs['Spectrum'].getParam(paramName).value()
-            print paramName,": ",paramValue
-            logString += paramName + ": " + str(paramValue) + " "
+            paramError = self.MIN.model[source].funcs['Spectrum'].getParam(paramName).error()
+            print paramName,": ",paramValue," +- ",paramError
+            logString += paramName + ": " + str(paramValue) + " +- " + str(paramError) + " "
 
         self.logger.info(logString)
 
