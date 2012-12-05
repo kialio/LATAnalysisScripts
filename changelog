@@ -87,3 +87,12 @@ Changelog for LATAnalysisScripts
 			get an error on start.  Also changed the runCCUBE
 			to provide the spacecraft file as an
 			option (needed for the newer science tools).
+
+	version 1.1.11	Dec 5, 2012
+
+			The output of the printSource command only
+			displays 2 decimal points.  It also displays the
+			scale factor for all parameters.  Added a
+			'pokeSource' function in quickLike that changes a
+			parameter for a source.  This is useful to promote
+			convergence or to verify a fit.

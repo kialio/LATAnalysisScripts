@@ -35,7 +35,7 @@ This module logs all of the steps to a file called
 """
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1.9'
+__version__ = '0.1.11'
 
 import re
 import os
@@ -352,6 +352,22 @@ class quickLike:
         else:
             self.MIN.logLike.writeXml(self.commonConf['base']+'_likeMinuit.xml')
             
+    def pokeSource(self,source,paramName='Prefactor'):
+
+        """This function pokes a paramter of a source to a value that is 10%
+        of what it was.  This is a useful function to use when you are trying
+        to get convergence on a fit.  Many times, a fit won't converge because
+        the initial model is too close to the final answer (ie. the minimizer
+        does not have enough flexibility to accurately calculate a correlation
+        matrix).  In this case, run this funciton on one of the stronger
+        sources in your model and redo the fit.  This function is also useful
+        to determine how robust your fit is. Note that it defaults to using
+        poking the 'Prefactor' parameter which might not exist for your
+        specific source.  In that case, choose a different paramter."""
+
+        previousValue = self.MIN.model[source].funcs['Spectrum'].getParam(paramName).value()
+        self.MIN.model[source].funcs['Spectrum'].func.setParam(paramName, 0.1*previousValue)
+        self.logger.info("Resetting the {} of {} from {:,.2f} to {:,.2f}".format(paramName,source,previousValue,0.1*previousValue))
 
     def printSource(self,source,Emin=100,Emax=300000):
 
@@ -370,23 +386,25 @@ class quickLike:
             
         logString = source
         TS = self.MIN.Ts(source)
-        print "TS: ",TS
-        logString += " TS: " + str(TS)
+        print "TS: {:,.2f}".format(TS)
+        logString += " TS: {:,.2f} ".format(TS)
         NPred = self.MIN.NpredValue(source)
-        print "Npred: ",NPred
-        logString += " NPred: " + str(NPred)
+        print "Npred: {:,.2f}".format(NPred)
+        logString += " NPred: {:,.2f} ".format(NPred)
         flux = self.MIN.flux(source,emin=Emin,emax=Emax)
-        print "Flux: ",flux
-        logString += "Flux: "+str(flux)
+        outString = "Flux: {:,.2e}".format(flux)
+        logString += " Flux: {:,.2e} ".format(flux)
         if(self.fitbit):
             fluxErr = self.MIN.fluxError(source,emin=Emin,emax=Emax)
-            print "Flux Error: ",fluxErr
-            logString += "Flux Error: "+str(fluxErr)
+            outString += " +- {:,.2e}".format(fluxErr)
+            logString += " Flux Error: {:,.2e} ".format(fluxErr)
+        print outString
         for paramName in self.MIN.model[source].funcs['Spectrum'].paramNames:
             paramValue = self.MIN.model[source].funcs['Spectrum'].getParam(paramName).value()
             paramError = self.MIN.model[source].funcs['Spectrum'].getParam(paramName).error()
-            print paramName,": ",paramValue," +- ",paramError
-            logString += paramName + ": " + str(paramValue) + " +- " + str(paramError) + " "
+            paramScale = self.MIN.model[source].funcs['Spectrum'].getParam(paramName).parameter.getScale()
+            print paramName,": {:,.2f} +- {:,.2f} x {:,.2e}".format(paramValue,paramError,paramScale)
+            logString += paramName + ": {:,.2f} +- {:,.2f} x {:,.2e} ".format(paramValue,paramError,paramScale)
 
         self.logger.info(logString)
 
