@@ -95,7 +95,7 @@ class quickLike:
         if(configFile):
             try:
                 commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = qU.readConfig(self.logger,base)
-            except(FileNotFound):
+            except(qU.FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
             try:
@@ -152,7 +152,7 @@ class quickLike:
                                          expCube=self.commonConf['base']+'_ltcube.fits',
                                          binnedExpMap=self.commonConf['base']+'_BinnedExpMap.fits',
                                          irfs=self.commonConf['irfs'])
-            except(FileNotFound):
+            except(qU.FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
         else:
@@ -166,7 +166,7 @@ class quickLike:
                                        expMap=self.commonConf['base']+'_expMap.fits',
                                        expCube=self.commonConf['base']+'_ltcube.fits',
                                        irfs=self.commonConf['irfs'])
-            except(FileNotFound):
+            except(qU.FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
         self.logger.info(self.ret.subn(', ',str(self.obs))[0])
@@ -192,7 +192,7 @@ class quickLike:
                 self.DRM = UbAn.UnbinnedAnalysis(self.obs,self.likelihoodConf['model'],optimizer="DRMNGB")
                 self.DRM.tol = float(self.likelihoodConf['drmtol'])
                 self.logger.info(self.ret.subn(', ',str(self.DRM))[0])
-        except(FileNotFound):
+        except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
 
@@ -219,11 +219,11 @@ class quickLike:
             self.ALTFIT.tol = float(self.likelihoodConf['drmtol'])
             self.ALTFITobj = pyLike.Minuit(self.ALTFIT.logLike)
             self.logger.info(self.ret.subn(', ',str(self.ALTFIT))[0])
-        except(FileNotFound):
+        except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
 
-    def initMIN(self, useBadFit=False, modelFile=""):
+    def initMIN(self, useBadFit=False, modelFile="",useEdisp=False):
 
         """Initiallizes a New Minuit optimizer to use as a backup to
         the DRM optimizer.  This is usually run after you have
@@ -261,7 +261,8 @@ class quickLike:
             self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
             self.pristine = LikelihoodState(self.MIN)
             self.logger.info(self.ret.subn(', ',str(self.MIN))[0])
-        except(FileNotFound):
+            self.MIN.logLike.set_edisp_flag(useEdisp)
+        except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
 

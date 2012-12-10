@@ -83,7 +83,7 @@ class quickAnalysis:
         if(configFile):
             try:
                 commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = qU.readConfig(self.logger,base)
-            except(FileNotFound):
+            except(qU.FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
             try:
@@ -271,7 +271,7 @@ class quickAnalysis:
         
         try:
             qU.generateXMLmodel(self.logger, self.commonConf['base'])
-        except(FileNotFound):
+        except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
 
@@ -288,7 +288,7 @@ class quickAnalysis:
                                        self.commonConf['base']+"_ltcube.fits",
                                        self.commonConf['base']+"_BinnedExpMap.fits",
                                        self.commonConf['base']+"_SC.fits",])
-        except(FileNotFound):
+        except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
 
@@ -324,7 +324,7 @@ class quickAnalysis:
         self.logger.info("***Checking for files***")
         try:
             qU.checkForFiles(self.logger,[self.commonConf['base']+".list",self.commonConf['base']+"_SC.fits"])
-        except(FileNotFound):
+        except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
         self.logger.info("***Running gtselect***")
