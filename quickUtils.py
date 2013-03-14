@@ -97,6 +97,7 @@ def readConfig(quickLogger,basename):
     analysisDictionary = {}
     likelihoodDictionary = {}
     plotDictionary = {}
+    curveDictionary = {}
 
     try:
         checkForFiles(quickLogger,[basename+".cfg"])
@@ -124,7 +125,11 @@ def readConfig(quickLogger,basename):
             quickLogger.info('Reading quickPlot variables...')
             plotDictionary = dict(config.items('quickPlot'))
 
-        return commonDictionary,analysisDictionary,likelihoodDictionary,plotDictionary
+        if(config.has_section('quickCurve')):
+            quickLogger.info('Reading quickCurve variables...')
+            curveDictionary = dict(config.items('quickCurve'))
+
+        return commonDictionary,analysisDictionary,likelihoodDictionary,plotDictionary,curveDictionary
 
     except(FileNotFound):
         raise FileNotFound

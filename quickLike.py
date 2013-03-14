@@ -44,6 +44,7 @@ import quickUtils as qU
 import pyLikelihood as pyLike
 import UnbinnedAnalysis as UbAn
 import BinnedAnalysis as BAn
+import numpy as np
 from UpperLimits import UpperLimits
 from LikelihoodState import LikelihoodState
 
@@ -94,7 +95,7 @@ class quickLike:
 
         if(configFile):
             try:
-                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = qU.readConfig(self.logger,base)
+                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead,curveConfigRead = qU.readConfig(self.logger,base)
             except(qU.FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
@@ -261,7 +262,8 @@ class quickLike:
             self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
             self.pristine = LikelihoodState(self.MIN)
             self.logger.info(self.ret.subn(', ',str(self.MIN))[0])
-            self.MIN.logLike.set_edisp_flag(useEdisp)
+            if(useEdisp):
+                self.MIN.logLike.set_edisp_flag(useEdisp)
         except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
             return
@@ -489,7 +491,7 @@ class quickLike:
             sourceTS = self.MIN.Ts(name)
             if(self.MIN.model[name].src.getType() == 'Point'):
                 distance = self.MIN._separation(self.MIN.model[mySource].src,self.MIN.model[name].src)
-            if(self.MIN.freePars(name).size() > 0):
+            if(np.shape(self.MIN.freePars(name))[0] > 0):
                 indexFree = "Free"
                 if( (sourceTS < tslimit) and (distance > distlimit) and RemoveFree ):
                     remove = True

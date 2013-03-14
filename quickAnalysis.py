@@ -82,7 +82,7 @@ class quickAnalysis:
 
         if(configFile):
             try:
-                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead = qU.readConfig(self.logger,base)
+                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead,curveConfigRead = qU.readConfig(self.logger,base)
             except(qU.FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
