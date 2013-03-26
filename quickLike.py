@@ -320,12 +320,12 @@ class quickLike:
                         altfit = True
 
         if(altfit):
-            self.logger.info("ALTFIT Fit Finished.  Total TS: "+str(self.ALTFIT.logLike.value()))
+            self.logger.info("ALTFIT Fit Finished.  -log(likelihood): "+str(self.ALTFIT.logLike.value()))
             self.ALTFIT.logLike.writeXml(self.commonConf['base']+'_likeDRM.xml')
             self.logger.info("Saved ALTFIT as "+self.commonConf['base']+"_likeDRM.xml")
         else:
             self.DRM.logLike.writeXml(self.commonConf['base']+'_likeDRM.xml')
-            self.logger.info("DRM Fit Finished.  Total TS: "+str(self.DRM.logLike.value()))
+            self.logger.info("DRM Fit Finished.  -log(likelihood): "+str(self.DRM.logLike.value()))
             self.logger.info("Saved DRM as "+self.commonConf['base']+"_likeDRM.xml")
 
     def fitMIN(self):
@@ -344,7 +344,7 @@ class quickLike:
             return
 
         self.MIN.fit(covar=True, optObject=self.MINobj,verbosity=int(self.commonConf['verbosity']))
-        self.logger.info("NEWMINUIT Fit Finished.  Total TS: "+str(self.MIN.logLike.value()))
+        self.logger.info("NEWMINUIT Fit Finished.  -log(likelihood): "+str(self.MIN.logLike.value()))
         self.logger.info("NEWMINUIT Fit Status: "+str(self.MINobj.getRetCode()))
         self.logger.info("NEWMINUIT fit Distance: "+str(self.MINobj.getDistance()))
         self.fitbit = True
