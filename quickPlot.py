@@ -103,7 +103,8 @@ class quickPlot:
                                  "binned"     : False,
                                  "eventclass" : 2, 
                                  "irfs"       : "P7SOURCE_V6",
-                                 "verbosity"  : 0}):
+                                 "verbosity"  : 0,
+                                 "multicore"  : 0}):
  
         commonConfig['base'] = base
 

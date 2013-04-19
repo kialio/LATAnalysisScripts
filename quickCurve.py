@@ -139,15 +139,20 @@ class quickCurve:
         if(qL_bin.MIN.Ts(sourcename) < tslimit):
             print "Will calulate upper limit for {}".format(sourcename)
             ul = UpperLimits(qL_bin.MIN)
-            upper = ul[sourcename].compute()
+            upper = ul[sourcename].compute(emin=float(self.analysisConf["emin"]),
+                                           emax=float(self.analysisConf["emax"]))
         else:
             upper = (0.0,0.0)
             
         return "{} {} {} {:,.2f} {:,.2f} {:,.2e} {:,.2e} {:,.2e} {}".format(bin,tmin,tmax,
                                                                             qL_bin.MIN.Ts(sourcename),
                                                                             qL_bin.MIN.NpredValue(sourcename),
-                                                                            qL_bin.MIN.flux(sourcename,100,300000),
-                                                                            qL_bin.MIN.fluxError(sourcename,100,300000),
+                                                                            qL_bin.MIN.flux(sourcename,
+                                                                                            float(self.analysisConf["emin"]),
+                                                                                            float(self.analysisConf["emax"])),
+                                                                            qL_bin.MIN.fluxError(sourcename,
+                                                                                                 float(self.analysisConf["emin"]),
+                                                                                                 float(self.analysisConf["emax"])),
                                                                             upper[0],
                                                                             qL_bin.MINobj.getRetCode())
 

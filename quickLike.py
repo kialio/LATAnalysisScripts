@@ -87,7 +87,8 @@ class quickLike:
                                  "eventclass" : 2,
                                  "binned" : False,
                                  "irfs" : "P7SOURCE_V6",
-                                 "verbosity" : 0}):
+                                 "verbosity" : 0,
+                                 "multicore" : 0}):
                                   
         commonConfig['base'] = base
 
@@ -571,6 +572,54 @@ class quickLike:
                 if( distToUpper < limit):
                     self.logger.error("The "+name+" ("+str(value)+") of "+src+" is close ("\
                                           +str(distToUpper)+") to its upper limit ("+str(bounds[1])+")")
+
+    def calcBowtie(self,srcName,minE,maxE,numBins):
+        
+        '''This is derived from T. Johnson's likeSED code which was in turn
+        derived from D. Sanchez's pyUnfoldPlot code which was probably
+        based on some code developed by J. Chiang.  '''
+
+        '''make some energy bounds for the fit, same max and min as for the
+        bands before but with more bins.'''
+
+        modEs=qU.log_array(numBins,minE,maxE)
+        centEs=[0.5*(e1+e2) for e1,e2 in zip(modEs[0:-1],modEs[1:])]
+
+        '''Get the model.'''
+        mysrc=pyLike.PointSource_cast(self.MIN[srcName].src)
+        spec=[float(1000.*mysrc.spectrum()(pyLike.dArg(x))) for x in centEs]
+
+        if(self.MIN.covariance is None):
+            print "Whoa, you didn't compute the covariance yet..."
+            bt=[0]
+        else:
+            bt=[]
+            covArray=np.array(self.MIN.covariance)
+            srcCovArray=[]
+            par_index_map={}
+            indx=0
+            for src in self.MIN.sourceNames():
+                parNames=pyLike.StringVector()
+                self.MIN[src].src.spectrum().getFreeParamNames(parNames)
+                for par in parNames:
+                    par_index_map['::'.join((src,par))]=indx
+                    indx +=1
+            srcPars=pyLike.StringVector()
+            self.MIN[srcName].src.spectrum().getFreeParamNames(srcPars)
+            pars=['::'.join((srcName,x)) for x in srcPars]
+            for xpar in pars:
+                ix=par_index_map[xpar]
+                srcCovArray.append([covArray[ix][par_index_map[ypar]] for ypar in pars])
+            cov=np.array(srcCovArray)
+            ''' The whole point here is to get the srcCovArray.'''
+            for x in centEs:
+                arg=pyLike.dArg(x)
+                partials=np.array([mysrc.spectrum().derivByParam(arg,y) for y in srcPars])
+                val=np.sqrt(np.dot(partials,np.dot(cov,partials)))
+                '''These should come out same as the model so convert to ph/cm^2/s/GeV as well.'''
+                bt+=[float(1000.*val)]
+        return centEs,bt,spec
+        
 
     def decodeRetCode(self, optimizer, retCode):
 

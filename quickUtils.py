@@ -11,11 +11,20 @@ import os
 import logging
 import math
 import ConfigParser
+import numpy as np
 
 from gt_apps import *
 
 class FileNotFound: pass
 class CommandNotFound: pass
+
+def log_array(npts, xmin, xmax):
+
+    '''This function creates an array with npts-1 logarithmically spaced
+    bins borrowed from macro Jim sent to do profile likelihood.'''
+
+    xstep = np.log(xmax/xmin)/(npts - 1)
+    return xmin*np.exp(np.arange(npts, dtype=np.float)*xstep)
 
 def checkForFiles(quickLogger, fileList):
     

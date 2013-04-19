@@ -74,7 +74,8 @@ class quickAnalysis:
                                  "binned" : False,
                                  "eventclass" : 2,
                                  "irfs" : "P7SOURCE_V6",
-                                 "verbosity" : 0}):
+                                 "verbosity" : 0,
+                                 "multicore": 0}):
 
         commonConfig['base'] = base
 
@@ -160,7 +161,13 @@ class quickAnalysis:
         expCube['binsz'] = 1
         expCube['zmax'] = zmax
 
-        qU.runCommand(expCube,self.logger,run)
+        np = int(self.commonConf['multicore'])
+        
+        if(np > 0):
+            import gtltcube_mp as ltmp
+            ltmp.gtltcube_mp(np, expCube['scfile'], expCube['evfile'], expCube['outfile'],False,expCube['zmax'])
+        else:
+            qU.runCommand(expCube,self.logger,run)
 
     def runExpMap(self, run=True):
 
@@ -177,7 +184,16 @@ class quickAnalysis:
         expMap['nlat'] = 120
         expMap['nenergies'] = 20
 
-        qU.runCommand(expMap,self.logger,run)
+        np = int(self.commonConf['multicore'])
+        
+        if(np > 0):
+            import gtexpmap_mp as expmp
+            expmp.gtexpmap_mp(expMap['nlong'],expMap['nlat'],np,1,
+                              expMap['scfile'],expMap['evfile'],expMap['expcube'], 
+                              expMap['irfs'],expMap['srcrad'],expMap['nenergies'],
+                              expMap['outfile'],False)
+        else:
+            qU.runCommand(expMap,self.logger,run)
 
     def runCCUBE(self, run=True,nbins=30):
 
