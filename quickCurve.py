@@ -100,7 +100,8 @@ class quickCurve:
                         "eventclass" : self.commonConf["eventclass"],
                         "binned" : False,
                         "irfs" : self.commonConf["irfs"],
-                        "verbosity" : self.commonConf["verbosity"]}
+                        "verbosity" : self.commonConf["verbosity"],
+                        "multicore" : 0}
 
 
         qA_bin = qA.quickAnalysis(basename,False,analysisConfig,commonConfig)

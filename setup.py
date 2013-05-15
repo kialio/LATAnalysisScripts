@@ -20,8 +20,9 @@ except ImportError:
 else:
     print "make2FGLxml found."
 
+fermi_dir = os.environ.get("FERMI_DIR")
 
-if os.environ.get("FERMI_DIR"):
+if fermi_dir:
     print "The Fermi Science tools seem to be set up."
 else:
     print "The Fermi Science tools are not set up."
@@ -38,9 +39,9 @@ setup(name='LATAnalysisScripts',
                   'quickLike',
                   'quickPlot',
                   'quickCurve'],
-      scripts=['scripts/quickAnalysis',
-               'scripts/quickLike',
-               'scripts/quickPlot'],
+      data_files=[(fermi_dir+"/bin",['scripts/quickAnalysis',
+                                     'scripts/quickLike',
+                                     'scripts/quickPlot'])],
       )
 
 

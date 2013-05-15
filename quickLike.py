@@ -376,7 +376,6 @@ class quickLike:
     def printSource(self,source,Emin=100,Emax=300000):
 
         """Prints various details for a source in your model."""
-
         try:
             self.MIN
         except AttributeError:
