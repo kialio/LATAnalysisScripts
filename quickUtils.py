@@ -286,6 +286,7 @@ def runCMAP(quickLogger,
 
         evtbin['evfile'] = base+'_filtered_gti.fits'
         evtbin['outfile'] = base+'_CMAP.fits'
+        evtbin['scfile'] = base+"_SC.fits"
         evtbin['algorithm'] = 'CMAP'
         evtbin['nxpix'] = npix
         evtbin['nypix'] = npix

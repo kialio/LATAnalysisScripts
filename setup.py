@@ -4,13 +4,13 @@ import sys
 import os
 from distutils.core import setup
 
-try:
-    import ds9
-except ImportError:
-    print "pyds9 not found (required for making plots with quickPlot)."
-    sys.exit(1)
-else:
-    print "pyds9 found."
+#try:
+#    import ds9
+#except ImportError:
+#    print "pyds9 not found (required for making plots with quickPlot)."
+#    sys.exit(1)
+#else:
+#    print "pyds9 found."
 
 try:
     import make2FGLxml
