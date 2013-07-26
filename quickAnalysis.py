@@ -115,7 +115,7 @@ class quickAnalysis:
                        commonDictionary=self.commonConf,
                        analysisDictionary=self.analysisConf)
 
-    def runSelect(self,run = True):
+    def runSelect(self,run = True,printCmd=False):
 
         """Runs gtselect on the data using the initialization
         parameters. User selected parameters include the conversion
@@ -136,7 +136,7 @@ class quickAnalysis:
         filter['zmax'] = self.analysisConf['zmax']
         filter['convtype'] = self.analysisConf['convtype']
 
-        qU.runCommand(filter,self.logger,run)
+        qU.runCommand(filter,self.logger,run,printCmd)
         
     def runGTI(self, run = True, filterString="DATA_QUAL==1 && LAT_CONFIG==1 && ABS(ROCK_ANGLE)<52",roi = 'yes'):
 

@@ -221,13 +221,13 @@ def generateXMLmodel(quickLogger,
         
       
 
-def runCommand(AppCommand,quickLogger,run=True):
+def runCommand(AppCommand,quickLogger,run=True,printCmd=False):
 
     """Runs a giving command if run is True.  If run is False,
     prints out what the function would run."""
 
     if(run):
-        AppCommand.run(print_command=False)
+        AppCommand.run(print_command=printCmd)
         quickLogger.info(AppCommand.command())
     else:
         print AppCommand.command()

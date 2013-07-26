@@ -176,4 +176,4 @@ class quickCurve:
                 output = self.runLikelihoodStep(binnum,t,t+float(self.curveConf['tstep']))
                 print output
                 f.write(output+"\n")
-                
+          
