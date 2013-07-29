@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+
+import quickCurve
+if __name__ == '__main__':
+    quickCurve.cli()

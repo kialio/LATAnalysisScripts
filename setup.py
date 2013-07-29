@@ -41,7 +41,8 @@ setup(name='LATAnalysisScripts',
                   'quickCurve'],
       data_files=[(fermi_dir+"/bin",['scripts/quickAnalysis',
                                      'scripts/quickLike',
-                                     'scripts/quickPlot'])],
+                                     'scripts/quickPlot',
+				      'scripts/quickCurve'])],
       )
 
 

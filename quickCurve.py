@@ -6,14 +6,17 @@
 """
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1.11'
+__version__ = '0.1.12'
 
+import sys
 import os
 import quickAnalysis as qA
 import quickLike as qL
 import quickUtils as qU
 import numpy as np
 from UpperLimits import UpperLimits
+from gt_apps import *
+import glob
 
 class quickCurve:
 
@@ -78,6 +81,19 @@ class quickCurve:
         self.curveConf = curveConfig
         self.likelihoodConf = likelihoodConfig
         self.analysisConf = analysisConfig
+
+    def writeConfig(self):
+
+        """Writes all of the initialization variables to the config
+        file called <basename>.cfg."""
+
+        qU.writeConfig(quickLogger=self.logger,
+		       curveDictionary=self.curveConf,
+		       likelihoodDictionary=self.likelihoodConf,
+                       commonDictionary=self.commonConf,
+                       analysisDictionary=self.analysisConf)
+
+
         
     def runAnalysisStep(self,bin=0,tmin=0,tmax=0,delete=True):
             
@@ -158,7 +174,7 @@ class quickCurve:
                                                                             qL_bin.MINobj.getRetCode())
 
 
-    def runCurve(self,runAnalysis=True,runLike=True):
+    def runCurve(self,runAnalysis=True,runLike=True, delete = True):
 
         tbins = np.arange(float(self.curveConf['tstart']),
                           float(self.curveConf['tstop']),
@@ -176,4 +192,77 @@ class quickCurve:
                 output = self.runLikelihoodStep(binnum,t,t+float(self.curveConf['tstep']))
                 print output
                 f.write(output+"\n")
-          
+	    if(delete):
+		templist = glob.glob("*_bin" + str(binnum) + "*")
+		for t in templist:
+			os.remove(t)
+		
+
+     
+
+def printCLIHelp():
+    """This function prints out the help for the CLI."""
+    
+    cmd = os.path.basename(sys.argv[0])
+    print """
+                        - quickCurve - 
+
+Perform a liklihood analysis on Fermi LAT data.  You can use the
+command line functions listed below or run this module from within
+python. For full documentation on this module execute 'pydoc
+quickCurve'.
+                        
+%s (-h|--help) ... This help text.
+                      
+%s (-i|--initialize) ... Generate a default config file called
+    example.cfg.  Edit this file and rename it <basename>.cfg for use
+    in the quickLike module.
+
+%s (-a|--analyze) (-n |--basename=)<basename> ...  Perform an analysis
+    on <basename>.  <basename> is the prefix used for this analysis.
+    You must already have a configuration file if using the command
+    line interface.
+
+""" %(cmd,cmd,cmd)
+
+# Command-line interface    
+def cli():
+    """Command-line interface.  Call this without any options for usage notes."""
+    import getopt
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hri:n:', ['help',
+                                                        'run',
+                                                        'initialize'])
+
+        #Loop through first and check for the basename
+        haveBase = False
+        basename = 'example'
+        for opt,val in opts:
+            if opt in ('-n','--basename'):
+                haveBase = True
+                basename = val
+
+        for opt, val in opts:
+            if opt in ('-h','--help'):
+                printCLIHelp()
+                return
+            elif opt in ('-r', '--run'):
+                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
+                qC = quickCurve(basename, True)
+                qC.runCurve(True)         
+                return
+            elif opt in ('-i','--initialize'):
+                print "Creating example configuration file called example.cfg"
+                qC = quickCurve(basename)
+                qC.writeConfig()
+                return
+            
+        if not opts: raise getopt.GetoptError("Must specify an option, printing help.")
+            
+    except getopt.error as e:
+        print "Command Line Error: " + e.msg
+        printCLIHelp()
+                                                                                                                                            
+if __name__ == '__main__': cli()
+>>>>>>> 205b0ae087c304e0219ee076d76c3a5d653b4e01

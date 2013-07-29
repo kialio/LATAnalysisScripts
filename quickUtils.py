@@ -49,7 +49,7 @@ def checkForCommand(quickLogger, commandList):
             raise CommandNotFound
         
         
-def writeConfig(quickLogger, commonDictionary, analysisDictionary = {}, likelihoodDictionary = {}, plotDictionary = {}):
+def writeConfig(quickLogger, commonDictionary, analysisDictionary = {}, likelihoodDictionary = {}, plotDictionary = {}, curveDictionary = {}):
 
     """Writes all of the needed information to the config file called
     <basename>.cfg"""
@@ -91,6 +91,15 @@ def writeConfig(quickLogger, commonDictionary, analysisDictionary = {}, likeliho
         for variable, value in plotDictionary.iteritems():
             config.set('quickPlot', variable, value)
         quickLogger.info("wrote quickPlot config to "+basename+".cfg.")
+
+    if(curveDictionary):
+        if(config.has_section('quickCurve')):
+            quickLogger.info("quickCurve config exists, overwriting...")        
+        else:
+            config.add_section('quickCurve')            
+        for variable, value in curveDictionary.iteritems():
+            config.set('quickCurve', variable, value)
+        quickLogger.info("wrote quickCurve config to "+basename+".cfg.")
 
     with open(basename+'.cfg', 'wb') as configfile:
         config.write(configfile)
@@ -218,7 +227,6 @@ def generateXMLmodel(quickLogger,
                              +"correspoinding diffuse template is in the working directory.")
         except(FileNotFound):
             raise FileNotFound
-        
       
 
 def runCommand(AppCommand,quickLogger,run=True,printCmd=False):

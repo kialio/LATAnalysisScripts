@@ -430,15 +430,6 @@ def cli():
         opts, args = getopt.getopt(sys.argv[1:], 'hiamxcb:n:', ['help',
                                                                 'analyze',
                                                                 'initialize',
-                                                                'modelmap',
-                                                                'sourcemap',
-                                                                'ccube',
-                                                                'bexpmap',
-                                                                'filter',
-                                                                'xml',
-                                                                'cmap',
-                                                                'basename=',
-                                                                'binsize=',
                                                                 ])
         #Loop through first and check for the basename
         haveBase = False
