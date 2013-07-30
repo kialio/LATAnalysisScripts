@@ -263,6 +263,6 @@ def cli():
     except getopt.error as e:
         print "Command Line Error: " + e.msg
         printCLIHelp()
-                                                                                                                                            
+
 if __name__ == '__main__': cli()
->>>>>>> 205b0ae087c304e0219ee076d76c3a5d653b4e01
+
