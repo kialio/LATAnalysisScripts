@@ -265,4 +265,3 @@ def cli():
         printCLIHelp()
                                                                                                                                             
 if __name__ == '__main__': cli()
->>>>>>> 205b0ae087c304e0219ee076d76c3a5d653b4e01
