@@ -12,13 +12,13 @@ from distutils.core import setup
 #else:
 #    print "pyds9 found."
 
-try:
-    import make2FGLxml
-except ImportError:
-    print "make2FGLxml not found (required for making an XML model)."
-    sys.exit(1)
-else:
-    print "make2FGLxml found."
+#try:
+#    import make2FGLxml
+#except ImportError:
+#    print "make2FGLxml not found (required for making an XML model)."
+#    sys.exit(1)
+#else:
+#    print "make2FGLxml found."
 
 fermi_dir = os.environ.get("FERMI_DIR")
 
@@ -38,7 +38,8 @@ setup(name='LATAnalysisScripts',
                   'quickAnalysis',
                   'quickLike',
                   'quickPlot',
-                  'quickCurve'],
+                  'quickCurve',
+                  'make2FGLxml'],
       data_files=[(fermi_dir+"/bin",['scripts/quickAnalysis',
                                      'scripts/quickLike',
                                      'scripts/quickPlot',
