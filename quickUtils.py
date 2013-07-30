@@ -165,7 +165,7 @@ def checkConfig(quickLogger, referenceDictionary,testDictionary):
             item = testDictionary[key]
         return testDictionary
     except KeyError as inst:
-        quickLogger.critical("Cannont find "+inst.args[0]+" in the config file.")
+        quickLogger.critical("Cannot find "+inst.args[0]+" in the config file.")
         raise KeyError
         return referenceDictionary
 
