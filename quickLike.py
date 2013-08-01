@@ -156,7 +156,7 @@ class quickLike:
                                          irfs=self.commonConf['irfs'])
             except(qU.FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
-                return
+                sys.exit()
         else:
             try:
                 qU.checkForFiles(self.logger,[self.commonConf['base']+'_filtered_gti.fits',
@@ -170,7 +170,7 @@ class quickLike:
                                        irfs=self.commonConf['irfs'])
             except(qU.FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
-                return
+                sys.exit()
         self.logger.info(self.ret.subn(', ',str(self.obs))[0])
 
     def initDRM(self):
