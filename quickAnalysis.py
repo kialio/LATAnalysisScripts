@@ -85,16 +85,16 @@ class quickAnalysis:
             try:
                 commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead,curveConfigRead = qU.readConfig(self.logger,base)
             except(qU.FileNotFound):
-                self.logger.critical("One or more needed files do not exist")
-                return
+                self.logger.critical("One or more needed files do not exist.")
+                sys.exit()
             try:
                 commonConfig = qU.checkConfig(self.logger,commonConfig,commonConfigRead)
             except(KeyError):
-                return
+                sys.exit()
             try:
                 analysisConfig = qU.checkConfig(self.logger,analysisConfig,analysisConfigRead)
             except(KeyError):
-                return
+                sys.exit()
 
         self.commonConf = commonConfig
         self.analysisConf = analysisConfig
@@ -115,7 +115,7 @@ class quickAnalysis:
                        commonDictionary=self.commonConf,
                        analysisDictionary=self.analysisConf)
 
-    def runSelect(self,run = True,printCmd=False):
+    def runSelect(self,run = True,printCmd=False, **kwargs):
 
         """Runs gtselect on the data using the initialization
         parameters. User selected parameters include the conversion
@@ -136,9 +136,13 @@ class quickAnalysis:
         filter['zmax'] = self.analysisConf['zmax']
         filter['convtype'] = self.analysisConf['convtype']
 
+        #Override the settings above with the kwargs if they exist.
+        for name,value in kwargs.items():
+            filter[name] = value
+
         qU.runCommand(filter,self.logger,run,printCmd)
         
-    def runGTI(self, run = True, filterString="DATA_QUAL==1 && LAT_CONFIG==1 && ABS(ROCK_ANGLE)<52",roi = 'yes'):
+    def runGTI(self, run = True, filterString="DATA_QUAL==1 && LAT_CONFIG==1 && ABS(ROCK_ANGLE)<52",roi = 'yes',**kwargs):
 
         """Executes gtmktime with the given filter"""
 
@@ -147,10 +151,14 @@ class quickAnalysis:
         maketime['roicut'] = roi
         maketime['evfile'] = self.commonConf['base']+'_filtered.fits'
         maketime['outfile'] = self.commonConf['base']+'_filtered_gti.fits'
+    
+        #Override the settings above with the kwargs if they exist.
+        for name,value in kwargs.items():
+            maketime[name] = value
 
         qU.runCommand(maketime,self.logger,run)
 
-    def runLTCube(self, run=True, zmax=180):
+    def runLTCube(self, run=True, zmax=180, **kwargs):
 
         """Generates a livetime cube"""
 
@@ -161,6 +169,10 @@ class quickAnalysis:
         expCube['binsz'] = 1
         expCube['zmax'] = zmax
 
+        #Override the settings above with the kwargs if they exist.
+        for name,value in kwargs.items():
+            expCube[name] = value
+
         np = int(self.commonConf['multicore'])
         
         if(np > 0):
@@ -169,7 +181,7 @@ class quickAnalysis:
         else:
             qU.runCommand(expCube,self.logger,run)
 
-    def runExpMap(self, run=True):
+    def runExpMap(self, run=True, **kwargs):
 
         """Generates an exposure map that is 10 degrees larger than
         the ROI and has 120 pixels in each direction."""
@@ -183,6 +195,10 @@ class quickAnalysis:
         expMap['nlong'] = 120
         expMap['nlat'] = 120
         expMap['nenergies'] = 20
+
+        #Override the settings above with the kwargs if they exist.
+        for name,value in kwargs.items():
+            expMap[name] = value
 
         np = int(self.commonConf['multicore'])
         
@@ -289,7 +305,7 @@ class quickAnalysis:
             qU.generateXMLmodel(self.logger, self.commonConf['base'])
         except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
-            return
+            exit()
 
     def runSrcMaps(self, run=True):
 
@@ -306,7 +322,7 @@ class quickAnalysis:
                                        self.commonConf['base']+"_SC.fits",])
         except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
-            return
+            sys.exit()
 
         srcMaps['scfile'] = self.commonConf['base']+"_SC.fits"
         srcMaps['expcube'] = self.commonConf['base']+"_ltcube.fits"
@@ -342,7 +358,7 @@ class quickAnalysis:
             qU.checkForFiles(self.logger,[self.commonConf['base']+".list",self.commonConf['base']+"_SC.fits"])
         except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
-            return
+            sys.exit()
         self.logger.info("***Running gtselect***")
         self.runSelect(run)
         self.logger.info("***Running gtmktime***")

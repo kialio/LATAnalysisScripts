@@ -14,9 +14,62 @@ import quickAnalysis as qA
 import quickLike as qL
 import quickUtils as qU
 import numpy as np
+import pyLikelihood as pyLike
+import UnbinnedAnalysis as UbAn
 from UpperLimits import UpperLimits
+from multiprocessing import Pool
 from gt_apps import *
 import glob
+
+def runAnalysisStepMP(bininfo):
+
+    bin = bininfo[0]
+    tmin = bininfo[1]
+    commonConf = bininfo[2]
+    analysisConf = bininfo[3]
+    curveConf = bininfo[4]
+    tmax = tmin + float(curveConf['tstep'])
+
+    print bin,tmin,tmax
+    dir = "quickCurve_bin" + str(bin) 
+
+    if not os.path.isdir(dir):
+        os.mkdir(dir)
+
+    analysisConfig = {"ra" : analysisConf["ra"],
+                      "dec" : analysisConf["dec"],
+                      "rad" : analysisConf["rad"],
+                      "tmin" : tmin,
+                      "tmax" : tmax,
+                      "emin" : analysisConf["emin"],
+                      "emax" : analysisConf["emax"],
+                      "zmax" : analysisConf["zmax"],
+                      "binsize" : analysisConf["binsize"],
+                      "convtype" : analysisConf["convtype"]}
+    commonConfig = {"base" : commonConf["base"],
+                    "eventclass" : commonConf["eventclass"],
+                    "binned" : False,
+                    "irfs" : commonConf["irfs"],
+                    "verbosity" : commonConf["verbosity"],
+                    "multicore" : 0}
+
+
+    qA_bin = qA.quickAnalysis(commonConf['base'],False,analysisConfig,commonConfig)
+    qA_bin.analysisConf['tmin'] = tmin
+    qA_bin.analysisConf['tmax'] = tmax
+
+    qA_bin.runSelect(True, False,
+                     outfile = dir + "/" + commonConf['base'] + "_filtered.fits")
+    qA_bin.runGTI(True, 
+                  evfile=dir + "/" + commonConf['base']+'_filtered.fits',
+                  outfile=dir + "/" + commonConf['base']+'_filtered_gti.fits')
+    qA_bin.runLTCube(True,
+                     evfile = dir + "/" + commonConf['base']+'_filtered_gti.fits',
+                     outfile = dir + "/" + commonConf['base']+'_ltcube.fits')
+    qA_bin.runExpMap(True,
+                     evfile = dir + "/" + commonConf['base']+'_filtered_gti.fits',
+                     expcube = dir + "/" + commonConf['base']+'_ltcube.fits',
+                     outfile = dir + "/" + commonConf['base']+'_expMap.fits')
 
 class quickCurve:
 
@@ -93,85 +146,70 @@ class quickCurve:
                        commonDictionary=self.commonConf,
                        analysisDictionary=self.analysisConf)
 
+    def runLikelihoodStep(self,bininfo = [0,0,0],tslimit=4.0):
 
+        bin = bininfo[0]
+        tmin = bininfo[1]
+        tmax = bininfo[1] + float(self.curveConf['tstep'])
+
+        dir = "quickCurve_bin" + str(bin) 
+        basename = dir + "/" + self.commonConf['base']
+
+        try:
+            qU.checkForFiles(self.logger,[basename+'_filtered_gti.fits',
+                                          self.commonConf['base']+'_SC.fits',
+                                          basename+'_expMap.fits',
+                                          basename+'_ltcube.fits'])
+            obs = UbAn.UnbinnedObs(basename+'_filtered_gti.fits',
+                                   self.commonConf['base']+'_SC.fits',
+                                   expMap=basename+'_expMap.fits',
+                                   expCube=basename+'_ltcube.fits',
+                                   irfs=self.commonConf['irfs'])
+        except(qU.FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            sys.exit()
         
-    def runAnalysisStep(self,bin=0,tmin=0,tmax=0,delete=True):
-            
-        basename = self.commonConf['base'] + "_bin" + str(bin)
+        try:
+            qU.checkForFiles(self.logger,[self.likelihoodConf["model"]])
+            MIN = UbAn.UnbinnedAnalysis(obs, self.likelihoodConf["model"], optimizer='NewMinuit')
+            MIN.tol = float(self.likelihoodConf['mintol'])
+            MINobj = pyLike.NewMinuit(MIN.logLike)
+        except(qU.FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            sys.exit()
 
-        os.symlink(self.commonConf['base'] + ".list", basename+".list")        
-        os.symlink(self.commonConf['base'] + "_SC.fits", basename+"_SC.fits")        
+        MIN.fit(covar=True, optObject=MINobj, verbosity=int(self.commonConf['verbosity']))
+        self.logger.info("NEWMINUIT Fit Finished.  -log(likelihood): "+str(MIN.logLike.value()))
+        self.logger.info("NEWMINUIT Fit Status: "+str(MINobj.getRetCode()))
+        self.logger.info("NEWMINUIT fit Distance: "+str(MINobj.getDistance()))
+        if(MINobj.getRetCode() > 0):
+            self.logger.error("NEWMINUIT DID NOT CONVERGE!!!")
+            #self.logger.error("The fit failed the following tests: "+self.decodeRetCode('NewMinuit',self.MINobj.getRetCode()))
+            MIN.logLike.writeXml(basename+'_badMINFit.xml')
+        else:
+            MIN.logLike.writeXml(basename+'_likeMinuit.xml')
 
-        analysisConfig = {"ra" : self.analysisConf["ra"],
-                          "dec" : self.analysisConf["dec"],
-                          "rad" : self.analysisConf["rad"],
-                          "tmin" : tmin,
-                          "tmax" : tmax,
-                          "emin" : self.analysisConf["emin"],
-                          "emax" : self.analysisConf["emax"],
-                          "zmax" : self.analysisConf["zmax"],
-                          "binsize" : self.analysisConf["binsize"],
-                          "convtype" : self.analysisConf["convtype"]}
-        commonConfig = {"base" : basename,
-                        "eventclass" : self.commonConf["eventclass"],
-                        "binned" : False,
-                        "irfs" : self.commonConf["irfs"],
-                        "verbosity" : self.commonConf["verbosity"],
-                        "multicore" : 0}
+        sourcename = self.likelihoodConf['sourcename']
 
-
-        qA_bin = qA.quickAnalysis(basename,False,analysisConfig,commonConfig)
-        qA_bin.analysisConf['tmin'] = tmin
-        qA_bin.analysisConf['tmax'] = tmax
-
-        qA_bin.runSelect(True)
-        qA_bin.runGTI(True)
-        qA_bin.runLTCube(True)
-        qA_bin.runExpMap(True)
-
-        
-    def runLikelihoodStep(self,bin=0,tmin=0,tmax=0,tslimit=4.0):
-
-        basename = self.commonConf['base'] + "_bin" + str(bin)
-
-        likelihoodConfig = {"model" : self.likelihoodConf["model"],
-                            "sourcename" : self.likelihoodConf["sourcename"],
-                            "drmtol" : self.likelihoodConf["drmtol"],
-                            "mintol" : self.likelihoodConf["mintol"]}
-        commonConfig = {"base" : basename,
-                        "eventclass" : self.commonConf["eventclass"],
-                        "binned" : False,
-                        "irfs" : self.commonConf["irfs"],
-                        "verbosity" : self.commonConf["verbosity"]}
-
-        qL_bin = qL.quickLike(basename,False,likelihoodConfig,commonConfig)
-
-        qL_bin.makeObs()
-        qL_bin.initMIN(modelFile=self.curveConf['model'])
-        qL_bin.fitMIN()
-
-
-        sourcename = qL_bin.likelihoodConf['sourcename']
-
-        if(qL_bin.MIN.Ts(sourcename) < tslimit):
+        if(MIN.Ts(sourcename) < tslimit):
             print "Will calulate upper limit for {}".format(sourcename)
-            ul = UpperLimits(qL_bin.MIN)
+            ul = UpperLimits(MIN)
             upper = ul[sourcename].compute(emin=float(self.analysisConf["emin"]),
                                            emax=float(self.analysisConf["emax"]))
         else:
             upper = (0.0,0.0)
             
         return "{} {} {} {:,.2f} {:,.2f} {:,.2e} {:,.2e} {:,.2e} {}".format(bin,tmin,tmax,
-                                                                            qL_bin.MIN.Ts(sourcename),
-                                                                            qL_bin.MIN.NpredValue(sourcename),
-                                                                            qL_bin.MIN.flux(sourcename,
+                                                                            MIN.Ts(sourcename),
+                                                                            MIN.NpredValue(sourcename),
+                                                                            MIN.flux(sourcename,
                                                                                             float(self.analysisConf["emin"]),
                                                                                             float(self.analysisConf["emax"])),
-                                                                            qL_bin.MIN.fluxError(sourcename,
+                                                                            MIN.fluxError(sourcename,
                                                                                                  float(self.analysisConf["emin"]),
                                                                                                  float(self.analysisConf["emax"])),
                                                                             upper[0],
-                                                                            qL_bin.MINobj.getRetCode())
+                                                                            MINobj.getRetCode())
 
 
     def runCurve(self,runAnalysis=True,runLike=True, delete = True):
@@ -180,22 +218,35 @@ class quickCurve:
                           float(self.curveConf['tstop']),
                           float(self.curveConf['tstep']))
 
+        bins = np.arange(0,np.size(tbins))
+
+        binsinfo = zip(np.arange(0,np.size(tbins)),
+                       tbins,
+                       [self.commonConf for bin in bins],
+                       [self.analysisConf for bin in bins],
+                       [self.curveConf for bin in bins])
+
+        if(runAnalysis):
+            if int(self.commonConf['multicore']) > 1:
+                pool = Pool(processes = int(self.commonConf['multicore']))
+                pool.map(runAnalysisStepMP,binsinfo)
+            else:
+                for bininfo in binsinfo:
+                    runAnalysisStepMP(bininfo)
+
         if(runLike):
             filename = self.commonConf['base'] + ".lc"
             f = open(filename, 'w')
             f.write("#bin tmin tmax TS NPred Flux FluxErr Upper FitStatus\n")
-
-        for binnum,t in enumerate(tbins):
-            if(runAnalysis):
-                self.runAnalysisStep(binnum,t,t+float(self.curveConf['tstep']),delete=True)
-            if(runLike):
-                output = self.runLikelihoodStep(binnum,t,t+float(self.curveConf['tstep']))
+            for bininfo in zip(bins,tbins):
+                output = self.runLikelihoodStep(bininfo)
                 print output
                 f.write(output+"\n")
-	    if(delete):
-		templist = glob.glob("*_bin" + str(binnum) + "*")
-		for t in templist:
-			os.remove(t)
+
+        if(delete):
+            templist = glob.glob("*_bin" + str(binnum) + "*")
+            for t in templist:
+                os.remove(t)
 		
 
      
@@ -232,8 +283,8 @@ def cli():
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'hri:n:', ['help',
-                                                        'run',
-                                                        'initialize'])
+                                                            'run',
+                                                            'initialize'])
 
         #Loop through first and check for the basename
         haveBase = False
