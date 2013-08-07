@@ -170,8 +170,8 @@ class quickCurve:
             sys.exit()
         
         try:
-            qU.checkForFiles(self.logger,[self.likelihoodConf["model"]])
-            MIN = UbAn.UnbinnedAnalysis(obs, self.likelihoodConf["model"], optimizer='NewMinuit')
+            qU.checkForFiles(self.logger,[self.curveConf["model"]])
+            MIN = UbAn.UnbinnedAnalysis(obs, self.curveConf["model"], optimizer='NewMinuit')
             MIN.tol = float(self.likelihoodConf['mintol'])
             MINobj = pyLike.NewMinuit(MIN.logLike)
         except(qU.FileNotFound):
@@ -192,7 +192,7 @@ class quickCurve:
         sourcename = self.likelihoodConf['sourcename']
 
         if(MIN.Ts(sourcename) < tslimit):
-            print "Will calulate upper limit for {}".format(sourcename)
+            print "Will calulate upper limit for bin {}.".format(bin)
             ul = UpperLimits(MIN)
             upper = ul[sourcename].compute(emin=float(self.analysisConf["emin"]),
                                            emax=float(self.analysisConf["emax"]))
