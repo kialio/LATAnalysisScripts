@@ -15,11 +15,17 @@ import quickLike as qL
 import quickUtils as qU
 import numpy as np
 import pyLikelihood as pyLike
-import UnbinnedAnalysis as UbAn
+import UnbinnedAnalysis
+import BinnedAnalysis
 from UpperLimits import UpperLimits
 from multiprocessing import Pool
 from gt_apps import *
 import glob
+import pickle
+import scipy
+import math
+
+from quickUtils import quickMath as MyMath
 
 def runAnalysisStepMP(bininfo):
 
@@ -74,8 +80,23 @@ def runAnalysisStepMP(bininfo):
 class quickCurve:
 
     """This is the base class"""
+    def __init__(self, srcName=None, ft2=None, irfs=None, model=None,
+                 optimizer="Minuit"):
+        self.lc = []
+
+        if(srcName == None):
+            return
+        self.srcName = srcName
+        if model != None:
+            self.model = model
+        else:
+            self.model = srcName + "_fitmodel.xml"
+        self.ft2 = ft2
+        self.irfs = irfs
+        self.optimizer = optimizer
+        self.obsfiles = []
     
-    def __init__(self,
+    def Oldinit(self,
                  base = 'MySource',
                  configFile = False,
                  curveConfig = {'tstart' : 0,
@@ -109,7 +130,11 @@ class quickCurve:
         
         if(configFile):
             try:
-                commonConfigRead,analysisConfigRead,likelihoodConfigRead,plotConfigRead,curveConfigRead = qU.readConfig(self.logger,base)
+                commonConfigRead,
+                analysisConfigRead,
+                likelihoodConfigRead,
+                plotConfigRead,
+                curveConfigRead = qU.readConfig(self.logger,base)
             except(qU.FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
@@ -136,7 +161,8 @@ class quickCurve:
         self.analysisConf = analysisConfig
 
         self.lc = []
-        self.obsfiles = []
+        self.obsfiles=[]
+        
 
     def writeConfig(self):
 
@@ -349,7 +375,6 @@ class quickCurve:
 
         for f in self.obsfiles:
             lc = dict()
-            lc['version'] = self.ver
             lc['config'] = dict()
             lc['config']['fix_shape']       = fix_shape
             lc['config']['delete_below_ts'] = delete_below_ts
@@ -845,9 +870,187 @@ class quickCurve:
             templist = glob.glob("*_bin" + str(binnum) + "*")
             for t in templist:
                 os.remove(t)
-		
 
-     
+def sfeganHelp(exitcode = 0):
+    print "See '%s -h' for more help"%os.path.basename(sys.argv[0])
+    sys.exit(exitcode)
+
+def sfeganUsage(defirf, defft2, defsumfn, deflcfn, tsmin,
+                ulfluxerror, tsulbayes, tsulchi2,
+                ulcl, opt, exitcode = 0):
+
+
+    progname = os.path.basename(sys.argv[0])
+    print """usage: %s [--summary] [options] [lc_summary_file...]
+   or: %s --compute [options] source_name directory [directory...]
+
+Compute lightcurves from Fermi data. The program opeartes in two modes:
+summary and compute, specified with the --summary (the default) or
+--compute options. In the compute mode one or many Fermi observations
+are analyzed using the pyLikelihood tools to produce a summary file. In
+the summary mode, these summary files are read and the lightcurve is
+produced.
+
+General options:
+
+-h,--help        print this message.
+
+-o,--output X    specify the name of the summary or lightcurve file to
+                 write [default: %s (summary mode),
+                 %s (compute mode)].
+
+--v              be verbose about doing operations.
+--vv             be very verbose.
+--vvv            be extremely verbose.
+
+Compute mode options:
+
+--binned         use binned analysis mode
+
+--irf X          specify the IRFs to use [default: %s].
+
+--ft2 X          specify the FT2 file
+                 [default: %s].
+
+--tsmin X        set TS value below which background sources are deleted
+                 from the model [default: %g].
+
+--tsulbayes X    set TS value below which the Bayesian upper limit is
+                 computed for the source flux in the time bin
+                 [default: %g]
+
+--tsulchi2 X     set TS value below which the Profile Likelihood upper
+                 limit is computed for the source flux in the time bin
+                 [default: %g].
+
+--fluxerrorul X  set the value of the flux/error below which a Profile
+                 likelihood upper limit is calculated (unless it is preempted
+                 by the Bayes method based on the TS value) [default: %g]
+
+--ulcl X         set the confidence limit of upper limits [default: %g]
+
+--fitmodel X     specify filename of XML model from global fit
+                 [default: source_name_fitmodel.xml].
+
+--rebin X        combine X time bins into one for the analysis (i.e. rebin
+                 the LC).
+
+--sliding_window rebin the time bins using a sliding window so that they
+                 overlap
+
+--opt X          use optimizer X [defaul: %s]
+"""%(progname,progname,deflcfn,defsumfn,defirf,defft2,tsmin,ulfluxerror,tsulbayes,tsulchi2,ulcl,opt)
+    sys.exit(exitcode)
+
+def sfeganCLI():
+
+    try:
+        optspec = ( 'help', 'output=', 'v', 'vv', 'vvv',
+                    'summary', 'compute', 'binned', 'ft2=', 'irf=', 'tsmin=',
+                    'fluxerrorul=', 'tsulchi2=', 'tsulbayes=', 'ulcl=',
+                    'fitmodel=', 'rebin=', 'sliding_window', 'opt=')
+        opts, args = getopt.gnu_getopt(sys.argv[1:], 'vho:', optspec)
+    except getopt.GetoptError, err:
+        print err
+        sfeganHelp(0)
+
+    defirf     = 'P7SOURCE_V6'
+    defft2     = '/sps/hep/glast/data/FSSCWeeklyData/FT2.fits'
+    defsumfn   = 'lc_summary.dat'
+    deflcfn    = 'lc.dat'
+    deftsmin   = 1
+    defulflxdf = 2.0
+    defulbayes = 0
+    defulchi2  = 4
+    defulcl    = 0.95
+    defopt     = "MINUIT"
+
+    verbose    = 0
+    mode       = "summary"
+    output     = None
+    srcmodel   = None
+
+    irf        = defirf
+    ft2        = defft2
+    tsmin      = deftsmin
+    ulflxdf    = defulflxdf
+    ulchi2     = defulchi2
+    ulbayes    = defulbayes
+    ulcl       = defulcl
+    nbin       = 1
+    sliding    = False
+    analysis   = 'unbinned'
+    opt        = defopt
+
+    for o, a in opts:
+        if o in ('-h', '--help'):
+            sfeganUsage(defirf,defft2,defsumfn,deflcfn,deftsmin,
+                  defulflxdf,defulbayes,defulchi2,defulcl,defopt,0)
+        elif o in ('-o', '--output'):
+            output = a
+        elif o in ('-v', '--v'):
+            verbose = 1
+        elif o in ('--vv'):
+            verbose = 2
+        elif o in ('--vvv'):
+            verbose = 3
+        elif o in ('--summary'):
+            mode = 'summary'
+        elif o in ('--compute'):
+            mode = 'compute'
+        elif o in ('--binned'):
+            analysis = 'binned'
+        elif o in ('--irf'):
+            irf = a
+        elif o in ('--ft2'):
+            ft2 = a
+        elif o in ('--fitmodel'):
+            srcmodel = a
+        elif o in ('--tsmin'):
+            tsmin = float(a)
+        elif o in ('--fluxerrorul'):
+            ulflxdf = float(a)
+        elif o in ('--tsulchi2'):
+            ulchi2 = float(a)
+        elif o in ('--tsulbayes'):
+            ulbayes = float(a)
+        elif o in ('--ulcl'):
+            ulcl = float(a)
+        elif o in ('--rebin'):
+            nbin = int(a)
+        elif o in ('--sliding_window'):
+            sliding = True
+        elif o in ('--opt'):
+            opt = a
+
+    if mode=="summary":
+        lc=quickCurve()
+        if output == None:
+            output = deflcfn
+        if len(args)==0:
+            lc.loadProcessedObs(defsumfn)
+        for f in args:
+            lc.loadProcessedObs(f)
+        lc.writeLC(output,verbosity=verbose)
+    else:
+        if len(args)<2:
+            print "Must specify source name and at least one directory!"
+            smallHelp()
+        source_name = args[0]
+        args=args[1:]
+        if output == None:
+            output = defsumfn
+        lc=quickCurve(srcName=source_name,ft2=ft2,irfs=irf,model=srcmodel,\
+                      optimizer=opt)
+        for d in args:
+            lc.globStandardObsDir(d, nbin=nbin, analysis=analysis,
+                                  sliding_window = sliding)
+        if(ulchi2<0): ulchi2=None
+        if(ulbayes<0): ulbayes=None
+        lc.processAllObs(verbosity=verbose, delete_below_ts=tsmin,
+                         ul_chi2_ts=ulchi2, ul_flux_dflux = ulflxdf,
+                         ul_bayes_ts=ulbayes, ul_cl=ulcl,
+                         interim_save_filename=output)
 
 def printCLIHelp():
     """This function prints out the help for the CLI."""
@@ -913,5 +1116,7 @@ def cli():
         print "Command Line Error: " + e.msg
         printCLIHelp()
 
-if __name__ == '__main__': cli()
+if __name__ == '__main__': 
+    import getopt
+    sfeganCLI()
 
