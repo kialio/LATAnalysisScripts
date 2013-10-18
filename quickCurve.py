@@ -224,7 +224,7 @@ class quickCurve:
                 if os.path.isdir(d):
                     self.addStandardObsDir(d, ft2, irfs, self.obsfiles,
                                            analysis=analysis)
-                elif sliding_window == False:
+        elif sliding_window == False:
             if self.obsfiles:
                 obslist = self.obsfiles.pop()
             else:
@@ -233,12 +233,12 @@ class quickCurve:
                 if len(obslist) == nbin:
                     self.obsfiles.append(obslist)
                     obslist = list()
-        if os.path.isdir(d):
+                if os.path.isdir(d):
                     self.addStandardObsDir(d, ft2, irfs, obslist,
                                            analysis=analysis)
             if len(obslist) != 0:
                 self.obsfiles.append(obslist)
-            else:
+        else:
             if self.obsfiles:
                 obslist = self.obsfiles.pop()
             else:
@@ -642,7 +642,7 @@ class quickCurve:
         for lc in lcs:
             self.lc.append(lc)
 
-        def generateLC(self, verbosity=0):
+    def generateLC(self, verbosity=0):
         # First: calculate logL of fixed flux model at true minimum - hoping
         # it lies somewhere in the profile we computed
         first = True
@@ -673,7 +673,7 @@ class quickCurve:
         if verbosity>0:
             print profile_x, profile_y, profile_fity
 
-            # Second: process data for LC, accumulating required values to
+        # Second: process data for LC, accumulating required values to
         # allow calculation of variability stats
 
         vals = []
@@ -786,8 +786,7 @@ class quickCurve:
             prob = MyMath.chi2cdfc(chi2,ndof)
             sigma = math.sqrt(MyMath.chi2invc(prob,1))
             print >>file, '%sVariable spectrum:     chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
-            print >>file, '%sProfile minimum: %f (search range: %f to %f)'%(headstart,stats['prof_max_val'],min(stats['prof_x']),max(stats['pro\
-f_x']))
+            print >>file, '%sProfile minimum: %f (search range: %f to %f)'%(headstart,stats['prof_max_val'],min(stats['prof_x']),max(stats['prof_x']))
             print >>file, '%sLogL correction: %f (WRT logL @ prescribed val of %g)'%(headstart,stats['prof_corr_logL'],stats['allfixed_val'])
 
             print >>file, '%sColumn 1: Start of time bin [MJD]'%(headstart)
