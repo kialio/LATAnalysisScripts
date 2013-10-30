@@ -80,7 +80,7 @@ def runAnalysisStepMP(bininfo):
 class quickCurve:
 
     """This is the base class"""
-    def __init__(self, srcName=None, ft2=None, irfs=None, model=None,
+    def sfinit(self, srcName=None, ft2=None, irfs=None, model=None,
                  optimizer="Minuit"):
         self.lc = []
 
@@ -96,14 +96,23 @@ class quickCurve:
         self.optimizer = optimizer
         self.obsfiles = []
     
-    def Oldinit(self,
+    def __init__(self,
                  base = 'MySource',
                  configFile = False,
-                 curveConfig = {'tstart' : 0,
-                                'tstop' : 0,
-                                'tstep' : 86400,
-                                'tsmin' : 4,
-                                'model' : 'my_model.xml'},
+                 curveConfig = {'tstart'  : 0,
+                                'tstop'   : 0,
+                                'tstep'   : 86400,
+                                'tsmin'   : 1,
+                                'model'   : 'my_model.xml',
+                                'summary' : 'lc_summary.dat',
+                                'output'  : 'lc.dat',
+                                'ulfluxdf' : 2.0,
+                                'ulbayes'  : False,
+                                'ulchi2'  : 4,
+                                'ulcl'    : 0.95,
+                                'opt'     : 'MINUIT',
+                                'sliding' : False,
+                                'rebin'   : 1},
                  analysisConfig = {"ra" : 0,
                                    "dec" : 0,
                                    "rad" : 10,
@@ -130,11 +139,8 @@ class quickCurve:
         
         if(configFile):
             try:
-                commonConfigRead,
-                analysisConfigRead,
-                likelihoodConfigRead,
-                plotConfigRead,
-                curveConfigRead = qU.readConfig(self.logger,base)
+                commonConfigRead,analysisConfigRead,\
+                    likelihoodConfigRead,plotConfigRead,curveConfigRead = qU.readConfig(self.logger,base)
             except(qU.FileNotFound):
                 self.logger.critical("One or more needed files do not exist")
                 return
@@ -159,6 +165,11 @@ class quickCurve:
         self.curveConf = curveConfig
         self.likelihoodConf = likelihoodConfig
         self.analysisConf = analysisConfig
+
+        self.model = self.likelihoodConf['model']
+        self.ft2 = self.commonConf['base']+"_SC.fits"
+        self.irfs = self.commonConf['irfs']
+        self.optimizer = self.curveConf['opt']
 
         self.lc = []
         self.obsfiles=[]
@@ -295,7 +306,6 @@ class quickCurve:
         else:
             raise NameError("Unknown analysis type: \""+f['analysis']+
                             "\" for directory \""+directory+"\"")
-
 
     def addUnbinnedObs(self, ft1, emap, ecube,
                        ft2=None, irfs=None, obslist=None):
@@ -881,36 +891,54 @@ def sfeganUsage(defirf, defft2, defsumfn, deflcfn, tsmin,
 
 
     progname = os.path.basename(sys.argv[0])
-    print """usage: %s [--summary] [options] [lc_summary_file...]
+    print """
+                    - quickCurve - 
+                   
+usage: %s [--summary] [options] [lc_summary_file...]
    or: %s --compute [options] source_name directory [directory...]
 
-Compute lightcurves from Fermi data. The program opeartes in two modes:
-summary and compute, specified with the --summary (the default) or
---compute options. In the compute mode one or many Fermi observations
-are analyzed using the pyLikelihood tools to produce a summary file. In
-the summary mode, these summary files are read and the lightcurve is
-produced.
+Compute lightcurves from Fermi data. The program opeartes in three
+modes: run, summary and compute, specified with the --run, --summary
+(the default) or --compute options.  The run mode generates all of the
+needed files for the next two modes and puts them in seperate
+directories in the working directory (named <basename>_binX). In the
+compute mode one or many Fermi observations are analyzed using the
+pyLikelihood tools to produce a summary file. In the summary mode,
+these summary files are read and the lightcurve is produced.  All of
+the options can be stored in a config file.
 
 General options:
 
 -h,--help        print this message.
 
+-i,--initialize  Generate a default config file called example.cfg.
+                 Edit this file and rename it <basename>.cfg for use
+                 in the quickCurve module.
+
 -o,--output X    specify the name of the summary or lightcurve file to
                  write [default: %s (summary mode),
                  %s (compute mode)].
+
+--irf X          specify the IRFs to use [default: %s].
+
+-n,--basename X  basename of the observation
+
+--ft2 X          specify the FT2 file
+                 [default: %s].
+
+--binned         use binned analysis mode
 
 --v              be verbose about doing operations.
 --vv             be very verbose.
 --vvv            be extremely verbose.
 
+Run mode options:
+
+-r,--run         Generate all of the needed files for the lightcurve
+                 analysis.  You must already have a config file if
+                 using the command line interface.
+
 Compute mode options:
-
---binned         use binned analysis mode
-
---irf X          specify the IRFs to use [default: %s].
-
---ft2 X          specify the FT2 file
-                 [default: %s].
 
 --tsmin X        set TS value below which background sources are deleted
                  from the model [default: %g].
