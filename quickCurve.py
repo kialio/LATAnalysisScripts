@@ -22,6 +22,7 @@ import UnbinnedAnalysis
 import BinnedAnalysis
 from UpperLimits import UpperLimits
 from multiprocessing import Pool
+import IntegralUpperLimit
 from gt_apps import *
 import glob
 import pickle
@@ -431,6 +432,8 @@ class quickCurve:
                         lc['e_min'] = max(lc['e_min'], ecuts[0])
                         lc['e_max'] = min(lc['e_max'], ecuts[1])
                     like.addComponent(like1)
+
+            print like
 
             emin = lc['e_min']
             emax = lc['e_max']
@@ -1064,6 +1067,7 @@ def sfeganCLI():
             output = defsumfn
         lc=quickCurve(srcName=source_name,ft2=ft2,irfs=irf,model=srcmodel,\
                       optimizer=opt)
+        print args
         for d in args:
             lc.globStandardObsDir(d, nbin=nbin, analysis=analysis,
                                   sliding_window = sliding)
@@ -1117,7 +1121,7 @@ def cli():
             analysis = 'unbinned'
         for d in dirs:
             qC.globStandardObsDir(d, 
-                                  nbin=qC.curveConf['rebin'], 
+                                  nbin=int(qC.curveConf['rebin']), 
                                   analysis=analysis,
                                   sliding_window = qC.curveConf['sliding'])
         if(qC.curveConf['ulchi2']<0): qC.curveConf['ulchi2']=None
@@ -1127,7 +1131,7 @@ def cli():
                          ul_chi2_ts=qC.curveConf['ulchi2'], 
                          ul_flux_dflux = qC.curveConf['ulfluxdf'],
                          ul_bayes_ts=qC.curveConf['ulbayes'], 
-                         ul_cl=qC.curveConf['ulcl'],
+                         ul_cl=float(qC.curveConf['ulcl']),
                          interim_save_filename=qC.curveConf['output'])
         return
 
