@@ -10,11 +10,14 @@ __version__ = '0.1.12'
 
 import sys
 import os
+import argparse
+from argparse import RawTextHelpFormatter
 import quickAnalysis as qA
 import quickLike as qL
 import quickUtils as qU
 import numpy as np
 import pyLikelihood as pyLike
+import SummedLikelihood
 import UnbinnedAnalysis
 import BinnedAnalysis
 from UpperLimits import UpperLimits
@@ -292,10 +295,9 @@ class quickCurve:
 
     def addStandardObsDir(self, directory, ft2=None, irfs=None, obslist=None,
                           analysis='unbinned'):
-        prefix = directory+"/"+self.srcName
+        prefix = directory+"/"+self.commonConf['base']
         ecube = prefix + "_ltcube.fits"
         if analysis=='unbinned':
-            #ft1 = prefix + "_ev_roi.fits"
             ft1 = prefix + "_filtered_gti.fits"
             emap = prefix + "_expMap.fits"
             self.addUnbinnedObs(ft1, emap, ecube, ft2, irfs, obslist)
@@ -438,15 +440,15 @@ class quickCurve:
             if verbosity > 1:
                 print '- Time:',lc['t_min'],'to',lc['t_max']
 
-            src = like[self.srcName]
+            src = like[self.likelihoodConf['sourcename']]
             if src == None:
-                raise NameError("No source \""+self.srcName+"\" in model "+
+                raise NameError("No source \""+self.likelihoodConf['sourcename']+"\" in model "+
                                 self.model)
-            srcfreepar=like.freePars(self.srcName)
-            srcnormpar=like.normPar(self.srcName)
+            srcfreepar=like.freePars(self.likelihoodConf['sourcename'])
+            srcnormpar=like.normPar(self.likelihoodConf['sourcename'])
             if len(srcfreepar)>0:
-                like.setFreeFlag(self.srcName, srcfreepar, 0)
-                like.syncSrcParams(self.srcName)
+                like.setFreeFlag(self.likelihoodConf['sourcename'], srcfreepar, 0)
+                like.syncSrcParams(self.likelihoodConf['sourcename'])
 
 
             meanvalue = srcnormpar.getValue()
@@ -454,8 +456,8 @@ class quickCurve:
             lc['original']=dict()
             lc['original']['normpar_init_value'] = meanvalue
             lc['original']['normpar_name'] = srcnormpar.getName()
-            lc['original']['nfree'] = len(like.freePars(self.srcName))
-            lc['original']['flux'] = like[self.srcName].flux(emin, emax)
+            lc['original']['nfree'] = len(like.freePars(self.likelihoodConf['sourcename']))
+            lc['original']['flux'] = like[self.likelihoodConf['sourcename']].flux(emin, emax)
             lc['original']['logL'] = like.logLike.value()
             if verbosity > 1:
                 print '- Original log Like:',lc['original']['logL']
@@ -468,7 +470,7 @@ class quickCurve:
                     if sync_name != "" and sync_name != p.srcName:
                         like.syncSrcParams(sync_name)
                         sync_name = ""
-                    if(p.isFree() and p.srcName!=self.srcName and
+                    if(p.isFree() and p.srcName!=self.likelihoodConf['sourcename'] and
                        p.getName()!=like.normPar(p.srcName).getName()):
                         if verbosity > 2:
                             print '-- '+p.srcName+'.'+p.getName()
@@ -481,7 +483,7 @@ class quickCurve:
            # ----------------------------- FIT 1 -----------------------------
 
             if verbosity > 1:
-                print '- Fit 1 - All parameters of',self.srcName,'fixed'
+                print '- Fit 1 - All parameters of',self.likelihoodConf['sourcename'],'fixed'
             like.fit(max(verbosity-3, 0))
 
             lc['allfixed'] = dict()
@@ -500,7 +502,7 @@ class quickCurve:
                 deletesrc = []
                 for s in like.sourceNames():
                     freepars = like.freePars(s)
-                    if(s!=self.srcName and like[s].type == 'PointSource'
+                    if(s!=self.likelihoodConf['sourcename'] and like[s].type == 'PointSource'
                        and len(freepars)>0):
                         ts = like.Ts(s)
                         if ts<delete_below_ts:
@@ -525,10 +527,10 @@ class quickCurve:
                         print '- Fit 1 - log Like:',lc['allfixed']['logL']
 
 
-            lc['allfixed']['flux']=like[self.srcName].flux(emin, emax)
+            lc['allfixed']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
             pars = dict()
-            for pn in like[self.srcName].funcs['Spectrum'].paramNames:
-                p = like[self.srcName].funcs['Spectrum'].getParam(pn)
+            for pn in like[self.likelihoodConf['sourcename']].funcs['Spectrum'].paramNames:
+                p = like[self.likelihoodConf['sourcename']].funcs['Spectrum'].getParam(pn)
                 pars[p.getName()] = dict(name      = p.getName(),
                                          value     = p.getTrueValue(),
                                          error     = p.error()*p.getScale(),
@@ -563,7 +565,7 @@ class quickCurve:
                     lc['profile']['flux'].append(lc['allfixed']['flux'])
                 else:
                     srcnormpar.setValue(val)
-                    like.syncSrcParams(self.srcName)
+                    like.syncSrcParams(self.likelihoodConf['sourcename'])
                     like.fit(max(verbosity-3, 0))
                     fitstat = like.optObject.getRetCode()
                     if verbosity > 2 and fitstat != 0:
@@ -571,7 +573,7 @@ class quickCurve:
                             fitstat
                     lc['profile']['fitstat'].append(fitstat)
                     lc['profile']['logL'].append(like.logLike.value())
-                    lc['profile']['flux'].append(like[self.srcName].\
+                    lc['profile']['flux'].append(like[self.likelihoodConf['sourcename']].\
                                               flux(emin, emax))
                 if verbosity > 2:
                     print '- Fit 1 - profile: %+g, %f -> %f'%\
@@ -579,15 +581,15 @@ class quickCurve:
                            lc['profile']['logL'][-1]-lc['allfixed']['logL'])
 
             srcnormpar.setValue(meanvalue)
-            like.syncSrcParams(self.srcName)
+            like.syncSrcParams(self.likelihoodConf['sourcename'])
 
             # ----------------------------- FIT 2 -----------------------------
 
             if verbosity > 1:
                 print '- Fit 2 - Normalization parameter of',\
-                      self.srcName,'free'
+                      self.likelihoodConf['sourcename'],'free'
             srcnormpar.setFree(1)
-            like.syncSrcParams(self.srcName)
+            like.syncSrcParams(self.likelihoodConf['sourcename'])
             like.fit(max(verbosity-3, 0))
             lc['normfree'] = dict()
             fitstat = like.optObject.getRetCode()
@@ -595,18 +597,18 @@ class quickCurve:
                 print "- Fit 2 - Minimizer returned with code: ", fitstat
             lc['normfree']['fitstat'] = fitstat
             lc['normfree']['logL'] = like.logLike.value()
-            lc['normfree']['ts'] = like.Ts(self.srcName)
+            lc['normfree']['ts'] = like.Ts(self.likelihoodConf['sourcename'])
             lc['normfree']['flux_dflux'] = \
                 srcnormpar.getValue()/srcnormpar.error()
             if verbosity > 1:
                 print '- Fit 2 - log Like:',lc['normfree']['logL'],\
                       '(TS='+str(lc['normfree']['ts'])+')'
 
-            lc['normfree']['nfree']=len(like.freePars(self.srcName))
-            lc['normfree']['flux']=like[self.srcName].flux(emin, emax)
+            lc['normfree']['nfree']=len(like.freePars(self.likelihoodConf['sourcename']))
+            lc['normfree']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
             pars = dict()
-            for pn in like[self.srcName].funcs['Spectrum'].paramNames:
-                p = like[self.srcName].funcs['Spectrum'].getParam(pn)
+            for pn in like[self.likelihoodConf['sourcename']].funcs['Spectrum'].paramNames:
+                p = like[self.likelihoodConf['sourcename']].funcs['Spectrum'].getParam(pn)
                 pars[p.getName()] = dict(name      = p.getName(),
                                          value     = p.getTrueValue(),
                                          error     = p.error()*p.getScale(),
@@ -616,7 +618,7 @@ class quickCurve:
             if ul_bayes_ts != None and lc['normfree']['ts'] < ul_bayes_ts:
                 ul_type = 'bayesian'
                 [ul_flux, ul_results] = \
-                    IntegralUpperLimit.calc_int(like,self.srcName,cl=ul_cl,
+                    IntegralUpperLimit.calc_int(like,self.likelihoodConf['sourcename'],cl=ul_cl,
                                                 skip_global_opt=True,
                                                 verbosity = max(verbosity-2,0),
                                                 emin=emin, emax=emax,
@@ -626,7 +628,7 @@ class quickCurve:
                    ( ul_chi2_ts != None and lc['normfree']['ts'] < ul_chi2_ts):
                 ul_type = 'chi2'
                 [ul_flux, ul_results] = \
-                    IntegralUpperLimit.calc_chi2(like,self.srcName,cl=ul_cl,
+                    IntegralUpperLimit.calc_chi2(like,self.likelihoodConf['sourcename'],cl=ul_cl,
                                                  skip_global_opt=True,
                                                  verbosity = max(verbosity-2,0),
                                                  emin=emin, emax=emax)
@@ -638,9 +640,9 @@ class quickCurve:
             # ----------------------------- FIT 3 -----------------------------
 
             if verbosity > 1:
-                print '- Fit 3 - All parameters of',self.srcName,'free'
-            like.setFreeFlag(self.srcName, srcfreepar, 1)
-            like.syncSrcParams(self.srcName)
+                print '- Fit 3 - All parameters of',self.likelihoodConf['sourcename'],'free'
+            like.setFreeFlag(self.likelihoodConf['sourcename'], srcfreepar, 1)
+            like.syncSrcParams(self.likelihoodConf['sourcename'])
             like.fit(max(verbosity-3, 0))
             lc['allfree'] = dict()
             fitstat = like.optObject.getRetCode()
@@ -648,15 +650,15 @@ class quickCurve:
                 print "- Fit 3 - Minimizer returned with code: ", fitstat
             lc['allfree']['fitstat'] = fitstat
             lc['allfree']['logL'] = like.logLike.value()
-            lc['allfree']['ts'] = like.Ts(self.srcName)
+            lc['allfree']['ts'] = like.Ts(self.likelihoodConf['sourcename'])
             if verbosity > 1:
                 print '- Fit 3 - log Like:',lc['allfree']['logL'],\
                       '(TS='+str(lc['allfree']['ts'])+')'
-            lc['allfree']['nfree']=len(like.freePars(self.srcName))
-            lc['allfree']['flux']=like[self.srcName].flux(emin, emax)
+            lc['allfree']['nfree']=len(like.freePars(self.likelihoodConf['sourcename']))
+            lc['allfree']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
             pars = dict()
-            for pn in like[self.srcName].funcs['Spectrum'].paramNames:
-                p = like[self.srcName].funcs['Spectrum'].getParam(pn)
+            for pn in like[self.likelihoodConf['sourcename']].funcs['Spectrum'].paramNames:
+                p = like[self.likelihoodConf['sourcename']].funcs['Spectrum'].getParam(pn)
                 pars[p.getName()] = dict(name      = p.getName(),
                                          value     = p.getTrueValue(),
                                          error     = p.error()*p.getScale(),
@@ -845,7 +847,7 @@ class quickCurve:
             s += ' %7.2f'%(p[-1])
             print >>file, s
 
-    def runCurve(self,runAnalysis=True,runLike=True, delete = True):
+    def runCurve(self, runAnalysis=True, delete = False):
 
         tbins = np.arange(float(self.curveConf['tstart']),
                           float(self.curveConf['tstop']),
@@ -867,14 +869,6 @@ class quickCurve:
                 for bininfo in binsinfo:
                     runAnalysisStepMP(bininfo)
 
-        if(runLike):
-            filename = self.commonConf['base'] + ".lc"
-            f = open(filename, 'w')
-            f.write("#bin tmin tmax TS NPred Flux FluxErr Upper FitStatus\n")
-            for bininfo in zip(bins,tbins):
-                output = self.runLikelihoodStep(bininfo)
-                print output
-                f.write(output+"\n")
 
         if(delete):
             templist = glob.glob("*_bin" + str(binnum) + "*")
@@ -1080,71 +1074,64 @@ def sfeganCLI():
                          ul_bayes_ts=ulbayes, ul_cl=ulcl,
                          interim_save_filename=output)
 
-def printCLIHelp():
-    """This function prints out the help for the CLI."""
-    
-    cmd = os.path.basename(sys.argv[0])
-    print """
-                        - quickCurve - 
-
-Perform a liklihood analysis on Fermi LAT data.  You can use the
-command line functions listed below or run this module from within
-python. For full documentation on this module execute 'pydoc
-quickCurve'.
-                        
-%s (-h|--help) ... This help text.
-                      
-%s (-i|--initialize) ... Generate a default config file called
-    example.cfg.  Edit this file and rename it <basename>.cfg for use
-    in the quickLike module.
-
-%s (-a|--analyze) (-n |--basename=)<basename> ...  Perform an analysis
-    on <basename>.  <basename> is the prefix used for this analysis.
-    You must already have a configuration file if using the command
-    line interface.
-
-""" %(cmd,cmd,cmd)
-
-# Command-line interface    
 def cli():
-    """Command-line interface.  Call this without any options for usage notes."""
-    import getopt
 
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hri:n:', ['help',
-                                                            'run',
-                                                            'initialize'])
+    helpString = "                 - quickCurve - \n\nCompute lightcurves from Fermi data. The program opeartes in\nthree modes:\n\n\tinitialize, run, summary and compute,\n\nspecified with the run, summary or compute options.  The run\nmode generates all of the needed files for the next two modes\nand puts them in seperate directories in the working directory\n(named <basename>_binX). In the compute mode one or many Fermi\nobservations are analyzed using the pyLikelihood tools to produce\na summary file. In the summary mode, these summary files\nare read and the lightcurve is produced.  All of the options can\nbe stored in a config file which can be read if you use the\n--config option."
+    
+    parser = argparse.ArgumentParser(description=helpString,formatter_class=argparse.RawTextHelpFormatter)
 
-        #Loop through first and check for the basename
-        haveBase = False
-        basename = 'example'
-        for opt,val in opts:
-            if opt in ('-n','--basename'):
-                haveBase = True
-                basename = val
+    parser.add_argument("basename",type=str,
+                        help="Perfom an analysis on <BASENAME>.\n<BASENAME> is the prefix used for this analysis.")
+    parser.add_argument("--verbose", type=int, default=1,
+                        help="Verbosity (1,2 or 3)")
 
-        for opt, val in opts:
-            if opt in ('-h','--help'):
-                printCLIHelp()
-                return
-            elif opt in ('-r', '--run'):
-                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
-                qC = quickCurve(basename, True)
-                qC.runCurve(True)         
-                return
-            elif opt in ('-i','--initialize'):
-                print "Creating example configuration file called example.cfg"
-                qC = quickCurve(basename)
-                qC.writeConfig()
-                return
-            
-        if not opts: raise getopt.GetoptError("Must specify an option, printing help.")
-            
-    except getopt.error as e:
-        print "Command Line Error: " + e.msg
-        printCLIHelp()
+    subparsers = parser.add_subparsers(dest="mode")
+
+    init_parser = subparsers.add_parser('initialize', 
+                                        help= "Generate a default config file called <BASENAME>.cfg.\nCAREFUL, it will overwrite the current file.")
+    run_parser = subparsers.add_parser('run', help="Generate all of the needed files for the lightcurve\nanalysis.  You must already have a config file if\nusing the command line interface.")
+    compute_parser = subparsers.add_parser('compute', help="The files produced in the run mode re analyzed using\nthe pyLikelihood tools to produce a summary file.")
+    summary_parser = subparsers.add_parser('summary')
+
+    args = parser.parse_args()
+
+    print args.mode
+
+    if args.mode == 'initialize':
+        print "Creating example config file named example.cfg..."
+        qC = quickCurve(args.basename)
+        qC.writeConfig()
+        return
+    elif args.mode == 'run':
+        print "Generating files..."
+        qC = quickCurve(args.basename, True)
+        qC.runCurve(True,False)
+        return
+    elif args.mode == 'compute':
+        print "Computing likelihoood..."
+        qC = quickCurve(args.basename, True)
+        dirs = glob.glob('quickCurve_bin*')
+        if qC.commonConf['binned']:
+            analysis = 'binned'
+        else:
+            analysis = 'unbinned'
+        for d in dirs:
+            qC.globStandardObsDir(d, 
+                                  nbin=qC.curveConf['rebin'], 
+                                  analysis=analysis,
+                                  sliding_window = qC.curveConf['sliding'])
+        if(qC.curveConf['ulchi2']<0): qC.curveConf['ulchi2']=None
+        if(qC.curveConf['ulbayes']<0): qC.curveConf['ulbayes']=None
+        qC.processAllObs(verbosity=int(qC.commonConf['verbosity']), 
+                         delete_below_ts=qC.curveConf['tsmin'],
+                         ul_chi2_ts=qC.curveConf['ulchi2'], 
+                         ul_flux_dflux = qC.curveConf['ulfluxdf'],
+                         ul_bayes_ts=qC.curveConf['ulbayes'], 
+                         ul_cl=qC.curveConf['ulcl'],
+                         interim_save_filename=qC.curveConf['output'])
+        return
+
 
 if __name__ == '__main__': 
-    import getopt
-    sfeganCLI()
+    cli()
 
