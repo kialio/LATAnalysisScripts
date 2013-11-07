@@ -111,7 +111,7 @@ class quickCurve:
                                 'summary' : 'lc_summary.dat',
                                 'output'  : 'lc.dat',
                                 'ulfluxdf' : 2.0,
-                                'ulbayes'  : False,
+                                'ulbayes'  : 4.0,
                                 'ulchi2'  : 4,
                                 'ulcl'    : 0.95,
                                 'opt'     : 'MINUIT',
@@ -432,8 +432,6 @@ class quickCurve:
                         lc['e_min'] = max(lc['e_min'], ecuts[0])
                         lc['e_max'] = min(lc['e_max'], ecuts[1])
                     like.addComponent(like1)
-
-            print like
 
             emin = lc['e_min']
             emax = lc['e_max']
@@ -1127,10 +1125,10 @@ def cli():
         if(qC.curveConf['ulchi2']<0): qC.curveConf['ulchi2']=None
         if(qC.curveConf['ulbayes']<0): qC.curveConf['ulbayes']=None
         qC.processAllObs(verbosity=int(qC.commonConf['verbosity']), 
-                         delete_below_ts=qC.curveConf['tsmin'],
-                         ul_chi2_ts=qC.curveConf['ulchi2'], 
-                         ul_flux_dflux = qC.curveConf['ulfluxdf'],
-                         ul_bayes_ts=qC.curveConf['ulbayes'], 
+                         delete_below_ts=float(qC.curveConf['tsmin']),
+                         ul_chi2_ts=float(qC.curveConf['ulchi2']), 
+                         ul_flux_dflux = float(qC.curveConf['ulfluxdf']),
+                         ul_bayes_ts=float(qC.curveConf['ulbayes']), 
                          ul_cl=float(qC.curveConf['ulcl']),
                          interim_save_filename=qC.curveConf['output'])
         return
