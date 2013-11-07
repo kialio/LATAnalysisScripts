@@ -454,6 +454,10 @@ class quickCurve:
 
             meanvalue = srcnormpar.getValue()
             meanerror = srcnormpar.error()
+            if meanerror == 0:
+                self.logger.critical("The error on the normalization for your source is 0!  You need to do a global fit first (with quickLike) and provide the final XML file (<basename>_likeMinuit.xml) with errors included before you run compute.")
+                return
+
             lc['original']=dict()
             lc['original']['normpar_init_value'] = meanvalue
             lc['original']['normpar_name'] = srcnormpar.getName()
