@@ -1,34 +1,27 @@
 #!/usr/bin/env python
 
-"""Generate a light curve
-
-
-"""
+"""This module generates a light curve from Fermi LAT data.  It is
+based on a script written by S. Fegan."""
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
 __version__ = '0.1.12'
 
-import sys
 import os
 import glob
 import pickle
-import scipy
-import math
 
+import numpy as np
+import scipy as sp
 import quickAnalysis as qA
 import quickLike as qL
 import quickUtils as qU
-import numpy as np
 import SummedLikelihood as SL
 import UnbinnedAnalysis as UA
 import BinnedAnalysis as BA
 import IntegralUpperLimit as IUL
 
+from math import sqrt
 from multiprocessing import Pool
-
-
-
-
 from quickUtils import quickMath as MyMath
 
 def runAnalysisStepMP(bininfo):
@@ -334,7 +327,7 @@ class quickCurve:
             lc['config']['emin']            = emin
             lc['config']['emax']            = emax
             lc['config']['files']           = f
-            lc['config']['argv']            = sys.argv
+            #lc['config']['argv']            = sys.argv
 
             lc['e_min'] = emin;
             lc['e_max'] = emax;
@@ -634,7 +627,7 @@ class quickCurve:
             else:
                 profile_y = map(lambda x,y:x+y,lc['profile']['logL'],profile_y)
 
-        p = scipy.polyfit(profile_x, profile_y, 2);
+        p = sp.polyfit(profile_x, profile_y, 2);
         prof_max_val = -p[1]/(2*p[0])
         prof_max_logL = p[2]-p[1]*p[1]/(4*p[0])
         if (prof_max_val<min(profile_x)) or (prof_max_val>max(profile_x)):
@@ -642,7 +635,7 @@ class quickCurve:
                   %(prof_max_val,min(profile_x),max(profile_x))
             print profile_x, profile_y
 
-        profile_fity = scipy.polyval(p,profile_x)
+        profile_fity = sp.polyval(p,profile_x)
         profile_max_diff = max(map(lambda x,y:abs(x-y),profile_y,profile_fity))
         if profile_max_diff>0.5:
             print "Warning: large difference between profile and fit: %f"%profile_max_diff
@@ -697,19 +690,19 @@ class quickCurve:
 
             # Arbitrarily assume a quadratic is an OK fit
             y = lc['profile']['logL']
-            p = scipy.polyfit(profile_x, y, 2);
+            p = sp.polyfit(profile_x, y, 2);
             dchi2_normfree += 2*(lc['normfree']['logL']
-                                 - scipy.polyval(p, prof_max_val))
+                                 - sp.polyval(p, prof_max_val))
 
             if (lc['normfree'].has_key('ul') and
                 lc['normfree']['ul']['type'] == 'bayesian'):
                 # Arbitrarily assume a quadratic is an OK fit
                 y = lc['normfree']['ul']['results']['poi_chi2_equiv']
-                p = scipy.polyfit(profile_x, y, 2);
-                dchi2_normfree_ul += scipy.polyval(p, prof_max_val)
+                p = sp.polyfit(profile_x, y, 2);
+                dchi2_normfree_ul += sp.polyval(p, prof_max_val)
             else:
                 dchi2_normfree_ul += 2*(lc['normfree']['logL']
-                                        - scipy.polyval(p, prof_max_val))
+                                        - sp.polyval(p, prof_max_val))
             if not first:
                 npar_specfree += lc['allfree']['nfree']-lc['normfree']['nfree']
                 npar_normfree += lc['normfree']['nfree']
@@ -744,7 +737,7 @@ class quickCurve:
                 header=True, headstart='% ', verbosity=0):
         if lc == None or stats == None:
             [lc, stats] = self.generateLC(verbosity=verbosity)
-        file = sys.stdout
+        #file = sys.stdout
         if filename != None:
             file=open(filename,'w')
         if header:
@@ -752,17 +745,17 @@ class quickCurve:
             chi2 = stats['dchi2_normfree']
             ndof = stats['npar_normfree']
             prob = MyMath.chi2cdfc(chi2,ndof)
-            sigma = math.sqrt(MyMath.chi2invc(prob,1))
+            sigma = sqrt(MyMath.chi2invc(prob,1))
             print >>file, '%sVariable flux (no UL): chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
             chi2 = stats['dchi2_normfree_ul']
             ndof = stats['npar_normfree']
             prob = MyMath.chi2cdfc(chi2,ndof)
-            sigma = math.sqrt(MyMath.chi2invc(prob,1))
+            sigma = sqrt(MyMath.chi2invc(prob,1))
             print >>file, '%sVariable flux (w/UL):  chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
             chi2 = stats['dchi2_specfree']
             ndof = stats['npar_specfree']
             prob = MyMath.chi2cdfc(chi2,ndof)
-            sigma = math.sqrt(MyMath.chi2invc(prob,1))
+            sigma = sqrt(MyMath.chi2invc(prob,1))
             print >>file, '%sVariable spectrum:     chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
             print >>file, '%sProfile minimum: %f (search range: %f to %f)'%(headstart,stats['prof_max_val'],min(stats['prof_x']),max(stats['prof_x']))
             print >>file, '%sLogL correction: %f (WRT logL @ prescribed val of %g)'%(headstart,stats['prof_corr_logL'],stats['allfixed_val'])
