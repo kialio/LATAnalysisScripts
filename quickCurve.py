@@ -809,10 +809,6 @@ class quickCurve:
             for t in templist:
                 os.remove(t)
 
-def sfeganHelp(exitcode = 0):
-    print "See '%s -h' for more help"%os.path.basename(sys.argv[0])
-    sys.exit(exitcode)
-
 def sfeganUsage(defirf, defft2, defsumfn, deflcfn, tsmin,
                 ulfluxerror, tsulbayes, tsulchi2,
                 ulcl, opt, exitcode = 0):
