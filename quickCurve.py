@@ -10,18 +10,18 @@ __version__ = '0.1.12'
 
 import sys
 import os
-import argparse
-from argparse import RawTextHelpFormatter
+
 import quickAnalysis as qA
 import quickLike as qL
 import quickUtils as qU
 import numpy as np
 import pyLikelihood as pyLike
+from multiprocessing import Pool
+
 import SummedLikelihood
 import UnbinnedAnalysis
 import BinnedAnalysis
-from UpperLimits import UpperLimits
-from multiprocessing import Pool
+
 import IntegralUpperLimit
 from gt_apps import *
 import glob
@@ -1082,9 +1082,11 @@ def sfeganCLI():
 
 def cli():
 
+    from argparse import ArgumentParser, RawTextHelpFormatter
+
     helpString = "                 - quickCurve - \n\nCompute lightcurves from Fermi data. The program opeartes in\nthree modes:\n\n\tinitialize, run, summary and compute,\n\nspecified with the run, summary or compute options.  The run\nmode generates all of the needed files for the next two modes\nand puts them in seperate directories in the working directory\n(named <basename>_binX). In the compute mode one or many Fermi\nobservations are analyzed using the pyLikelihood tools to produce\na summary file. In the summary mode, these summary files\nare read and the lightcurve is produced.  All of the options can\nbe stored in a config file which can be read if you use the\n--config option."
     
-    parser = argparse.ArgumentParser(description=helpString,formatter_class=argparse.RawTextHelpFormatter)
+    parser = ArgumentParser(description=helpString,formatter_class=RawTextHelpFormatter)
 
     parser.add_argument("basename",type=str,
                         help="Perfom an analysis on <BASENAME>.\n<BASENAME> is the prefix used for this analysis.")
