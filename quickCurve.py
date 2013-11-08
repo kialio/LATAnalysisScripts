@@ -10,24 +10,24 @@ __version__ = '0.1.12'
 
 import sys
 import os
+import glob
+import pickle
+import scipy
+import math
 
 import quickAnalysis as qA
 import quickLike as qL
 import quickUtils as qU
 import numpy as np
-import pyLikelihood as pyLike
+import SummedLikelihood as SL
+import UnbinnedAnalysis as UA
+import BinnedAnalysis as BA
+import IntegralUpperLimit as IUL
+
 from multiprocessing import Pool
 
-import SummedLikelihood
-import UnbinnedAnalysis
-import BinnedAnalysis
 
-import IntegralUpperLimit
-from gt_apps import *
-import glob
-import pickle
-import scipy
-import math
+
 
 from quickUtils import quickMath as MyMath
 
@@ -293,19 +293,19 @@ class quickCurve:
     def loadUnbinnedObs(self, f, verbosity=0):
         if verbosity:
             print 'Loading unbinned observation:',f['ft1']
-        obs = UnbinnedAnalysis.UnbinnedObs(eventFile=f['ft1'], scFile=f['ft2'],
+        obs = UA.UnbinnedObs(eventFile=f['ft1'], scFile=f['ft2'],
                                            expMap=f['emap'],expCube=f['ecube'],
                                            irfs=f['irfs'])
-        like = UnbinnedAnalysis.UnbinnedAnalysis(obs, srcModel=self.model,
+        like = UA.UnbinnedAnalysis(obs, srcModel=self.model,
                                                  optimizer=self.optimizer)
         return [ obs, like ]
 
     def loadBinnedObs(self, f, verbosity=0):
         if verbosity:
             print 'Loading binned observation:',f['smaps']
-        obs = BinnedAnalysis.BinnedObs(srcMaps=f['smaps'], expCube=f['ecube'],
+        obs = BA.BinnedObs(srcMaps=f['smaps'], expCube=f['ecube'],
                                        binnedExpMap=f['bemap'], irfs=f['irfs'])
-        like = BinnedAnalysis.BinnedAnalysis(obs, srcModel=self.model,
+        like = BA.BinnedAnalysis(obs, srcModel=self.model,
                                              optimizer=self.optimizer)
         return [ obs, like ]
 
@@ -350,7 +350,7 @@ class quickCurve:
             else:
                 lc['t_min'] = None
                 lc['t_max'] = None
-                like = SummedLikelihood.SummedLikelihood(self.optimizer)
+                like = SL.SummedLikelihood(self.optimizer)
                 for ff in f:
                     [ obs, like1 ] = self.loadObs(ff,verbosity)
                     tmin = obs.roiCuts().minTime()
@@ -559,7 +559,7 @@ class quickCurve:
             if ul_bayes_ts != None and lc['normfree']['ts'] < ul_bayes_ts:
                 ul_type = 'bayesian'
                 [ul_flux, ul_results] = \
-                    IntegralUpperLimit.calc_int(like,self.likelihoodConf['sourcename'],cl=ul_cl,
+                    IUL.calc_int(like,self.likelihoodConf['sourcename'],cl=ul_cl,
                                                 skip_global_opt=True,
                                                 verbosity = max(verbosity-2,0),
                                                 emin=emin, emax=emax,
@@ -569,7 +569,7 @@ class quickCurve:
                    ( ul_chi2_ts != None and lc['normfree']['ts'] < ul_chi2_ts):
                 ul_type = 'chi2'
                 [ul_flux, ul_results] = \
-                    IntegralUpperLimit.calc_chi2(like,self.likelihoodConf['sourcename'],cl=ul_cl,
+                    IUL.calc_chi2(like,self.likelihoodConf['sourcename'],cl=ul_cl,
                                                  skip_global_opt=True,
                                                  verbosity = max(verbosity-2,0),
                                                  emin=emin, emax=emax)
