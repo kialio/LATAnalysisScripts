@@ -1017,30 +1017,55 @@ def sfeganCLI():
                          ul_bayes_ts=ulbayes, ul_cl=ulcl,
                          interim_save_filename=output)
 
+def overrideConfig(logger,dictionary,argVars):
+
+    for variable, value in dictionary.iteritems():
+        if variable in argVars:
+            if argVars[variable] != None:
+                dictionary[variable] = argVars[variable]
+
 def cli():
 
     from argparse import ArgumentParser, RawTextHelpFormatter
-
-    helpString = "                 - quickCurve - \n\nCompute lightcurves from Fermi data. The program opeartes in\nthree modes:\n\n\tinitialize, run, summary and compute,\n\nspecified with the run, summary or compute options.  The run\nmode generates all of the needed files for the next two modes\nand puts them in seperate directories in the working directory\n(named <basename>_binX). In the compute mode one or many Fermi\nobservations are analyzed using the pyLikelihood tools to produce\na summary file. In the summary mode, these summary files\nare read and the lightcurve is produced.  All of the options can\nbe stored in a config file which can be read if you use the\n--config option."
     
-    parser = ArgumentParser(description=helpString,formatter_class=RawTextHelpFormatter)
+    parser = ArgumentParser(description = "                 - quickCurve - \n\n"+
+                 "Compute lightcurves from Fermi data. The program opeartes in\n"+
+                 "three modes:\n\n\tinitialize, run, summary and compute,\n\n"+
+                 "specified with the run, summary or compute options.  The run\n"+
+                 "mode generates all of the needed files for the next two modes\n"+
+                 "and puts them in seperate directories in the working directory\n"+
+                 "(named <basename>_binX). In the compute mode one or many Fermi\n"+
+                 "observations are analyzed using the pyLikelihood tools to produce\n"+
+                 "a summary file. In the summary mode, these summary files are\n"+
+                 "read and the lightcurve is produced.  All of the options can\n"+
+                 "be stored in a config file which can be read if you use the\n"+
+                 "--config option.",
+                            formatter_class=RawTextHelpFormatter)
 
     parser.add_argument("basename",type=str,
-                        help="Perfom an analysis on <BASENAME>.\n<BASENAME> is the prefix used for this analysis.")
-    parser.add_argument("--verbose", type=int, default=1,
+                        help="Perfom an analysis on <BASENAME>.\n"+
+                        "<BASENAME> is the prefix used for this analysis.")
+    parser.add_argument("--verbosity", type=int,
                         help="Verbosity (1,2 or 3)")
 
     subparsers = parser.add_subparsers(dest="mode")
 
     init_parser = subparsers.add_parser('initialize', 
-                                        help= "Generate a default config file called <BASENAME>.cfg.\nCAREFUL, it will overwrite the current file.")
-    run_parser = subparsers.add_parser('run', help="Generate all of the needed files for the lightcurve\nanalysis.  You must already have a config file if\nusing the command line interface.")
-    compute_parser = subparsers.add_parser('compute', help="The files produced in the run mode re analyzed using\nthe pyLikelihood tools to produce a summary file.")
-    summary_parser = subparsers.add_parser('summary', help="Generate a light curve from the likelihood computations\nperformed by the 'compute' method.")
+                                        help= "Generate a default config file called <BASENAME>.cfg.\n"+
+                                        "CAREFUL, it will overwrite the current file.")
+    run_parser = subparsers.add_parser('run', help="Generate all of the needed files for the lightcurve\n"+
+                                       "analysis.  You must already have a config file if\n"+
+                                       "using the command line interface.")
+    compute_parser = subparsers.add_parser('compute', help="The files produced in the run mode reanalyzed using\n"+
+                                           "the pyLikelihood tools to produce a summary file.")
+    compute_parser.add_argument("--tsmin", type=float, 
+                                help = "TS value below which background sources \n"+
+                                "are deleted from the model.")
+
+    summary_parser = subparsers.add_parser('summary', help="Generate a light curve from the likelihood computations\n"+
+                                           "performed by the 'compute' method.")
 
     args = parser.parse_args()
-
-    print args.mode
 
     if args.mode == 'initialize':
         print "Creating example config file named example.cfg..."
@@ -1048,13 +1073,22 @@ def cli():
         qC.writeConfig()
         return
     elif args.mode == 'run':
-        print "Generating files..."
         qC = quickCurve(args.basename, True)
+        qC.logger.info("Generating files...")
+        argVars = vars(args)
+        overrideConfig(qC.logger,qC.commonConf,argVars)
+        overrideConfig(qC.logger,qC.likelihoodConf,argVars)
+        overrideConfig(qC.logger,qC.curveConf,argVars)
         qC.runCurve(True,False)
         return
     elif args.mode == 'compute':
-        print "Computing likelihoood..."
         qC = quickCurve(args.basename, True)
+        qC.logger.info("Computing likelihoood...")
+        argVars = vars(args)
+        overrideConfig(qC.logger,qC.commonConf,argVars)
+        overrideConfig(qC.logger,qC.likelihoodConf,argVars)
+        overrideConfig(qC.logger,qC.curveConf,argVars)
+        
         dirs = glob.glob('quickCurve_bin*')
         if qC.commonConf['binned']:
             analysis = 'binned'
@@ -1077,6 +1111,9 @@ def cli():
         return
     elif args.mode == 'summary':
         qC = quickCurve(args.basename, True)
+        overrideConfig(qC.logger,qC.commonConf,argVars)
+        overrideConfig(qC.logger,qC.likelihoodConf,argVars)
+        overrideConfig(qC.logger,qC.curveConf,argVars)
         qC.loadProcessedObs(qC.curveConf['output'])
         qC.writeLC(qC.curveConf['summary'],verbosity=qC.commonConf['verbosity'])
                             
