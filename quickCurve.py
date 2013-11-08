@@ -102,7 +102,7 @@ class quickCurve:
                                 'tsmin'   : 1,
                                 'model'   : 'my_model.xml',
                                 'summary' : 'lc_summary.dat',
-                                'output'  : 'lc.dat',
+                                'output'  : 'lc.pickle',
                                 'ulfluxdf' : 2.0,
                                 'ulbayes'  : 4.0,
                                 'ulchi2'  : 4,
@@ -1024,7 +1024,7 @@ def cli():
                                         help= "Generate a default config file called <BASENAME>.cfg.\nCAREFUL, it will overwrite the current file.")
     run_parser = subparsers.add_parser('run', help="Generate all of the needed files for the lightcurve\nanalysis.  You must already have a config file if\nusing the command line interface.")
     compute_parser = subparsers.add_parser('compute', help="The files produced in the run mode re analyzed using\nthe pyLikelihood tools to produce a summary file.")
-    summary_parser = subparsers.add_parser('summary')
+    summary_parser = subparsers.add_parser('summary', help="Generate a light curve from the likelihood computations\nperformed by the 'compute' method.")
 
     args = parser.parse_args()
 
@@ -1063,7 +1063,11 @@ def cli():
                          ul_cl=float(qC.curveConf['ulcl']),
                          interim_save_filename=qC.curveConf['output'])
         return
-
+    elif args.mode == 'summary':
+        qC = quickCurve(args.basename, True)
+        qC.loadProcessedObs(qC.curveConf['output'])
+        qC.writeLC(qC.curveConf['summary'],verbosity=qC.commonConf['verbosity'])
+                            
 
 if __name__ == '__main__': 
     cli()
