@@ -163,7 +163,7 @@ class quickCurve:
         self.likelihoodConf = likelihoodConfig
         self.analysisConf = analysisConfig
 
-        self.model = self.likelihoodConf['model']
+        self.model = self.curveConf['model']
         self.ft2 = self.commonConf['base']+"_SC.fits"
         self.irfs = self.commonConf['irfs']
         self.optimizer = self.curveConf['opt']
