@@ -1111,6 +1111,7 @@ def cli():
         return
     elif args.mode == 'summary':
         qC = quickCurve(args.basename, True)
+        argVars = vars(args)
         overrideConfig(qC.logger,qC.commonConf,argVars)
         overrideConfig(qC.logger,qC.likelihoodConf,argVars)
         overrideConfig(qC.logger,qC.curveConf,argVars)
