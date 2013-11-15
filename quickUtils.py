@@ -244,7 +244,7 @@ def runCommand(AppCommand,quickLogger,run=True,printCmd=False):
 def runModel(quickLogger,
 	     base,
              modelFile="",
-	     irfs="P7SOURCE_V6",
+	     irfs="P7REP_SOURCE_V15",
              run=True):
 	
     """Generates a model map.  You need to have already run

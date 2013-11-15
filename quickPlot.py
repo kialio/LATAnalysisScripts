@@ -102,7 +102,7 @@ class quickPlot:
                  commonConfig = {"base"       : 'MySource',
                                  "binned"     : False,
                                  "eventclass" : 2, 
-                                 "irfs"       : "P7SOURCE_V6",
+                                 "irfs"       : "P7REP_SOURCE_V15",
                                  "verbosity"  : 0,
                                  "multicore"  : 0}):
  
