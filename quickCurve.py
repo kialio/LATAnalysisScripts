@@ -1042,9 +1042,6 @@ def cli():
                  "--config option.",
                             formatter_class=RawTextHelpFormatter)
 
-    parser.add_argument("basename",type=str,
-                        help="Perfom an analysis on <BASENAME>.\n"+
-                        "<BASENAME> is the prefix used for this analysis.")
     parser.add_argument("--verbosity", type=int,
                         help="Verbosity (1,2 or 3)")
 
@@ -1053,23 +1050,68 @@ def cli():
     init_parser = subparsers.add_parser('initialize', 
                                         help= "Generate a default config file called <BASENAME>.cfg.\n"+
                                         "CAREFUL, it will overwrite the current file.")
+    init_parser.add_argument("--basename", type=str,
+                             help = "Name the example config file <BASENAME>.cfg instead of\n"+
+                                    "example.cfg.")
+
     run_parser = subparsers.add_parser('run', help="Generate all of the needed files for the lightcurve\n"+
                                        "analysis.  You must already have a config file if\n"+
                                        "using the command line interface.")
+    run_parser.add_argument("basename", type=str,
+                             help = "basename of the analysis.  The config file should be named\n"+
+                                    "<BASENAME>.cfg and all output files will have this prefix.")
+
+
     compute_parser = subparsers.add_parser('compute', help="The files produced in the run mode reanalyzed using\n"+
                                            "the pyLikelihood tools to produce a summary file.")
+    compute_parser.add_argument("basename", type=str,
+                             help = "basename of the analysis.  The config file should be named\n"+
+                                    "<BASENAME>.cfg and all output files will have this prefix.\n"+
+                                    "All of the parameters will be read from this config file \n"+
+                                    "but you can ovveride any of them from the command line.")
     compute_parser.add_argument("--tsmin", type=float, 
                                 help = "TS value below which background sources \n"+
-                                "are deleted from the model.")
+                                "are deleted from the model (default is 1).")
+    compute_parser.add_argument("--ulbayes", type=float,
+                                help = "TS value below which the Baysian upper \n"+
+                                "limit is computed (default is 4).")
+    compute_parser.add_argument("--ulchi2", type=float,
+                                help = "TS value below which the Profile Likelihood\n"+
+                                "upper limit is computed (default is 4).")
+    compute_parser.add_argument("--ulfluxdf", type=float,
+                                help = "Set the value of the flux/error below which\n"+
+                                "a Profile likelihood upper limit is calculated (unless\n"+
+                                "it is preempted by the Bayes method based on TS value)\n"+
+                                "(default is 2)")
+    compute_parser.add_argument("--ulcl", type=float,
+                                help = "Set the confidence limit of upper limits (default\n"+
+                                "is 0.95)")
+    compute_parser.add_argument("--model", type=str,
+                                help = "The filename of the XML model from the full fit.\n"+
+                                "Note that this must be the output of a fit.  It needs to \n"+
+                                "have error information on at least your source of interest\n"+
+                                "(default = <BASENAME>_likeMinuit.xml)")
+    compute_parser.add_argument("--rebin", type=int,
+                                help = "Combine <REBIN> time bins into one (default is 1)")
+    compute_parser.add_argument("--sliding", type=bool,
+                                help = "Combine the time bins using a sliding window\n"+
+                                "so that they overlap (default is False)")
+
 
     summary_parser = subparsers.add_parser('summary', help="Generate a light curve from the likelihood computations\n"+
                                            "performed by the 'compute' method.")
+    summary_parser.add_argument("basename", type=str,
+                             help = "basename of the analysis.  The config file should be named\n"+
+                                    "<BASENAME>.cfg and all output files will have this prefix.")
 
     args = parser.parse_args()
 
     if args.mode == 'initialize':
         print "Creating example config file named example.cfg..."
-        qC = quickCurve(args.basename)
+        if args.basename:
+            qC = quickCurve(args.basename)
+        else:
+            qC = quickCurve('example')
         qC.writeConfig()
         return
     elif args.mode == 'run':
