@@ -88,7 +88,7 @@ Changelog for LATAnalysisScripts
 			to provide the spacecraft file as an
 			option (needed for the newer science tools).
 
-	version 1.1.11	Dec 5, 2012
+	version 0.1.11	Dec 5, 2012
 
 			The output of the printSource command only
 			displays 2 decimal points.  It also displays the
@@ -96,3 +96,24 @@ Changelog for LATAnalysisScripts
 			'pokeSource' function in quickLike that changes a
 			parameter for a source.  This is useful to promote
 			convergence or to verify a fit.
+
+
+	version 0.2.0 Nov 15, 2013
+
+	                 Lots of changes in this version.  This is the
+	                 initial release of the quickCurve program.  This
+	                 program will create a lightcurve from Fermi LAT
+	                 data (type 'quickCurve -h' for more details).
+	                 This version also integrates with the gtapps_mp
+	                 programs (found at the FSSC user contributed
+	                 tools or at https://github.com/kialio/gtapps_mp).
+	                 These tools will execute certain gt programs in a
+	                 multithreaded way greatly reducting execution
+	                 time if you have a multicore machine.  There is
+	                 now a 'multicore' option in the common config
+	                 panel.  If this is greater than 1 then the code
+	                 will try and use the gtapps_mp programs if they
+	                 have been installed.  This version has also been
+	                 updated for the P7 Reprocessed data.  It is
+	                 recommended that you create a new config file if
+	                 you upgrade to this version.
