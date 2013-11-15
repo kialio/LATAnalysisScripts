@@ -200,9 +200,11 @@ def NumberOfPixels(radius, bin_size):
 
 def generateXMLmodel(quickLogger,
                      base,
-                     galactic_file="gal_2yearp7v6_v0.fits",
-                     isotropic_file="iso_p7v6source.txt",
-                     catalog_file="gll_psc_v07.fit"):
+                     galactic_file="gll_iem_v05.fit",
+                     galactic_name="gll_iem_v05",
+                     isotropic_file="iso_source_v05.txt",
+                     isotropic_name="iso_source_v05",
+                     catalog_file="gll_psc_v08.fit"):
     
     """Checks to see if <basename>_model.xml exists and creates one
     using the make2FGLXML module if it doesn't.  make2FGLXml.py must
@@ -222,7 +224,7 @@ def generateXMLmodel(quickLogger,
             checkForFiles(quickLogger,[base+"_filtered_gti.fits",galactic_file,isotropic_file,catalog_file])
             import make2FGLxml
             mymodel = make2FGLxml.srcList(catalog_file,base+"_filtered_gti.fits",base+"_model.xml")
-            mymodel.makeModel(galactic_file, 'gal_2yearp7v6_v0', isotropic_file, 'iso_p7v6source')
+            mymodel.makeModel(galactic_file, galactic_name, isotropic_file, isotropic_name)
             quickLogger.info("NOTE: if there are extended sources in your ROI, make sure the "\
                              +"correspoinding diffuse template is in the working directory.")
         except(FileNotFound):
