@@ -1059,7 +1059,15 @@ def cli():
                                        "using the command line interface.")
     run_parser.add_argument("basename", type=str,
                              help = "basename of the analysis.  The config file should be named\n"+
-                                    "<BASENAME>.cfg and all output files will have this prefix.")
+                                    "<BASENAME>.cfg and all output files will have this prefix.\n"+
+                                    "All of the parameters will be read from this config file \n"+
+                                    "but you can ovveride any of them from the command line.")
+    run_parser.add_argument("--tstart", type=float,
+                            help = "Lightcurve start time (in MET)")
+    run_parser.add_argument("--tstop", type=float,
+                            help = "Lightcurve stop time (in MET)")
+    run_parser.add_argument("--tstep", type=float,
+                            help = "Lightcurve step size (in seconds, default is 86400)")
 
 
     compute_parser = subparsers.add_parser('compute', help="The files produced in the run mode reanalyzed using\n"+
@@ -1096,13 +1104,19 @@ def cli():
     compute_parser.add_argument("--sliding", type=bool,
                                 help = "Combine the time bins using a sliding window\n"+
                                 "so that they overlap (default is False)")
-
+    compute_parser.add_argument("--output", type=str,
+                        help="Output file name (default is 'lc.pickle')")
 
     summary_parser = subparsers.add_parser('summary', help="Generate a light curve from the likelihood computations\n"+
                                            "performed by the 'compute' method.")
     summary_parser.add_argument("basename", type=str,
                              help = "basename of the analysis.  The config file should be named\n"+
-                                    "<BASENAME>.cfg and all output files will have this prefix.")
+                                    "<BASENAME>.cfg and all output files will have this prefix.\n"+
+                                    "All of the parameters will be read from this config file \n"+
+                                    "but you can ovveride any of them from the command line.")
+    summary_parser.add_argument("--summary", type=str,
+                                help="Output file name (default is lc_summary.dat)")
+
 
     args = parser.parse_args()
 
