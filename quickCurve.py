@@ -45,7 +45,7 @@ This module logs all output to a file called <BASENAME>_quickCurve.log.
 This code is based on a script writting by S. Fegan."""
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.1.12'
+__version__ = '0.2.0'
 
 import os
 import glob
