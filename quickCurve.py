@@ -1,7 +1,48 @@
 #!/usr/bin/env python
 
-"""This module generates a light curve from Fermi LAT data.  It is
-based on a script written by S. Fegan."""
+"""Generate a light curve from Fermi LAT data.
+
+You should have already generated all of the needed files with
+quickAnalysis and quickLike including an XML model which describes
+your region.  This XML file must have errors properly calculated at
+least for your source of interest.
+
+At any time execute
+
+> quickCurve -h 
+
+for help.
+
+First, generate a default config file
+
+> quickCurve initialize
+
+and then edit the config file to match your specific analysis.  Copy
+the quickCurve section from the example.cfg into your <BASENAME>.cfg
+file that you used for the quickAnalysis and quickLike steps.  For
+more options type
+
+> quickCurve initialize -h
+
+You will then need to perform 3 steps to generate a light curve.  Do
+the following
+
+> quickCurve run <BASENAME>
+> quickCurve compute <BASENAME>
+> quickCurve summary <BASENAME>
+
+The first step will generate all of the needed files, the second does
+the likelihood calculation for each bin and the final step merges the
+results into a final summary file (usually called lc_summary.dat).
+For more options and details on all of them execute
+
+> quickCurve run -h
+> quickCurve compute -h
+> quickCurve summary -h
+
+This module logs all output to a file called <BASENAME>_quickCurve.log.
+
+This code is based on a script writting by S. Fegan."""
 
 __author__ = 'Jeremy S. Perkins (FSSC)'
 __version__ = '0.1.12'
