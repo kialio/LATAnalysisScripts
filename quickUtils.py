@@ -307,3 +307,189 @@ def runCMAP(quickLogger,
     
         runCommand(evtbin,quickLogger,run)
 
+class quickMath:
+
+    '''This class is used in the quickCurve script and are various
+    statistical functions developed by Stephen Fegan
+    <sfegan@llr.in2p3.fr> based on Numerical recipes in C.'''
+
+    _def_itmax  = 100
+    _def_reltol = 1e-15
+
+    @staticmethod
+    def _gamma_ser(x, a, gammalna = None):
+
+        '''See Numerical recipes in C - eq 6.2.5.'''
+
+        if x<=0.0:
+            if x==0.0: return 0.0
+            else: raise ValueError("Argument x is negative: x=%f"%x)
+        if a<=0.0:
+            raise ValueError("Argument a is zero or negative: a=%f"%a)
+        if gammalna == None:
+            gammalna = math.lgamma(a)
+        actr = a
+        dsum = 1.0/a
+        sum = dsum
+        for i in range(1,quickMath._def_itmax):
+            actr += 1.0
+            dsum *= x/actr
+            # print i,dsum,sum,sum+dsum
+            sum  += dsum
+            if math.fabs(dsum) < quickMath._def_reltol*math.fabs(sum):
+                return sum*math.exp(a*math.log(x) - x - math.lgamma(a))
+        raise RuntimeError("Maximum number of iterations exceeded")
+
+    @staticmethod
+    def _gamma_cfrac(x, a, gammalna = None):
+        # See Numerical recipes in C - eq 6.2.7 and section 5.2
+        if x<=0.0:
+            if x==0.0: return 0.0
+            else: raise ValueError("Argument x is negative: x=%f"%x)
+        if a<=0.0:
+            raise ValueError("Argument a is zero or negative: a=%f"%a)
+        if gammalna == None:
+            gammalna = math.lgamma(a)
+        tiny = 1e-30
+        A = 0.0
+        B = x+1.0-a
+        F = B
+        if F == 0.0: F = tiny
+        C = F
+        D = 0.0
+        for i in range(1,quickMath._def_itmax):
+            A += a + 1.0 - 2.0*i
+            B += 2.0
+            D = B + A*D
+            if D == 0.0: D = tiny
+            C = B + A/C
+            if C == 0.0: C = tiny
+            D = 1.0/D
+            delta = C*D
+            F *= delta
+            # print i,F
+            if math.fabs(delta-1.0) < quickMath._def_reltol:
+                return math.exp(a*math.log(x) - x - gammalna)/F
+        raise RuntimeError("Maximum number of iterations exceeded")
+
+    @staticmethod
+    def gammainc(x, a):
+        if x<=0.0:
+            if x==0.0: return 0.0
+            else: raise ValueError("Argument x is negative: x=%f"%x)
+        if a<=0.0:
+            raise ValueError("Argument a is zero or negative: a=%f"%a)
+        if x<a+1.0:
+            return quickMath._gamma_ser(x, a)
+        else:
+            return 1.0-quickMath._gamma_cfrac(x, a)
+
+    @staticmethod
+    def gammaincc(x, a):
+        if x<=0.0:
+            if x==0.0: return 0.0
+            else: raise ValueError("Argument x is negative: x=%f"%x)
+        if a<=0.0:
+            raise ValueError("Argument a is zero or negative: a=%f"%a)
+        if x<a+1.0:
+            return 1.0-quickMath._gamma_ser(x, a)
+        else:
+            return quickMath._gamma_cfrac(x, a)
+
+    @staticmethod
+    def gammainv(p, a):
+        if p<=0.0:
+            if p==0.0: return 0.0
+            else: raise ValueError("Argument p is negative: p=%f"%p)
+        elif p>=1:
+            if p==1: return float('infinity')
+            else: raise ValueError("Argument p is greater than unity: p=%f"%p)
+        if a<=0:
+            raise ValueError("Argument a is zero or negative: a=%f"%a)
+
+        gammalna = math.lgamma(a)
+        xtest = a+1.0
+        ftest = quickMath._gamma_ser(xtest, a, gammalna)
+        ffind = p
+        if(ffind<ftest):
+            f = lambda x: quickMath._gamma_ser(x, a, gammalna)
+            dfdx = lambda x,f: math.exp((a-1.0)*math.log(x) - x - gammalna)
+            ffind = p
+            if ffind<0.75:
+                xtest = math.exp((math.log(ffind) + gammalna + math.log(a))/a)
+                if ffind<0.1*quickMath._def_reltol:
+                    return xtest
+        else:
+            f = lambda x: math.log(quickMath._gamma_cfrac(x, a, gammalna))
+            dfdx = lambda x,f: -math.exp((a-1.0)*math.log(x) - x - gammalna - f)
+            ffind = math.log(1-p)
+        ftest = f(xtest)
+        dfdxtest = dfdx(xtest, ftest)
+        for i in range(1,quickMath._def_itmax):
+            xnext = xtest - (ftest-ffind)/dfdxtest
+            if xnext <= 0.0:
+                xnext = 0.5*(xtest+0.0)
+                #print i, xtest, ftest, dfdxtest, xnext, ffind, math.fabs(xnext-xtest), 10*quickMath._def_reltol*(xnext+xtest)
+            if math.fabs(xnext-xtest) < 10*quickMath._def_reltol*(xnext+xtest):
+                return xnext
+            xtest = xnext
+            ftest = f(xtest)
+            dfdxtest = dfdx(xtest, ftest)
+        raise RuntimeError("Maximum number of iterations exceeded")
+
+    @staticmethod
+    def gammainvc(p, a):
+        if p<=0.0:
+            if p==0.0: return 0.0
+            else: raise ValueError("Argument p is negative: p=%f"%p)
+        elif p>=1:
+            if p==1: return float('infinity')
+            else: raise ValueError("Argument p is greater than unity: p=%f"%p)
+        if a<=0:
+            raise ValueError("Argument a is zero or negative: a=%f"%a)
+
+        gammalna = math.lgamma(a)
+        xtest = a+1.0
+        ftest = quickMath._gamma_cfrac(xtest, a, gammalna)
+        ffind = p
+        if(ffind<ftest):
+            f = lambda x: math.log(quickMath._gamma_cfrac(x, a, gammalna))
+            dfdx = lambda x,f: -math.exp((a-1.0)*math.log(x) - x - gammalna - f)
+            ffind = math.log(p)
+        else:
+            f = lambda x: quickMath._gamma_ser(x, a, gammalna)
+            dfdx = lambda x,f: math.exp((a-1.0)*math.log(x) - x - gammalna)
+            ffind = 1-p
+            if ffind<0.75:
+                xtest = math.exp((math.log(ffind) + gammalna + math.log(a))/a)
+                if ffind<0.1*quickMath._def_reltol:
+                    return xtest
+        ftest = f(xtest)
+        dfdxtest = dfdx(xtest, ftest)
+        for i in range(1,quickMath._def_itmax):
+            xnext = xtest - (ftest-ffind)/dfdxtest
+            if xnext <= 0.0:
+                xnext = 0.5*(xtest+0.0)
+    #        print i, xtest, ftest, dfdxtest, xnext, ffind, math.fabs(xnext-xtest), 10*quickMath._def_reltol*(xnext+xtest)
+            if math.fabs(xnext-xtest) < 0.5*quickMath._def_reltol*(xnext+xtest):
+                return xnext
+            xtest = xnext
+            ftest = f(xtest)
+            dfdxtest = dfdx(xtest, ftest)
+        raise RuntimeError("Maximum number of iterations exceeded")
+
+    @staticmethod
+    def chi2cdf(x, a):
+        return quickMath.gammainc(0.5*x, 0.5*a)
+
+    @staticmethod
+    def chi2cdfc(x, a):
+        return quickMath.gammaincc(0.5*x, 0.5*a)
+
+    @staticmethod
+    def chi2inv(p, a):
+        return 2.0*quickMath.gammainv(p, 0.5*a)
+
+    @staticmethod
+    def chi2invc(p, a):
+        return 2.0*quickMath.gammainvc(p, 0.5*a)
