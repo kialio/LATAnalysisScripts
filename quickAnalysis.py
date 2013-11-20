@@ -69,7 +69,10 @@ class quickAnalysis:
                                    "emax" : 300000,
                                    "zmax" : 100,
                                    "binsize" : 0.1,
-                                   "convtype" : -1},
+                                   "convtype" : -1,
+                                   "filter" : "DATA_QUAL==1 && LAT_CONFIG==1",
+                                   "roicut" : "yes",
+                                   "zmax" : 180},
                  commonConfig = {"base" : 'MySource',
                                  "binned" : False,
                                  "eventclass" : 2,
@@ -142,13 +145,13 @@ class quickAnalysis:
 
         qU.runCommand(filter,self.logger,run,printCmd)
         
-    def runGTI(self, run = True, filterString="DATA_QUAL==1 && LAT_CONFIG==1 && ABS(ROCK_ANGLE)<52",roi = 'yes',**kwargs):
+    def runGTI(self, run = True, **kwargs):
 
         """Executes gtmktime with the given filter"""
 
         maketime['scfile'] = self.commonConf['base']+'_SC.fits'
-        maketime['filter'] = filterString
-        maketime['roicut'] = roi
+        maketime['filter'] = self.analysisConf['filter']
+        maketime['roicut'] = self.analysisConf['roi']
         maketime['evfile'] = self.commonConf['base']+'_filtered.fits'
         maketime['outfile'] = self.commonConf['base']+'_filtered_gti.fits'
     

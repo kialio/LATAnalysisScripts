@@ -89,7 +89,10 @@ def runAnalysisStepMP(bininfo):
                       "emax" : analysisConf["emax"],
                       "zmax" : analysisConf["zmax"],
                       "binsize" : analysisConf["binsize"],
-                      "convtype" : analysisConf["convtype"]}
+                      "convtype" : analysisConf["convtype"],
+                      "filter" : analysisConf["filter"],
+                      "roicut" : analysisConf["roicut"],
+                      "zmax" : analysisConf["zmax"]}
     commonConfig = {"base" : commonConf["base"],
                     "eventclass" : commonConf["eventclass"],
                     "binned" : False,
@@ -160,7 +163,10 @@ class quickCurve:
                                    "emax" : 300000,
                                    "zmax" : 100,
                                    "binsize" : 0.1,
-                                   "convtype" : -1},
+                                   "convtype" : -1,
+                                   "filter" : "DATA_QUAL==1 && LAT_CONFIG==1",
+                                   "roicut" : "yes",
+                                   "zmax" : 180},
                  likelihoodConfig = {"model" : "MySource_model.xml",
                                      "sourcename" : "Source Name",
                                      "drmtol" : 0.1,
