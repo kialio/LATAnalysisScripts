@@ -151,7 +151,7 @@ class quickAnalysis:
 
         maketime['scfile'] = self.commonConf['base']+'_SC.fits'
         maketime['filter'] = self.analysisConf['filter']
-        maketime['roicut'] = self.analysisConf['roi']
+        maketime['roicut'] = self.analysisConf['roicut']
         maketime['evfile'] = self.commonConf['base']+'_filtered.fits'
         maketime['outfile'] = self.commonConf['base']+'_filtered_gti.fits'
     
