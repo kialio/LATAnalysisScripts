@@ -68,11 +68,11 @@ class quickAnalysis:
                                    "emin" : 100,
                                    "emax" : 300000,
                                    "zmax" : 100,
+                                   "ltzmax" : 180,
                                    "binsize" : 0.1,
                                    "convtype" : -1,
                                    "filter" : "DATA_QUAL==1 && LAT_CONFIG==1",
-                                   "roicut" : "yes",
-                                   "zmax" : 180},
+                                   "roicut" : "yes"},
                  commonConfig = {"base" : 'MySource',
                                  "binned" : False,
                                  "eventclass" : 2,
@@ -161,7 +161,7 @@ class quickAnalysis:
 
         qU.runCommand(maketime,self.logger,run)
 
-    def runLTCube(self, run=True, zmax=180, **kwargs):
+    def runLTCube(self, run=True, **kwargs):
 
         """Generates a livetime cube"""
 
@@ -170,7 +170,7 @@ class quickAnalysis:
         expCube['outfile'] = self.commonConf['base']+'_ltcube.fits'
         expCube['dcostheta'] = 0.025
         expCube['binsz'] = 1
-        expCube['zmax'] = zmax
+        expCube['zmax'] = self.analysisConf['ltzmax']
 
         #Override the settings above with the kwargs if they exist.
         for name,value in kwargs.items():
