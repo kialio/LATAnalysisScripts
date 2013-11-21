@@ -422,7 +422,7 @@ class quickLike:
             self.logger.warn("DRM object doesn't exist.  Energy range not modified.")
         else:
             self.DRM.setEnergyRange(Emin,Emax)
-            self.logger.info("Set energy range for DRM to "+str(self.DRM.energies[0])+","+str(self.DRM.energies[-1]))
+            self.logger.info("Set energy range for DRM to "+str(self.DRM.emin)+","+str(self.DRM.emax))
 
         try:
             self.MIN
@@ -430,7 +430,7 @@ class quickLike:
             self.logger.warn("MIN object doesn't exist.  Energy range not modified.")
         else:
             self.MIN.setEnergyRange(Emin,Emax)
-            self.logger.info("Set energy range for MIN to "+str(self.MIN.energies[0])+","+str(self.MIN.energies[-1]))
+            self.logger.info("Set energy range for MIN to "+str(self.MIN.emin)+","+str(self.MIN.emax))
                 
     def calcUpper(self,source,Emin=100,Emax=300000):
 
