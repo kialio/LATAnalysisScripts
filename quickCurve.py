@@ -75,7 +75,7 @@ def runAnalysisStepMP(bininfo):
     tmax = tmin + float(curveConf['tstep'])
 
     print bin,tmin,tmax
-    dir = "quickCurve_bin" + str(bin) 
+    dir = "quickCurve_"+ str(curveConf['tstep']) + "_bin" + str(bin) 
 
     if not os.path.isdir(dir):
         os.mkdir(dir)
