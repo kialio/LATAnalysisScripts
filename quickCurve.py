@@ -997,7 +997,7 @@ def cli():
         overrideConfig(qC.logger,qC.likelihoodConf,argVars)
         overrideConfig(qC.logger,qC.curveConf,argVars)
         
-        dirs = glob.glob('quickCurve_bin*')
+        dirs = glob.glob('quickCurve_'+str(curveConf['tstep'])+'_bin*')
         if qC.commonConf['binned']:
             analysis = 'binned'
         else:
