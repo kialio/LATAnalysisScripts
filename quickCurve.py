@@ -92,7 +92,7 @@ def runAnalysisStepMP(bininfo):
                       "convtype" : analysisConf["convtype"],
                       "filter" : analysisConf["filter"],
                       "roicut" : analysisConf["roicut"],
-                      "zmax" : analysisConf["zmax"]}
+                      "ltzmax" : analysisConf["ltzmax"]}
     commonConfig = {"base" : commonConf["base"],
                     "eventclass" : commonConf["eventclass"],
                     "binned" : False,
