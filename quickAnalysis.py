@@ -171,6 +171,8 @@ class quickAnalysis:
         expCube['dcostheta'] = 0.025
         expCube['binsz'] = 1
         expCube['zmax'] = self.analysisConf['ltzmax']
+        expCube['tmin'] = self.analysisConf['tmin']
+        expCube['tmax'] = self.analysisConf['tmax']
 
         #Override the settings above with the kwargs if they exist.
         for name,value in kwargs.items():
@@ -180,7 +182,8 @@ class quickAnalysis:
         
         if(np > 0):
             import gtltcube_mp as ltmp
-            ltmp.gtltcube_mp(np, expCube['scfile'], expCube['evfile'], expCube['outfile'],False,expCube['zmax'])
+            ltmp.gtltcube_mp(np, expCube['scfile'], expCube['evfile'], expCube['outfile'],
+                             False,expCube['zmax'], expCube['tmin'], expCube['tmax'])
         else:
             qU.runCommand(expCube,self.logger,run)
 
