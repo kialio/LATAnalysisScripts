@@ -284,22 +284,26 @@ def runCMAP(quickLogger,
             binsize,
             ra,
             dec,
+            nxpix,
+            nypix,
             run=True):
-        
+            	
         """Generates a counts map.  The dimensions of which are the
         largest square subtended by the ROI.  Note that if the ROI is
         exceptionally small or the bin size exceptionally large, the
         square might not be the largest posible since the npix
         calculation floors the calculated value."""
 
-        npix = NumberOfPixels(float(rad),float(binsize))
+        if nxpix < 0 or nypix < 0:
+        	nxpix = NumberOfPixels(float(rad),float(binsize))
+        	nypix = NumberOfPixels(float(rad),float(binsize))
 
         evtbin['evfile'] = base+'_filtered_gti.fits'
         evtbin['outfile'] = base+'_CMAP.fits'
         evtbin['scfile'] = base+"_SC.fits"
         evtbin['algorithm'] = 'CMAP'
-        evtbin['nxpix'] = npix
-        evtbin['nypix'] = npix
+        evtbin['nxpix'] = nxpix
+        evtbin['nypix'] = nypix
         evtbin['binsz'] = binsize
         evtbin['coordsys'] = 'CEL'
         evtbin['xref'] = ra
