@@ -180,7 +180,8 @@ class quickAnalysis:
         
         if(np > 0):
             import gtltcube_mp as ltmp
-            ltmp.gtltcube_mp(np, expCube['scfile'], expCube['evfile'], expCube['outfile'],False,expCube['zmax'])
+            ltmp.gtltcube_mp(np, expCube['scfile'], expCube['evfile'], expCube['outfile'],
+                             False,expCube['zmax'], 0, 0)
         else:
             qU.runCommand(expCube,self.logger,run)
 
