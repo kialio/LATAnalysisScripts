@@ -223,14 +223,16 @@ class quickAnalysis:
         square might not be the largest posible since the npix
         calculation floors the calculated value.  The number of energy
         bins is logarithmic and is defined by the nbins variable."""
-
-        npix = qU.NumberOfPixels(float(self.analysisConf['rad']), float(self.analysisConf['binsize']))
-
+        
+        if nxpix < 0 or nypix < 0:
+            nxpix = NumberOfPixels(float(rad),float(binsize))
+            nypix = NumberOfPixels(float(rad),float(binsize))
+        
         evtbin['evfile'] = self.commonConf['base']+'_filtered_gti.fits'
         evtbin['outfile'] = self.commonConf['base']+'_CCUBE.fits'
         evtbin['algorithm'] = 'CCUBE'
-        evtbin['nxpix'] = npix
-        evtbin['nypix'] = npix
+        evtbin['nxpix'] = self.analysisConf['nxpix']
+        evtbin['nypix'] = self.analysisConf['nypix']
         evtbin['binsz'] = self.analysisConf['binsize']
         evtbin['coordsys'] = 'CEL'
         evtbin['xref'] = self.analysisConf['ra']
