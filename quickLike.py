@@ -441,7 +441,7 @@ class quickLike:
         print self.ul[source].results
         self.logger.info(source+" UL: "+str(self.ul[source].results[0]))
 
-    def removeWeak(self,mySource = '',tslimit=0,distlimit=0,RemoveFree=False,RemoveFixed=False):
+    def removeWeak(self,mySource = '',tslimit=0,distlimit=0,RemoveFree=False,RemoveFixed=False,recalc=True):
 
         """This function has two main uses: it will print out details
         on all of the sources in your model and it will remove sources
@@ -462,7 +462,12 @@ class quickLike:
         all sources (fixed and free) that are below a TS value of 3
         and are 10 degrees from your source of interest by executing:
 
-        <obj>.removeWeak(<my_source>,tslimit=3,distlimit=10,RemoveFree=True,RemoveFixed=True)"""
+        <obj>.removeWeak(<my_source>,tslimit=3,distlimit=10,RemoveFree=True,RemoveFixed=True)
+
+        This funcitons precalculates all of the relavant source
+        details and saves them to <obj>.sourceDetails.  You can choose
+        to not recalculate these values and use the saved ones by
+        passing 'recalc=False' to the function."""
 
         try:
             self.MIN
@@ -485,25 +490,39 @@ class quickLike:
                                  "and/or config file to indicate which source you are considering.")
             return
 
-        for name in self.MIN.sourceNames():
+        if(recalc):
+            self.sourceDetails = {}
+
+            self.logger.info("Calculating TS values for all sources.  This could take a bit.")
+            for name in self.MIN.sourceNames():
+                sourceTS = self.MIN.Ts(name)
+                if(self.MIN.model[name].src.getType() == 'Point'):
+                    distance = self.MIN._separation(self.MIN.model[mySource].src,self.MIN.model[name].src)
+                if(np.shape(self.MIN.freePars(name))[0] > 0):
+                    free = True
+                else:
+                    free = False
+                
+                self.sourceDetails[name] = {'TS' : sourceTS, 
+                                            'dist' : distance,
+                                            'free' : free}
+
+
+        for source,details in self.sourceDetails.iteritems():
             remove = False
-            distance = 0
-            sourceTS = self.MIN.Ts(name)
-            if(self.MIN.model[name].src.getType() == 'Point'):
-                distance = self.MIN._separation(self.MIN.model[mySource].src,self.MIN.model[name].src)
-            if(np.shape(self.MIN.freePars(name))[0] > 0):
+            if(details['free']):
                 indexFree = "Free"
-                if( (sourceTS < tslimit) and (distance > distlimit) and RemoveFree ):
+                if( (details['TS'] < tslimit) and (details['dist'] > distlimit) and RemoveFree ):
                     remove = True
             else:
                 indexFree = "Fixed"
-                if( (sourceTS < tslimit) and (distance > distlimit) and RemoveFixed ):
+                if( (details['TS'] < tslimit) and (details['dist'] > distlimit) and RemoveFixed ):
                     remove = True
             if( remove ):
-                self.logger.info("Removing "+name+", TS: "+str(sourceTS)+", Frozen?: "+str(indexFree)+", Distance: "+str(distance))
+                self.logger.info("Removing "+source+", TS: "+str(details['TS'])+", Frozen?: "+str(indexFree)+", Distance: "+str(details['dist']))
                 self.MIN.deleteSource(name)
             else:
-                self.logger.info("Retaining "+name+", TS: "+str(sourceTS)+", Frozen?: "+str(indexFree)+", Distance: "+str(distance))
+                self.logger.info("Retaining "+source+", TS: "+str(details['TS'])+", Frozen?: "+str(indexFree)+", Distance: "+str(details['dist']))
 
     def unLoadSource(self, name):
 
