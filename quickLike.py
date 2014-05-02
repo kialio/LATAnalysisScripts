@@ -518,11 +518,12 @@ class quickLike:
                 indexFree = "Fixed"
                 if( (details['TS'] < tslimit) and (details['dist'] > distlimit) and RemoveFixed ):
                     remove = True
+            logString =  "{}, TS: {}, Frozen?: {}, Distance: {}".format(source,details['TS'],indexFree,details['dist'])
             if( remove ):
-                self.logger.info("Removing "+source+", TS: "+str(details['TS'])+", Frozen?: "+str(indexFree)+", Distance: "+str(details['dist']))
-                self.MIN.deleteSource(name)
+                self.logger.info("Removing " + logString)
+                self.MIN.deleteSource(source)
             else:
-                self.logger.info("Retaining "+source+", TS: "+str(details['TS'])+", Frozen?: "+str(indexFree)+", Distance: "+str(details['dist']))
+                self.logger.info("Retaining "+ logString)
 
     def unLoadSource(self, name):
 
