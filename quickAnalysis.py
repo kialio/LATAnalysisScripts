@@ -71,6 +71,8 @@ class quickAnalysis:
                                    "ltzmax" : 180,
                                    "binsize" : 0.1,
                                    "convtype" : -1,
+                                   "nxpix" : -1,
+                                   "nypix" : -1,
                                    "filter" : "DATA_QUAL==1 && LAT_CONFIG==1",
                                    "roicut" : "yes"},
                  commonConfig = {"base" : 'MySource',
@@ -223,11 +225,15 @@ class quickAnalysis:
         square might not be the largest posible since the npix
         calculation floors the calculated value.  The number of energy
         bins is logarithmic and is defined by the nbins variable."""
-        
-        if nxpix < 0 or nypix < 0:
-            nxpix = NumberOfPixels(float(rad),float(binsize))
-            nypix = NumberOfPixels(float(rad),float(binsize))
-        
+    
+        if float(self.analysisConf['nxpix']) < 0 or float(self.analysisConf['nypix']) < 0:
+            self.logger.info("Autocalculating nxpix and nypix.")
+            self.analysisConf['nxpix'] = qU.NumberOfPixels(float(self.analysisConf['rad']),
+                                                           float(self.analysisConf['binsize']))
+            self.analysisConf['nypix'] = self.analysisConf['nxpix']
+            print self.analysisConf['nypix']
+            
+
         evtbin['evfile'] = self.commonConf['base']+'_filtered_gti.fits'
         evtbin['outfile'] = self.commonConf['base']+'_CCUBE.fits'
         evtbin['algorithm'] = 'CCUBE'
@@ -452,6 +458,7 @@ def cli():
         opts, args = getopt.getopt(sys.argv[1:], 'hiamxcb:n:', ['help',
                                                                 'analyze',
                                                                 'initialize',
+                                                                'ccube',
                                                                 ])
         #Loop through first and check for the basename
         haveBase = False
