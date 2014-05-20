@@ -122,22 +122,6 @@ def runAnalysisStepMP(bininfo):
 class quickCurve:
 
     """This is the base class"""
-    def sfinit(self, srcName=None, ft2=None, irfs=None, model=None,
-                 optimizer="Minuit"):
-        self.lc = []
-
-        if(srcName == None):
-            return
-        self.srcName = srcName
-        if model != None:
-            self.model = model
-        else:
-            self.model = srcName + "_fitmodel.xml"
-        self.ft2 = ft2
-        self.irfs = irfs
-        self.optimizer = optimizer
-        self.obsfiles = []
-    
     def __init__(self,
                  base = 'MySource',
                  configFile = False,
@@ -248,6 +232,7 @@ class quickCurve:
                 obslist = self.obsfiles.pop()
             else:
                 obslist = list()
+            self.logger.info("Sliding window is off.")
             for d in directories:
                 if len(obslist) == nbin:
                     self.obsfiles.append(obslist)
@@ -262,6 +247,7 @@ class quickCurve:
                 obslist = self.obsfiles.pop()
             else:
                 obslist = list()
+            self.logger.info("Sliding window is on.")
             for d in directories:
                 if len(obslist) == nbin:
                     self.obsfiles.append(copy(obslist))
@@ -287,6 +273,7 @@ class quickCurve:
         else:
             raise NameError("Unknown analysis type: \""+f['analysis']+
                             "\" for directory \""+directory+"\"")
+        self.logger.info("Added {} to the list of observations.".format(directory))
 
     def addUnbinnedObs(self, ft1, emap, ecube,
                        ft2=None, irfs=None, obslist=None):
@@ -364,6 +351,7 @@ class quickCurve:
                       ul_cl=0.95, verbosity=0, emin=0, emax=0,
                       interim_save_filename=None):
 
+        self.logger.info("Processing all observations.")
         for f in self.obsfiles:
             lc = dict()
             lc['config'] = dict()
@@ -954,7 +942,7 @@ def cli():
                                 "have error information on at least your source of interest\n"+
                                 "(default = <BASENAME>_likeMinuit.xml)")
     compute_parser.add_argument("--rebin", type=int,
-                                help = "Combine <REBIN> time bins into one (default is 1)")
+                                help = "Combine <REBIN> time bins into one (default is 1, cannot be less than 1)")
     compute_parser.add_argument("--sliding", type=bool,
                                 help = "Combine the time bins using a sliding window\n"+
                                 "so that they overlap (default is False)")
@@ -1004,6 +992,8 @@ def cli():
             analysis = 'binned'
         else:
             analysis = 'unbinned'
+        if int(qC.curveConf['rebin']) < 1:
+            raise ValueError("rebin cannot be less than 1")
         for d in dirs:
             qC.globStandardObsDir(d, 
                                   nbin=int(qC.curveConf['rebin']), 
