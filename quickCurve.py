@@ -61,6 +61,7 @@ import UnbinnedAnalysis as UA
 import BinnedAnalysis as BA
 import IntegralUpperLimit as IUL
 
+from copy import copy
 from math import sqrt
 from multiprocessing import Pool
 from quickUtils import quickMath as MyMath
@@ -262,7 +263,7 @@ class quickCurve:
                 obslist = list()
             for d in directories:
                 if len(obslist) == nbin:
-                    self.obsfiles.append(copy.copy(obslist))
+                    self.obsfiles.append(copy(obslist))
                     obslist.pop(0)
                 if os.path.isdir(d):
                     self.addStandardObsDir(d, ft2, irfs, obslist,
