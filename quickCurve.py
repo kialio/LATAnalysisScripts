@@ -235,6 +235,7 @@ class quickCurve:
     def globStandardObsDir(self, directory_glob, analysis='unbinned',
                            ft2=None, irfs=None, nbin = 1,
                            sliding_window = False):
+
         directories = glob.glob(directory_glob)
         directories.sort()
         if nbin == 1:

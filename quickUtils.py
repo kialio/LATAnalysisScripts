@@ -146,6 +146,10 @@ def readConfig(quickLogger,basename):
         if(config.has_section('quickCurve')):
             quickLogger.info('Reading quickCurve variables...')
             curveDictionary = dict(config.items('quickCurve'))
+            if( curveDictionary['sliding'] in ['True', 'true', '1', 'yes']):
+                curveDictionary['sliding'] = True
+            else:
+                curveDictionary['sliding'] = False
 
         return commonDictionary,analysisDictionary,likelihoodDictionary,plotDictionary,curveDictionary
 
