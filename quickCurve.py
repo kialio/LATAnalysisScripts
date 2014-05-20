@@ -473,7 +473,7 @@ class quickCurve:
                 deletesrc = []
                 for s in like.sourceNames():
                     freepars = like.freePars(s)
-                    if(s!=self.likelihoodConf['sourcename'] and like[s].type == 'PointSource'
+                    if(s!=self.likelihoodConf['sourcename'] and like[s].src.getType() == 'Point'
                        and len(freepars)>0):
                         ts = like.Ts(s)
                         if ts<delete_below_ts:
