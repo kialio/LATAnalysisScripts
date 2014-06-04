@@ -266,7 +266,9 @@ class quickAnalysis:
                    self.analysisConf['rad'],
                    self.analysisConf['binsize'],
                    self.analysisConf['ra'],
-                   self.analysisConf['dec'])
+                   self.analysisConf['dec'],
+                   self.analysisConf['nxpix'],
+                   self.analysisConf['nypix'])
 
     def runExpCube(self,run=True,nbins=30, ExpBuffer=30):
 
@@ -459,6 +461,14 @@ def cli():
                                                                 'analyze',
                                                                 'initialize',
                                                                 'ccube',
+                                                                'cmap',
+                                                                'sourcemap',
+                                                                'modelmap',
+                                                                'ccube',
+                                                                'bexpmap',
+                                                                'filter',
+                                                                'xml',
+                                                                'binsize'
                                                                 ])
         #Loop through first and check for the basename
         haveBase = False
