@@ -1,5 +1,5 @@
 #!/usr/bin/env python
 
-import quickLike
+import LATAnalysisScripts.quickLike as qL
 if __name__ == '__main__':
-    quickLike.cli()
+    qL.cli()

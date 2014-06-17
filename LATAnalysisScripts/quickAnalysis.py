@@ -32,8 +32,10 @@ This module logs all of the steps to a file called
 
 """
 
-__author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.2.0'
+import LATAnalysisScripts as LAS
+
+__author__ = LAS.__author__
+__version__ = LAS.__version__
 
 import sys
 import os
@@ -56,6 +58,8 @@ class quickAnalysis:
     just execute the runAll function to execute all of the steps, or
     use the functions individually as needed.
     """
+
+    __version__ = LAS.__version__
 
     def __init__(self,
                  base='MySource',

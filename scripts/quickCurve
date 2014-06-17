@@ -1,5 +1,5 @@
 #!/usr/bin/env python
 
-import quickCurve
+import LATAnalysisScripts.quickCurve as qC
 if __name__ == '__main__':
-    quickCurve.cli()
+    qC.cli()

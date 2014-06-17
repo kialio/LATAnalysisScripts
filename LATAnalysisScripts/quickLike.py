@@ -33,6 +33,7 @@ This module logs all of the steps to a file called
 <basename>_quickAnalysis.log as well as to the screen.
 
 """
+
 import LATAnalysisScripts as LAS
 
 __author__ = LAS.__author__
@@ -76,6 +77,8 @@ class quickLike:
     This module will catch any failures from the optimizers and will
     report them to the user.  There are a few functions that are useful to
     use in this case:"""
+
+    __version__ = LAS.__version__
 
     def __init__(self,
                  base = 'MySource',
