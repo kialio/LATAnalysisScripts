@@ -33,9 +33,10 @@ This module logs all of the steps to a file called
 <basename>_quickAnalysis.log as well as to the screen.
 
 """
+import LATAnalysisScripts as LAS
 
-__author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.2.0'
+__author__ = LAS.__author__
+__version__ = LAS.__version__
 
 import re
 import os

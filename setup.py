@@ -3,6 +3,7 @@
 import sys
 import os
 from distutils.core import setup
+import LATAnalysisScripts as LAS
 
 #try:
 #    import ds9
@@ -29,14 +30,14 @@ else:
     sys.exit()
 
 setup(name='LATAnalysisScripts',
-      version='0.2.0',
+      version=LAS.__version__,
       description='Fermi LAT Analysis Scripts (quickScripts)',
-      author='Jeremy S. Perkins and Davide Donato (FSSC)',
+      author=LAS.__author__,
       author_email='fermihelp@milkyway.gsfc.nasa.gov',
       url='http://fermi.gsfc.nasa.gov/ssc/',
+      packages=['LATAnalysisScripts'],
       py_modules=['quickUtils',
                   'quickAnalysis',
-                  'quickLike',
                   'quickPlot',
                   'quickCurve',
                   'make2FGLxml'],
