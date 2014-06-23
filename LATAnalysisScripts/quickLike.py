@@ -358,14 +358,19 @@ class quickLike:
             self.logger.critical("MIN object does not exist.  Create it first with the initMIN function.")
             return
 
+        if(isinstance(self.MINobj,pyLike.Minuit)):
+            opt = 'Minuit'
+        else:
+            opt = 'NewMinuit'
+
         self.MIN.fit(covar=True, optObject=self.MINobj,verbosity=int(self.commonConf['verbosity']))
-        self.logger.info("NEWMINUIT Fit Finished.  -log(likelihood): "+str(self.MIN.logLike.value()))
-        self.logger.info("NEWMINUIT Fit Status: "+str(self.MINobj.getRetCode()))
-        self.logger.info("NEWMINUIT fit Distance: "+str(self.MINobj.getDistance()))
+        self.logger.info("{} Fit Finished.  -log(likelihood): {}".format(opt,self.MIN.logLike.value()))
+        self.logger.info("{} Fit Status: {}".format(opt,self.MINobj.getRetCode()))
+        self.logger.info("{} fit Distance: {}".format(opt,self.MINobj.getDistance()))
         self.fitbit = True
         if(self.MINobj.getRetCode() > 0):
-            self.logger.error("NEWMINUIT DID NOT CONVERGE!!!")
-            self.logger.error("The fit failed the following tests: "+self.decodeRetCode('NewMinuit',self.MINobj.getRetCode()))
+            self.logger.error("{} DID NOT CONVERGE!!!".format(opt))
+            self.logger.error("The fit failed the following tests: "+self.decodeRetCode(opt,self.MINobj.getRetCode()))
             self.MIN.logLike.writeXml(self.commonConf['base']+'_badMINFit.xml')
         else:
             self.MIN.logLike.writeXml(self.commonConf['base']+'_likeMinuit.xml')
@@ -653,6 +658,14 @@ class quickLike:
                 bt+=[float(1000.*val)]
         return centEs,bt,spec
         
+    def plot2D(self):
+
+        """Plots a two dimensinal residuals plot."""
+
+        from LATAnalysisScripts.quickPlot2 import Plot2DModel
+        Plot2DModel(self.MIN,filename="{}_2DModel.png".format(self.commonConf['basename'])
+
+
 
     def decodeRetCode(self, optimizer, retCode):
 
