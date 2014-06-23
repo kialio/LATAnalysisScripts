@@ -32,8 +32,10 @@ This module logs all of the steps to a file called
 
 """
 
-__author__ = 'Davide Donato (FSSC)'
-__version__ = '0.1.11'
+import LATAnalysisScripts as LAS
+
+__author__ = LAS.__author__
+__version__ = LAS.__version__
 
 import sys
 import os

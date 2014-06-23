@@ -93,10 +93,12 @@ class quickLike:
                                  "irfs" : "P7SOURCE_V6",
                                  "verbosity" : 0,
                                  "multicore" : 0}):
-                                  
+                                
         commonConfig['base'] = base
 
         self.logger = qU.initLogger(base, 'quickLike')
+
+        self.logger.info("This is quickLike version {}.".format(__version__))
 
         if(configFile):
             try:
@@ -229,7 +231,7 @@ class quickLike:
             self.logger.critical("One or more needed files do not exist")
             return
 
-    def initMIN(self, useBadFit=False, modelFile="",useEdisp=False):
+    def initMIN(self, useBadFit=False, modelFile="", useEdisp=False, new=True):
 
         """Initiallizes a New Minuit optimizer to use as a backup to
         the DRM optimizer.  This is usually run after you have
@@ -257,14 +259,22 @@ class quickLike:
         if(modelFile):
             model = modelFile
 
+        if(new):
+            opt = 'NewMinuit'
+        else:
+            opt = 'Minuit'
+
         try:
             qU.checkForFiles(self.logger,[model])
             if(self.commonConf['binned']):
-                self.MIN = BAn.BinnedAnalysis(self.obs,model,optimizer='NewMinuit')
+                self.MIN = BAn.BinnedAnalysis(self.obs,model,optimizer=opt)
             else:
-                self.MIN = UbAn.UnbinnedAnalysis(self.obs,model,optimizer='NewMinuit')
+                self.MIN = UbAn.UnbinnedAnalysis(self.obs,model,optimizer=opt)
             self.MIN.tol = float(self.likelihoodConf['mintol'])
-            self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
+            if(new):
+                self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
+            else:
+                self.MINobj = pyLike.Minuit(self.MIN.logLike)    
             self.pristine = LikelihoodState(self.MIN)
             self.logger.info(self.ret.subn(', ',str(self.MIN))[0])
             if(useEdisp):

@@ -4,8 +4,10 @@
 
 """
 
-__author__ = 'Jeremy S. Perkins (FSSC)'
-__version__ = '0.2.1'
+import LATAnalysisScripts as LAS
+
+__author__ = LAS.__author__
+__version__ = LAS.__version__
 
 import os
 import logging

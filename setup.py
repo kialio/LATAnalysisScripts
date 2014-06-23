@@ -36,14 +36,10 @@ setup(name='LATAnalysisScripts',
       author_email='fermihelp@milkyway.gsfc.nasa.gov',
       url='http://fermi.gsfc.nasa.gov/ssc/',
       packages=['LATAnalysisScripts'],
-      py_modules=['quickUtils',
-                  'quickPlot',
-                  'quickCurve',
-                  'make2FGLxml'],
       data_files=[(fermi_dir+"/bin",['scripts/quickAnalysis',
                                      'scripts/quickLike',
                                      'scripts/quickPlot',
-				      'scripts/quickCurve'])],
+			 	                             'scripts/quickCurve'])],
       )
 
 

@@ -89,6 +89,7 @@ class quickAnalysis:
         commonConfig['base'] = base
 
         self.logger = qU.initLogger(base, 'quickAnalysis')
+        self.logger.info("This is quickAnalysis version {}.".format(__version__))
 
         if(configFile):
             try:
@@ -400,7 +401,7 @@ def printCLIHelp():
 
     cmd = os.path.basename(sys.argv[0])
     print """
-                        - quickAnalysis - 
+                        - quickAnalysis %s - 
 
 Perform event selections and exposure calculations for Fermi LAT data.
 You can use the command line functions listed below or run this module
@@ -453,7 +454,7 @@ from within python. For full documentation on this module execute
     exposure map for your analysis.  You need to have already produced
     several other files.
 
-""" %(cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd)
+""" %(__version__,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd)
 
 # Command-line interface             
 def cli():
