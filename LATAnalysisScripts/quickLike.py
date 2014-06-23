@@ -663,7 +663,7 @@ class quickLike:
         """Plots a two dimensinal residuals plot."""
 
         from LATAnalysisScripts.quickPlot2 import Plot2DModel
-        Plot2DModel(self.MIN,filename="{}_2DModel.png".format(self.commonConf['basename'])
+        Plot2DModel(self.MIN,filename="{}_2DModel.png".format(self.commonConf['basename']))
 
 
 
