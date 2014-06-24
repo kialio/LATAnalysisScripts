@@ -26,11 +26,20 @@ def Plot2DModel(like,filename='2DModel.png'):
     plt.xlim((like.energies[0],like.energies[-1]))
     sum_counts = np.zeros_like(like._srcCnts(like.sourceNames()[0]))
     for sourceName in like.sourceNames():
-       sum_counts = sum_counts + like._srcCnts(sourceName)
-       ax1.loglog(E,like._srcCnts(sourceName),label="{}".format(sourceName))
+        sum_counts = sum_counts + like._srcCnts(sourceName)
+        if sourceName[0] == '_':
+            sN = sourceName.replace('_','',1)
+        else:
+            sN = sourceName
+        ax1.loglog(E,like._srcCnts(sourceName),label='{}'.format(sN))
+    plt.ylim(ymax = 2*np.max(sum_counts))
     ax1.loglog(E,sum_counts,label='Total Model')
     ax1.errorbar(E,like._Nobs(),yerr=np.sqrt(like._Nobs()), fmt='o',label='Counts')
-    ax1.legend(bbox_to_anchor=(1.0, 1.04), loc=2)
+    if len(like.sourceNames()) > 16:
+        font_size = 6
+    else:
+        font_size = 14
+    ax1.legend(bbox_to_anchor=(1.05, 1.03), loc=2,prop={'size':font_size})
     plt.ylabel(r'Counts [ph s$^{-1}$ cm$^{-2}$]')
     plt.tick_params(axis='x',labelbottom='off')
     
