@@ -660,12 +660,14 @@ class quickLike:
         
     def plot2D(self):
 
-        """Plots a two dimensinal residuals plot."""
+        """Plots a two dimensinal counts plot with the counts spectrum of each 
+            source along with the total counts spectrum and the measured counts.  
+            It also plots a residual plot (data-model/model) for the full model.  
+            It saves the figure as <basename_2DModel.png>."""
 
         from LATAnalysisScripts.quickPlot2 import Plot2DModel
-        Plot2DModel(self.MIN,filename="{}_2DModel.png".format(self.commonConf['basename']))
-
-
+        self.logger.info('Saved 2D Model as {}_2DModel.png.'.format(self.commonConf['base']))
+        Plot2DModel(self.MIN,filename="{}_2DModel.png".format(self.commonConf['base']))
 
     def decodeRetCode(self, optimizer, retCode):
 
