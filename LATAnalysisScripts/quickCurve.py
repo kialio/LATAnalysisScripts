@@ -790,7 +790,7 @@ class quickCurve:
             try:
                 prob = MyMath.chi2cdfc(chi2,ndof)
             except ValueError:
-                self.logger.critical("Chi^2 Probability not well defined.  Setting to 0.")
+                self.logger.Warning("Chi^2 Probability not well defined.  Setting to 0.")
                 prob = 0.
             sigma = sqrt(MyMath.chi2invc(prob,1))
             print >>file, '%sVariable flux (no UL): chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
@@ -945,7 +945,7 @@ def cli():
                                 help = "The filename of the XML model from the full fit.\n"+
                                 "Note that this must be the output of a fit.  It needs to \n"+
                                 "have error information on at least your source of interest\n"+
-                                "(default = <BASENAME>_likeMinuit.xml)")
+                                "(default = MySource_model_lc.xml)")
     compute_parser.add_argument("--rebin", type=int,
                                 help = "Combine <REBIN> time bins into one (default is 1, cannot be less than 1)")
     compute_parser.add_argument("--sliding", type=bool,
