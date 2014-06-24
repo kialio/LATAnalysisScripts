@@ -518,7 +518,12 @@ class quickLike:
                 indexFree = "Fixed"
                 if( (details['TS'] < tslimit) and (details['dist'] > distlimit) and RemoveFixed ):
                     remove = True
-            logString =  "{}, TS: {}, Frozen?: {}, Distance: {}".format(source,details['TS'],indexFree,details['dist'])
+            try:
+                logString =  "{}, TS: {}, Frozen?: {}, Distance: {}".format(source,details['TS'],indexFree,details['dist'])
+            except ValueError, e:
+                self.logger.error('ValueError: you are probably running an old (pre 2.7) version of Python.')
+                raise e
+            
             if( remove ):
                 self.logger.info("Removing " + logString)
                 self.MIN.deleteSource(source)
