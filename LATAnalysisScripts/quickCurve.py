@@ -674,18 +674,19 @@ class quickCurve:
         prof_max_val = -p[1]/(2*p[0])
         prof_max_logL = p[2]-p[1]*p[1]/(4*p[0])
         if (prof_max_val<min(profile_x)) or (prof_max_val>max(profile_x)):
-            print "Warning: corrected minimum %f is outside profile range [%f to %f]" \
-                  %(prof_max_val,min(profile_x),max(profile_x))
-            print profile_x, profile_y
+            self.logger.warning("Warning: corrected minimum {} is outside profile range [{} to {}]".format(prof_max_val,
+                                                                                                          min(profile_x),
+                                                                                                          max(profile_x)))
+            self.logger.warning("{}, {}".format(profile_x, profile_y))
 
         profile_fity = sp.polyval(p,profile_x)
         profile_max_diff = max(map(lambda x,y:abs(x-y),profile_y,profile_fity))
         if profile_max_diff>0.5:
-            print "Warning: large difference between profile and fit: %f"%profile_max_diff
-            print profile_x, profile_y, profile_fity
+            self.logger.warning("Warning: large difference between profile and fit: {}".format(profile_max_diff))
+            self.logger.warning("{},{},{}".format(profile_x, profile_y, profile_fity))
 
         if verbosity>0:
-            print profile_x, profile_y, profile_fity
+            self.logger.info("{},{},{}".format(profile_x, profile_y, profile_fity))
 
         # Second: process data for LC, accumulating required values to
         # allow calculation of variability stats
@@ -790,7 +791,7 @@ class quickCurve:
             try:
                 prob = MyMath.chi2cdfc(chi2,ndof)
             except ValueError:
-                self.logger.Warning("Chi^2 Probability not well defined.  Setting to 0.")
+                self.logger.warning("Chi^2 Probability of Variable Flux (no UL) not well defined.  Setting to 0.")
                 prob = 0.
             sigma = sqrt(MyMath.chi2invc(prob,1))
             print >>file, '%sVariable flux (no UL): chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
@@ -799,7 +800,7 @@ class quickCurve:
             try:
                 prob = MyMath.chi2cdfc(chi2,ndof)
             except ValueError:
-                self.logger.critical("Chi^2 Probability not well defined.  Setting to 0.")
+                self.logger.warning("Chi^2 Probability of Variable Flux (w/UL) not well defined.  Setting to 0.")
                 prob = 0.
             sigma = sqrt(MyMath.chi2invc(prob,1))
             print >>file, '%sVariable flux (w/UL):  chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
@@ -869,6 +870,7 @@ def overrideConfig(logger,dictionary,argVars):
     for variable, value in dictionary.iteritems():
         if variable in argVars:
             if argVars[variable] != None:
+                logger.info("Overriding config file variable {} with value from command line.".format(variable))
                 dictionary[variable] = argVars[variable]
 
 def cli():
