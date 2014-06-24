@@ -42,7 +42,7 @@ For more options and details on all of them execute
 
 This module logs all output to a file called <BASENAME>_quickCurve.log.
 
-This code is based on a script writting by S. Fegan."""
+This code is based on a script written by S. Fegan."""
 
 import LATAnalysisScripts as LAS
 
@@ -131,7 +131,7 @@ class quickCurve:
                                 'tstop'   : 0,
                                 'tstep'   : 86400,
                                 'tsmin'   : 1,
-                                'model'   : 'my_model.xml',
+                                'model'   : 'MySource_model_lc.xml',
                                 'summary' : 'lc_summary.dat',
                                 'output'  : 'lc.pickle',
                                 'ulfluxdf' : 2.0,
@@ -212,10 +212,10 @@ class quickCurve:
         file called <basename>.cfg."""
 
         qU.writeConfig(quickLogger=self.logger,
-		       curveDictionary=self.curveConf,
-		       likelihoodDictionary=self.likelihoodConf,
-                       commonDictionary=self.commonConf,
-                       analysisDictionary=self.analysisConf)
+		                  curveDictionary=self.curveConf,
+		                  likelihoodDictionary=self.likelihoodConf,
+                      commonDictionary=self.commonConf,
+                      analysisDictionary=self.analysisConf)
 
 
     def globStandardObsDir(self, directory_glob, analysis='unbinned',
@@ -423,7 +423,10 @@ class quickCurve:
             meanvalue = srcnormpar.getValue()
             meanerror = srcnormpar.error()
             if meanerror == 0:
-                self.logger.critical("The error on the normalization for your source is 0!  You need to do a global fit first (with quickLike) and provide the final XML file (<basename>_likeMinuit.xml) with errors included before you run compute.")
+                self.logger.critical("The error on the normalization for your source is 0!"+\
+                                    "You need to do a global fit first (with quickLike) "+\
+                                    "and provide the final XML file (<basename>_likeMinuit.xml)"+\
+                                    " with errors included before you run compute.")
                 return
 
             lc['original']=dict()

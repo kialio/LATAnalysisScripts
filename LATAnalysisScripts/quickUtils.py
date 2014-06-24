@@ -83,7 +83,7 @@ def writeConfig(quickLogger, commonDictionary, analysisDictionary = {}, likeliho
             config.add_section('quickLike')            
         for variable, value in likelihoodDictionary.iteritems():
             config.set('quickLike', variable, value)
-        quickLogger.info("wrote quickLikeconfig to "+basename+".cfg.")
+        quickLogger.info("wrote quickLike config to "+basename+".cfg.")
 
     if(plotDictionary):
         if(config.has_section('quickPlot')):
