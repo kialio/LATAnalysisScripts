@@ -47,8 +47,10 @@ import pyLikelihood as pyLike
 import UnbinnedAnalysis as UbAn
 import BinnedAnalysis as BAn
 import numpy as np
+
 from UpperLimits import UpperLimits
 from LikelihoodState import LikelihoodState
+from LATAnalysisScripts import defaultConfig as dC
 from LATAnalysisScripts.Logger import Logger
 from LATAnalysisScripts.Logger import logLevel as ll
 
@@ -86,16 +88,8 @@ class quickLike:
     def __init__(self,
                  base = 'MySource',
                  configFile = False,
-                 likelihoodConfig = {"model" : "MySource_model.xml",
-                                     "sourcename" : "Source Name",
-                                     "drmtol" : 0.1,
-                                     "mintol" : 1e-4},
-                 commonConfig = {"base" : 'MySource',
-                                 "eventclass" : 2,
-                                 "binned" : False,
-                                 "irfs" : "P7SOURCE_V6",
-                                 "verbosity" : 4,
-                                 "multicore" : 0}):
+                 likelihoodConfig = dC.defaultLikelihoodConfig,
+                 commonConfig = dC.defaultCommonConfig):
                                 
         commonConfig['base'] = base
 

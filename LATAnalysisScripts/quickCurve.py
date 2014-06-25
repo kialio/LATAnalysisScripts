@@ -103,7 +103,7 @@ def runAnalysisStepMP(bininfo):
                     "eventclass" : commonConf["eventclass"],
                     "binned" : False,
                     "irfs" : commonConf["irfs"],
-                    "verbosity" : 0,
+                    "verbosity" : 2,
                     "multicore" : 0}
 
 
