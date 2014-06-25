@@ -176,7 +176,7 @@ def checkConfig(quickLogger, referenceDictionary,testDictionary):
         return referenceDictionary
 
         
-def initLogger(base, name):
+def initLogger(base, name, loglevel=logging.DEBUG):
 
     """Sets up and returns a properly configured logging object."""
 
@@ -187,7 +187,7 @@ def initLogger(base, name):
         fh = logging.FileHandler(base+'_'+name+'.log')
         fh.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
+        ch.setLevel(loglevel)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
