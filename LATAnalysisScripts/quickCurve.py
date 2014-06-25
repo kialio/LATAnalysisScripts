@@ -68,6 +68,9 @@ from math import sqrt
 from multiprocessing import Pool
 from quickUtils import quickMath as MyMath
 
+from LATAnalysisScripts.Logger import Logger
+from LATAnalysisScripts.Logger import logLevel as ll
+
 def runAnalysisStepMP(bininfo):
 
     bin = bininfo[0]
@@ -100,7 +103,7 @@ def runAnalysisStepMP(bininfo):
                     "eventclass" : commonConf["eventclass"],
                     "binned" : False,
                     "irfs" : commonConf["irfs"],
-                    "verbosity" : commonConf["verbosity"],
+                    "verbosity" : 0,
                     "multicore" : 0}
 
 
@@ -162,11 +165,12 @@ class quickCurve:
                                  "eventclass" : 2,
                                  "binned" : False,
                                  "irfs" : "P7REP_SOURCE_V15",
-                                 "verbosity" : 0}):
+                                 "verbosity" : 4}):
         
         commonConfig['base'] = base
         
-        self.logger = qU.initLogger(base, 'quickCurve')
+        self.logger = Logger(base, self.__class__.__name__,ll(commonConfig['verbosity'])).get()
+        self.logger.info("This is quickCurve version {}.".format(__version__))
         
         if(configFile):
             try:
@@ -179,6 +183,10 @@ class quickCurve:
                 commonConfig = qU.checkConfig(self.logger,commonConfig,commonConfigRead)
             except(KeyError):
                 return
+           #Reset the verboisty from the config file if needed
+            if ll(commonConfig['verbosity']) != self.logger.handlers[1].level:
+                self.logger.info("Resetting the log level on the console to {}.".format(commonConfig['verbosity']))
+                self.logger.handlers[1].setLevel(ll(commonConfig['verbosity']))
             try:
                 likelihoodConfig = qU.checkConfig(self.logger,likelihoodConfig,likelihoodConfigRead)
             except(KeyError):
@@ -892,7 +900,7 @@ def cli():
                             formatter_class=RawTextHelpFormatter)
 
     parser.add_argument("--verbosity", type=int,
-                        help="Verbosity (1,2 or 3)")
+                        help="Verbosity (0,1,2,3 or 4)")
 
     subparsers = parser.add_subparsers(dest="mode")
 
