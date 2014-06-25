@@ -79,7 +79,22 @@ def runAnalysisStepMP(bininfo):
     commonConf = bininfo[2]
     analysisConf = bininfo[3]
     curveConf = bininfo[4]
+    verbosity = bininfo[5]
+
+    #Have to do this all again here for MP
+    import logging
+    logName = "quickCurve_bin{}".format(bin) 
+    logger = logging.getLogger('%s' % logName)
+    logger.setLevel(verbosity)
+    ch = logging.StreamHandler()
+    ch.setLevel(verbosity)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    
     tmax = tmin + float(curveConf['tstep'])
+
+    logger.info('Processing from {} to {} (bin {})'.format(tmin,tmax,bin))
 
     dir = "quickCurve_"+ str(curveConf['tstep']) + "_bin" + str(bin) 
 
@@ -111,18 +126,24 @@ def runAnalysisStepMP(bininfo):
     qA_bin.analysisConf['tmin'] = tmin
     qA_bin.analysisConf['tmax'] = tmax
 
+    logger.debug("Filtering data in bin {}".format(bin))
     qA_bin.runSelect(True, False,
                      outfile = dir + "/" + commonConf['base'] + "_filtered.fits")
+    logger.debug("Calculating GTIs for bin {}".format(bin)) 
     qA_bin.runGTI(True, 
                   evfile=dir + "/" + commonConf['base']+'_filtered.fits',
                   outfile=dir + "/" + commonConf['base']+'_filtered_gti.fits')
+    logger.debug("Calculating livetime for bin {}".format(bin))
     qA_bin.runLTCube(True,
                      evfile = dir + "/" + commonConf['base']+'_filtered_gti.fits',
                      outfile = dir + "/" + commonConf['base']+'_ltcube.fits')
+    logger.debug("Making exposure map for bin {}".format(bin))
     qA_bin.runExpMap(True,
                      evfile = dir + "/" + commonConf['base']+'_filtered_gti.fits',
                      expcube = dir + "/" + commonConf['base']+'_ltcube.fits',
                      outfile = dir + "/" + commonConf['base']+'_expMap.fits')
+
+    logger.info("Finished with bin {}".format(bin))
 
 class quickCurve:
 
@@ -799,6 +820,7 @@ class quickCurve:
         tbins = np.arange(float(self.curveConf['tstart']),
                           float(self.curveConf['tstop']),
                           float(self.curveConf['tstep']))
+        self.logger.debug("{}".format(tbins))
 
         bins = np.arange(0,np.size(tbins))
 
@@ -806,21 +828,24 @@ class quickCurve:
                        tbins,
                        [self.commonConf for bin in bins],
                        [self.analysisConf for bin in bins],
-                       [self.curveConf for bin in bins])
+                       [self.curveConf for bin in bins],
+                       [ll(self.commonConf['verbosity']) for bin in bins])
 
         if(runAnalysis):
             if int(self.commonConf['multicore']) > 1:
+                self.logger.info("Spawning {} jobs on {} cores.".format(len(bins),self.commonConf['multicore']))
                 pool = Pool(processes = int(self.commonConf['multicore']))
                 pool.map(runAnalysisStepMP,binsinfo)
             else:
+                self.logget.info("Spawning {} jobs.".format(len(bins)))
                 for bininfo in binsinfo:
                     runAnalysisStepMP(bininfo)
-
 
         if(delete):
             templist = glob.glob("*_bin" + str(binnum) + "*")
             for t in templist:
-                os.remove(t)
+              self.logger.warning("Removing {}".format(t))
+              os.remove(t)  
 
 def overrideConfig(logger,dictionary,argVars):
 
