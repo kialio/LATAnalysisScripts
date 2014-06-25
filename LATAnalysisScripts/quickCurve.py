@@ -81,7 +81,6 @@ def runAnalysisStepMP(bininfo):
     curveConf = bininfo[4]
     tmax = tmin + float(curveConf['tstep'])
 
-    print bin,tmin,tmax
     dir = "quickCurve_"+ str(curveConf['tstep']) + "_bin" + str(bin) 
 
     if not os.path.isdir(dir):
@@ -298,9 +297,9 @@ class quickCurve:
         else:
             obslist.append(obsfiles)
 
-    def loadUnbinnedObs(self, f, verbosity=0):
-        if verbosity:
-            print 'Loading unbinned observation:',f['ft1']
+    def loadUnbinnedObs(self, f):
+
+        self.logger.info('Loading unbinned observation: {}'.format(f['ft1']))
         obs = UA.UnbinnedObs(eventFile=f['ft1'], scFile=f['ft2'],
                                            expMap=f['emap'],expCube=f['ecube'],
                                            irfs=f['irfs'])
@@ -308,9 +307,9 @@ class quickCurve:
                                                  optimizer=self.optimizer)
         return [ obs, like ]
 
-    def loadBinnedObs(self, f, verbosity=0):
-        if verbosity:
-            print 'Loading binned observation:',f['smaps']
+    def loadBinnedObs(self, f):
+      
+        self.logger.info('Loading binned observation: {}'.format(f['smaps']))
         obs = BA.BinnedObs(srcMaps=f['smaps'], expCube=f['ecube'],
                                        binnedExpMap=f['bemap'], irfs=f['irfs'])
         like = BA.BinnedAnalysis(obs, srcModel=self.model,
@@ -319,9 +318,9 @@ class quickCurve:
 
     def loadObs(self, f, verbosity=0):
         if f['analysis'] == 'unbinned':
-            return self.loadUnbinnedObs(f, verbosity)
+            return self.loadUnbinnedObs(f)
         elif f['analysis'] == 'binned':
-            return self.loadBinnedObs(f, verbosity)
+            return self.loadBinnedObs(f)
         else:
             raise NameError("Unknown analysis type: \""+f['analysis']+"\"")
 
