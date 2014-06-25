@@ -49,6 +49,9 @@ import BinnedAnalysis as BAn
 import numpy as np
 from UpperLimits import UpperLimits
 from LikelihoodState import LikelihoodState
+from LATAnalysisScripts.Logger import Logger
+from LATAnalysisScripts.Logger import logLevel as ll
+
 
 class quickLike:
 
@@ -91,13 +94,12 @@ class quickLike:
                                  "eventclass" : 2,
                                  "binned" : False,
                                  "irfs" : "P7SOURCE_V6",
-                                 "verbosity" : 0,
+                                 "verbosity" : 4,
                                  "multicore" : 0}):
                                 
         commonConfig['base'] = base
 
-        self.logger = qU.initLogger(base, 'quickLike')
-
+        self.logger = Logger(base, self.__class__.__name__,ll(commonConfig['verbosity'])).get()
         self.logger.info("This is quickLike version {}.".format(__version__))
 
         if(configFile):
@@ -110,6 +112,10 @@ class quickLike:
                 commonConfig = qU.checkConfig(self.logger,commonConfig,commonConfigRead)
             except(KeyError):
                 return
+            #Reset the verboisty from the config file if needed
+            if ll(commonConfig['verbosity']) != self.logger.handlers[1].level:
+                self.logger.info("Resetting the log level on the console to {}.".format(commonConfig['verbosity']))
+                self.logger.handlers[1].setLevel(ll(commonConfig['verbosity']))
             try:
                 likelihoodConfig = qU.checkConfig(self.logger,likelihoodConfig,likelihoodConfigRead)
             except(KeyError):

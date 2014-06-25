@@ -181,7 +181,7 @@ def initLogger(base, name, loglevel=logging.DEBUG):
     """Sets up and returns a properly configured logging object."""
 
     quickLogger = logging.getLogger(name)
-    quickLogger.setLevel(logging.DEBUG)
+    #quickLogger.setLevel(logging.DEBUG)
     #Prevents duuplicate log entries after reinitialization.                                                        
     if(not quickLogger.handlers):
         fh = logging.FileHandler(base+'_'+name+'.log')
