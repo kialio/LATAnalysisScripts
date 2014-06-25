@@ -41,6 +41,8 @@ import sys
 import os
 from gt_apps import filter, maketime, expMap, expCube, evtbin, srcMaps
 import quickUtils as qU
+
+from LATAnalysisScripts import defaultConfig as dC
 from LATAnalysisScripts.Logger import Logger
 from LATAnalysisScripts.Logger import logLevel as ll
 
@@ -66,27 +68,8 @@ class quickAnalysis:
     def __init__(self,
                  base='MySource',
                  configFile = False,
-                 analysisConfig = {"ra" : 0,
-                                   "dec" : 0,
-                                   "rad" : 10,
-                                   "tmin" : "INDEF",
-                                   "tmax" : "INDEF",
-                                   "emin" : 100,
-                                   "emax" : 300000,
-                                   "zmax" : 100,
-                                   "ltzmax" : 180,
-                                   "binsize" : 0.1,
-                                   "convtype" : -1,
-                                   "nxpix" : -1,
-                                   "nypix" : -1,
-                                   "filter" : "DATA_QUAL==1 && LAT_CONFIG==1",
-                                   "roicut" : "yes"},
-                 commonConfig = {"base" : 'MySource',
-                                 "binned" : False,
-                                 "eventclass" : 2,
-                                 "irfs" : "P7REP_SOURCE_V15",
-                                 "verbosity" : 4,
-                                 "multicore": 0}):
+                 analysisConfig = dC.defaultAnalysisConfig,
+                 commonConfig = dC.defaultCommonConfig):
 
         commonConfig['base'] = base
 

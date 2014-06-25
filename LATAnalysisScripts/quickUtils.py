@@ -246,7 +246,7 @@ def runCommand(AppCommand,quickLogger,run=True,printCmd=False):
         AppCommand.run(print_command=printCmd)
         quickLogger.info(AppCommand.command())
     else:
-        print AppCommand.command()
+        quickLogger.info(AppCommand.command())
             
 
 def runModel(quickLogger,

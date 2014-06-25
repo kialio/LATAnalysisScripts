@@ -68,6 +68,7 @@ from math import sqrt
 from multiprocessing import Pool
 from quickUtils import quickMath as MyMath
 
+from LATAnalysisScripts import defaultConfig as dC
 from LATAnalysisScripts.Logger import Logger
 from LATAnalysisScripts.Logger import logLevel as ll
 
@@ -130,42 +131,10 @@ class quickCurve:
     def __init__(self,
                  base = 'MySource',
                  configFile = False,
-                 curveConfig = {'tstart'  : 0,
-                                'tstop'   : 0,
-                                'tstep'   : 86400,
-                                'tsmin'   : 1,
-                                'model'   : 'MySource_model_lc.xml',
-                                'summary' : 'lc_summary.dat',
-                                'output'  : 'lc.pickle',
-                                'ulfluxdf' : 2.0,
-                                'ulbayes'  : 4.0,
-                                'ulchi2'  : 4,
-                                'ulcl'    : 0.95,
-                                'opt'     : 'MINUIT',
-                                'sliding' : False,
-                                'rebin'   : 1},
-                 analysisConfig = {"ra" : 0,
-                                   "dec" : 0,
-                                   "rad" : 10,
-                                   "tmin" : "INDEF",
-                                   "tmax" : "INDEF",
-                                   "emin" : 100,
-                                   "emax" : 300000,
-                                   "zmax" : 100,
-                                   "ltzmax" : 180,
-                                   "binsize" : 0.1,
-                                   "convtype" : -1,
-                                   "filter" : "DATA_QUAL==1 && LAT_CONFIG==1",
-                                   "roicut" : "yes"},
-                 likelihoodConfig = {"model" : "MySource_model.xml",
-                                     "sourcename" : "Source Name",
-                                     "drmtol" : 0.1,
-                                     "mintol" : 1e-4},
-                 commonConfig = {"base" : 'MySource',
-                                 "eventclass" : 2,
-                                 "binned" : False,
-                                 "irfs" : "P7REP_SOURCE_V15",
-                                 "verbosity" : 4}):
+                 curveConfig = dC.defaultCurveConfig,
+                 analysisConfig = dC.defaultAnalysisConfig,
+                 likelihoodConfig = dC.defaultLikelihoodConfig,
+                 commonConfig = dC.defaultCommonConfig):
         
         commonConfig['base'] = base
         
