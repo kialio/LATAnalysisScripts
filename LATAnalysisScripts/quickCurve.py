@@ -308,7 +308,7 @@ class quickCurve:
         return [ obs, like ]
 
     def loadBinnedObs(self, f):
-      
+
         self.logger.info('Loading binned observation: {}'.format(f['smaps']))
         obs = BA.BinnedObs(srcMaps=f['smaps'], expCube=f['ecube'],
                                        binnedExpMap=f['bemap'], irfs=f['irfs'])
@@ -316,7 +316,7 @@ class quickCurve:
                                              optimizer=self.optimizer)
         return [ obs, like ]
 
-    def loadObs(self, f, verbosity=0):
+    def loadObs(self, f):
         if f['analysis'] == 'unbinned':
             return self.loadUnbinnedObs(f)
         elif f['analysis'] == 'binned':
@@ -348,7 +348,7 @@ class quickCurve:
             lc['e_max'] = emax;
 
             if type(f) != list:
-                [ obs, like ] = self.loadObs(f,verbosity)
+                [ obs, like ] = self.loadObs(f)
                 lc['t_min'] = obs.roiCuts().minTime()
                 lc['t_max'] = obs.roiCuts().maxTime()
                 if (emin == 0 or emax == 0):
@@ -360,7 +360,7 @@ class quickCurve:
                 lc['t_max'] = None
                 like = SL.SummedLikelihood(self.optimizer)
                 for ff in f:
-                    [ obs, like1 ] = self.loadObs(ff,verbosity)
+                    [ obs, like1 ] = self.loadObs(ff)
                     tmin = obs.roiCuts().minTime()
                     tmax = obs.roiCuts().maxTime()
                     if lc['t_min'] == None or tmin<lc['t_min']:
