@@ -382,8 +382,7 @@ class quickCurve:
 
             like.tol = like.tol*0.01;
 
-            if verbosity > 1:
-                print '- Time:',lc['t_min'],'to',lc['t_max']
+            self.logger.info('- Time: {} to {}'.format(lc['t_min'],lc['t_max']))
 
             src = like[self.likelihoodConf['sourcename']]
             if src == None:
@@ -411,12 +410,10 @@ class quickCurve:
             lc['original']['nfree'] = len(like.freePars(self.likelihoodConf['sourcename']))
             lc['original']['flux'] = like[self.likelihoodConf['sourcename']].flux(emin, emax)
             lc['original']['logL'] = like.logLike.value()
-            if verbosity > 1:
-                print '- Original log Like:',lc['original']['logL']
+            self.logger.info('- Original log Like: {}'.format(lc['original']['logL']))
 
             if fix_shape:
-                if verbosity > 1:
-                    print '- Fixing spectral shape parameters'
+                self.logger.info('- Fixing spectral shape parameters')
                 sync_name = ""
                 for p in like.params():
                     if sync_name != "" and sync_name != p.srcName:
@@ -424,8 +421,7 @@ class quickCurve:
                         sync_name = ""
                     if(p.isFree() and p.srcName!=self.likelihoodConf['sourcename'] and
                        p.getName()!=like.normPar(p.srcName).getName()):
-                        if verbosity > 2:
-                            print '-- '+p.srcName+'.'+p.getName()
+                        self.logger.debug('-- {}.{}'.format(p.srcName,p.getName()))
                         p.setFree(False)
                         sync_name = p.srcName
                 if sync_name != "" and sync_name != p.srcName:
@@ -434,23 +430,20 @@ class quickCurve:
 
            # ----------------------------- FIT 1 -----------------------------
 
-            if verbosity > 1:
-                print '- Fit 1 - All parameters of',self.likelihoodConf['sourcename'],'fixed'
+            self.logger.info('- Fit 1 - All parameters of {} fixed'.format(self.likelihoodConf['sourcename']))
             like.fit(max(verbosity-3, 0))
 
             lc['allfixed'] = dict()
             lc['allfixed']['logL'] = like.logLike.value()
             fitstat = like.optObject.getRetCode()
-            if verbosity > 1 and fitstat != 0:
-                print "- Fit 1 - Minimizer returned with code: ", fitstat
+            if fitstat != 0:
+                self.logger.warn("- Fit 1 - Minimizer returned with code: {}".format(fitstat))
             lc['allfixed']['fitstat'] = fitstat
-            if verbosity > 1:
-                print '- Fit 1 - log Like:',lc['allfixed']['logL']
+            self.logger.info('- Fit 1 - log Like: {}'.format(lc['allfixed']['logL']))
 
             if delete_below_ts:
                 frozensrc = []
-                if verbosity > 1:
-                    print '- Deleting point sources with TS<'+str(delete_below_ts)
+                self.logger.info('- Deleting point sources with TS<{}'.format(delete_below_ts))
                 deletesrc = []
                 for s in like.sourceNames():
                     freepars = like.freePars(s)
@@ -459,24 +452,20 @@ class quickCurve:
                         ts = like.Ts(s)
                         if ts<delete_below_ts:
                             deletesrc.append(s)
-                            if verbosity > 2:
-                                print '--',s,'(TS='+str(ts)+')'
+                            self.logger.info('-- {} (TS={})'.format(s,ts))
                 if deletesrc:
                     for s in deletesrc:
                         like.deleteSource(s)
-                    if verbosity > 1:
-                        print '- Fit 1 - refitting model'
+                    self.logger.info('- Fit 1 - refitting model')
                     like.fit(max(verbosity-3, 0))
                     lc['allfixed']['fitstat_initial'] = \
                         lc['allfixed']['fitstat']
                     fitstat = like.optObject.getRetCode()
-                    if verbosity > 1 and fitstat != 0:
-                        print "- Fit 1 - Minimizer returned with code: ",\
-                            fitstat
+                    if fitstat != 0:
+                      self.logger.warn("- Fit 1 - Minimizer returned with code: {}".format(fitstat))
                     lc['allfixed']['fitstat'] = fitstat
                     lc['allfixed']['logL'] = like.logLike.value()
-                    if verbosity > 1:
-                        print '- Fit 1 - log Like:',lc['allfixed']['logL']
+                    self.logger.info('- Fit 1 - log Like: {}'.format(lc['allfixed']['logL']))
 
 
             lc['allfixed']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
@@ -500,9 +489,7 @@ class quickCurve:
             lc['profile']['flux'] = []
             lc['profile']['fitstat'] = []
 
-            if verbosity > 1:
-                print '- Fit 1 - generating %d point likelihood profile'%\
-                      len(prof_sigma)
+            self.logger.info('- Fit 1 - generating %d point likelihood profile' % len(prof_sigma))
             for sigma in prof_sigma:
                 val = sigma*meanerror+meanvalue
                 if val < srcnormpar.getBounds()[0]:
@@ -520,41 +507,37 @@ class quickCurve:
                     like.syncSrcParams(self.likelihoodConf['sourcename'])
                     like.fit(max(verbosity-3, 0))
                     fitstat = like.optObject.getRetCode()
-                    if verbosity > 2 and fitstat != 0:
-                        print "- Fit 1 - profile: Minimizer returned code: ",\
-                            fitstat
+                    if fitstat != 0:
+                      self.logger.warn("- Fit 1 - profile: Minimizer returned code: {}".format(fitstat))
                     lc['profile']['fitstat'].append(fitstat)
                     lc['profile']['logL'].append(like.logLike.value())
                     lc['profile']['flux'].append(like[self.likelihoodConf['sourcename']].\
                                               flux(emin, emax))
-                if verbosity > 2:
-                    print '- Fit 1 - profile: %+g, %f -> %f'%\
+                self.logger.info('- Fit 1 - profile: %+g, %f -> %f'%\
                           (sigma,lc['profile']['value'][-1],
-                           lc['profile']['logL'][-1]-lc['allfixed']['logL'])
+                           lc['profile']['logL'][-1]-lc['allfixed']['logL']))
 
             srcnormpar.setValue(meanvalue)
             like.syncSrcParams(self.likelihoodConf['sourcename'])
 
             # ----------------------------- FIT 2 -----------------------------
 
-            if verbosity > 1:
-                print '- Fit 2 - Normalization parameter of',\
-                      self.likelihoodConf['sourcename'],'free'
+            self.logger.info('- Fit 2 - Normalization parameter of {} free'.format(
+                              self.likelihoodConf['sourcename']))
             srcnormpar.setFree(1)
             like.syncSrcParams(self.likelihoodConf['sourcename'])
             like.fit(max(verbosity-3, 0))
             lc['normfree'] = dict()
             fitstat = like.optObject.getRetCode()
-            if verbosity > 1 and fitstat != 0:
-                print "- Fit 2 - Minimizer returned with code: ", fitstat
+            if fitstat != 0:
+              self.logger.warn("- Fit 2 - Minimizer returned with code: {}".format(fitstat))
             lc['normfree']['fitstat'] = fitstat
             lc['normfree']['logL'] = like.logLike.value()
             lc['normfree']['ts'] = like.Ts(self.likelihoodConf['sourcename'])
             lc['normfree']['flux_dflux'] = \
                 srcnormpar.getValue()/srcnormpar.error()
-            if verbosity > 1:
-                print '- Fit 2 - log Like:',lc['normfree']['logL'],\
-                      '(TS='+str(lc['normfree']['ts'])+')'
+            self.logger.info('- Fit 2 - log Like: {} (TS={})'.format(lc['normfree']['logL'],
+                                                                     lc['normfree']['ts']))
 
             lc['normfree']['nfree']=len(like.freePars(self.likelihoodConf['sourcename']))
             lc['normfree']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
@@ -592,21 +575,19 @@ class quickCurve:
 
             # ----------------------------- FIT 3 -----------------------------
 
-            if verbosity > 1:
-                print '- Fit 3 - All parameters of',self.likelihoodConf['sourcename'],'free'
+            self.logger.info('- Fit 3 - All parameters of {} free'.format(self.likelihoodConf['sourcename']))
             like.setFreeFlag(self.likelihoodConf['sourcename'], srcfreepar, 1)
             like.syncSrcParams(self.likelihoodConf['sourcename'])
             like.fit(max(verbosity-3, 0))
             lc['allfree'] = dict()
             fitstat = like.optObject.getRetCode()
-            if verbosity > 1 and fitstat != 0:
-                print "- Fit 3 - Minimizer returned with code: ", fitstat
+            if fitstat != 0:
+              self.logger.warn("- Fit 3 - Minimizer returned with code: {}".format(fitstat))
             lc['allfree']['fitstat'] = fitstat
             lc['allfree']['logL'] = like.logLike.value()
             lc['allfree']['ts'] = like.Ts(self.likelihoodConf['sourcename'])
-            if verbosity > 1:
-                print '- Fit 3 - log Like:',lc['allfree']['logL'],\
-                      '(TS='+str(lc['allfree']['ts'])+')'
+            self.logger.info('- Fit 3 - log Like: {}, (TS={})'.format(lc['allfree']['logL'],
+                                                                      lc['allfree']['ts']))
             lc['allfree']['nfree']=len(like.freePars(self.likelihoodConf['sourcename']))
             lc['allfree']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
             pars = dict()
