@@ -329,7 +329,7 @@ class quickLike:
                     self.logger.info("Trying alternate fit algorithm (MINUIT)")
                     self.initAltFit()
                     self.ALTFIT.fit(verbosity=int(self.commonConf['verbosity']),covar=True,optObject=self.ALTFITobj)
-                    print self.ALTFITobj.getQuality()
+                    self.logger.info("Fit quality: {}".format(self.ALTFITobj.getQuality())
                     if(self.ALTFITobj.getQuality() < 3):
                         self.logger.error("Alternative fit algorithm failed, bailing")
                         self.logger.error(self.decodeRetCode('Minuit',self.ALTFITobj.getRetCode()))

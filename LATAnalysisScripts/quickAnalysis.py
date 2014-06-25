@@ -41,6 +41,8 @@ import sys
 import os
 from gt_apps import filter, maketime, expMap, expCube, evtbin, srcMaps
 import quickUtils as qU
+from LATAnalysisScripts.Logger import Logger
+from LATAnalysisScripts.Logger import logLevel as ll
 
 class quickAnalysis:
 
@@ -83,13 +85,13 @@ class quickAnalysis:
                                  "binned" : False,
                                  "eventclass" : 2,
                                  "irfs" : "P7REP_SOURCE_V15",
-                                 "verbosity" : 0,
+                                 "verbosity" : 4,
                                  "multicore": 0}):
 
         commonConfig['base'] = base
 
-        self.logger = qU.initLogger(base, 'quickAnalysis')
-        self.logger.info("This is quickAnalysis version {}.".format(__version__))
+        self.logger = Logger(base, self.__class__.__name__,ll(commonConfig['verbosity'])).get()
+        self.logger.info("This is quickLike version {}.".format(__version__))
 
         if(configFile):
             try:
@@ -101,6 +103,10 @@ class quickAnalysis:
                 commonConfig = qU.checkConfig(self.logger,commonConfig,commonConfigRead)
             except(KeyError):
                 sys.exit()
+            #Reset the verboisty from the config file if needed
+            if ll(commonConfig['verbosity']) != self.logger.handlers[1].level:
+                self.logger.info("Resetting the log level on the console to {}.".format(commonConfig['verbosity']))
+                self.logger.handlers[1].setLevel(ll(commonConfig['verbosity']))
             try:
                 analysisConfig = qU.checkConfig(self.logger,analysisConfig,analysisConfigRead)
             except(KeyError):
