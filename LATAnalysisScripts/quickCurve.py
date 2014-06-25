@@ -326,7 +326,7 @@ class quickCurve:
 
     def processAllObs(self, fix_shape=True, delete_below_ts=None,
                       ul_flux_dflux=0, ul_chi2_ts=None, ul_bayes_ts=4.0,
-                      ul_cl=0.95, verbosity=0, emin=0, emax=0,
+                      ul_cl=0.95, emin=0, emax=0,
                       interim_save_filename=None):
 
         self.logger.info("Processing all observations.")
@@ -431,7 +431,7 @@ class quickCurve:
            # ----------------------------- FIT 1 -----------------------------
 
             self.logger.info('- Fit 1 - All parameters of {} fixed'.format(self.likelihoodConf['sourcename']))
-            like.fit(max(verbosity-3, 0))
+            like.fit(max(int(self.commonConf['verbosity'])-3, 0))
 
             lc['allfixed'] = dict()
             lc['allfixed']['logL'] = like.logLike.value()
@@ -457,7 +457,7 @@ class quickCurve:
                     for s in deletesrc:
                         like.deleteSource(s)
                     self.logger.info('- Fit 1 - refitting model')
-                    like.fit(max(verbosity-3, 0))
+                    like.fit(max(int(self.commonConf['verbosity'])-3, 0))
                     lc['allfixed']['fitstat_initial'] = \
                         lc['allfixed']['fitstat']
                     fitstat = like.optObject.getRetCode()
@@ -505,7 +505,7 @@ class quickCurve:
                 else:
                     srcnormpar.setValue(val)
                     like.syncSrcParams(self.likelihoodConf['sourcename'])
-                    like.fit(max(verbosity-3, 0))
+                    like.fit(max(int(self.commonConf['verbosity'])-3, 0))
                     fitstat = like.optObject.getRetCode()
                     if fitstat != 0:
                       self.logger.warn("- Fit 1 - profile: Minimizer returned code: {}".format(fitstat))
@@ -526,7 +526,7 @@ class quickCurve:
                               self.likelihoodConf['sourcename']))
             srcnormpar.setFree(1)
             like.syncSrcParams(self.likelihoodConf['sourcename'])
-            like.fit(max(verbosity-3, 0))
+            like.fit(max(int(self.commonConf['verbosity'])-3, 0))
             lc['normfree'] = dict()
             fitstat = like.optObject.getRetCode()
             if fitstat != 0:
@@ -556,7 +556,7 @@ class quickCurve:
                 [ul_flux, ul_results] = \
                     IUL.calc_int(like,self.likelihoodConf['sourcename'],cl=ul_cl,
                                                 skip_global_opt=True,
-                                                verbosity = max(verbosity-2,0),
+                                                verbosity = max(int(self.commonConf['verbosity'])-2,0),
                                                 emin=emin, emax=emax,
                                             poi_values = lc['profile']['value'])
             elif ( ul_flux_dflux != None and \
@@ -566,7 +566,7 @@ class quickCurve:
                 [ul_flux, ul_results] = \
                     IUL.calc_chi2(like,self.likelihoodConf['sourcename'],cl=ul_cl,
                                                  skip_global_opt=True,
-                                                 verbosity = max(verbosity-2,0),
+                                                 verbosity = max(int(self.commonConf['verbosity'])-2,0),
                                                  emin=emin, emax=emax)
             if ul_type != None:
                 lc['normfree']['ul'] = dict(flux    = ul_flux,
@@ -578,7 +578,7 @@ class quickCurve:
             self.logger.info('- Fit 3 - All parameters of {} free'.format(self.likelihoodConf['sourcename']))
             like.setFreeFlag(self.likelihoodConf['sourcename'], srcfreepar, 1)
             like.syncSrcParams(self.likelihoodConf['sourcename'])
-            like.fit(max(verbosity-3, 0))
+            like.fit(max(int(self.commonConf['verbosity'])-3, 0))
             lc['allfree'] = dict()
             fitstat = like.optObject.getRetCode()
             if fitstat != 0:
@@ -969,8 +969,7 @@ def cli():
         if(qC.curveConf['ulbayes']<0): 
             qC.curveConf['ulbayes']=None
             qC.logger.info("Baysian upper limit disabled.")
-        qC.processAllObs(verbosity=int(qC.commonConf['verbosity']), 
-                         delete_below_ts=float(qC.curveConf['tsmin']),
+        qC.processAllObs(delete_below_ts=float(qC.curveConf['tsmin']),
                          ul_chi2_ts=float(qC.curveConf['ulchi2']), 
                          ul_flux_dflux = float(qC.curveConf['ulfluxdf']),
                          ul_bayes_ts=float(qC.curveConf['ulbayes']), 
