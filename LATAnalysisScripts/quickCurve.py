@@ -80,6 +80,7 @@ def runAnalysisStepMP(bininfo):
     analysisConf = bininfo[3]
     curveConf = bininfo[4]
     verbosity = bininfo[5]
+    name = bininfo[6]
 
     #Have to do this all again here for MP
     import logging
@@ -96,7 +97,7 @@ def runAnalysisStepMP(bininfo):
 
     logger.info('Processing from {} to {} (bin {})'.format(tmin,tmax,bin))
 
-    dir = "quickCurve_"+ str(curveConf['tstep']) + "_bin" + str(bin) 
+    dir = name + "_quickCurve_"+ str(curveConf['tstep']) + "_bin" + str(bin) 
 
     if not os.path.isdir(dir):
         os.mkdir(dir)
@@ -837,7 +838,8 @@ class quickCurve:
                        [self.commonConf for bin in bins],
                        [self.analysisConf for bin in bins],
                        [self.curveConf for bin in bins],
-                       [ll(self.commonConf['verbosity']) for bin in bins])
+                       [ll(self.commonConf['verbosity']) for bin in bins],
+                       [self.commonConf['base'] for bin in bins])
 
         if(runAnalysis):
             if int(self.commonConf['multicore']) > 1:
@@ -850,7 +852,7 @@ class quickCurve:
                     runAnalysisStepMP(bininfo)
 
         if(delete):
-            templist = glob.glob("*_bin" + str(binnum) + "*")
+            templist = glob.glob(self.commonConf['base']+"*_bin" + str(binnum) + "*")
             for t in templist:
               self.logger.warning("Removing {}".format(t))
               os.remove(t)  
@@ -984,7 +986,7 @@ def cli():
         overrideConfig(qC.logger,qC.likelihoodConf,argVars)
         overrideConfig(qC.logger,qC.curveConf,argVars)
         
-        dirs = glob.glob('quickCurve_'+str(qC.curveConf['tstep'])+'_bin*')
+        dirs = glob.glob(qC.commonConf['base'] + '_quickCurve_'+str(qC.curveConf['tstep'])+'_bin*')
         if qC.commonConf['binned']:
             analysis = 'binned'
         else:
