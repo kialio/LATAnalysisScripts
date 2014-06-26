@@ -736,8 +736,8 @@ class quickCurve:
         corr_logL = prof_max_logL - allfixed_logL
 
         if(abs(dchi2_normfree-dchi2_normfree_alt) > 0.01):
-            print "Warning: normfree log likelhood calculations differ by more than 0.01"
-            print dchi2_normfree, dchi2_normfree_alt, dchi2_normfree_ul
+            self.logger.warn("Warning: normfree log likelhood calculations differ by more than 0.01")
+            self.logger.warn("{} {} {} ".format(dchi2_normfree, dchi2_normfree_alt, dchi2_normfree_ul)
 
         stats = dict(dchi2_specfree            = dchi2_specfree,
                      dchi2_normfree            = dchi2_normfree,
