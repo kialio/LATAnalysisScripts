@@ -631,12 +631,15 @@ class quickCurve:
     def saveProcessedObs(self,filename):
         file=open(filename,'w')
         pickle.dump(self.lc,file)
+        self.logger.info('Saved fit details to {}'.format(filename))
 
     def loadProcessedObs(self,filename):
+        qU.checkForFiles(self.logger,[filename])
         file=open(filename,'r')
         lcs=pickle.load(file)
         for lc in lcs:
             self.lc.append(lc)
+        self.logger.info('Loaded fit details from {}'.format(filename))
 
     def generateLC(self, verbosity=0):
         # First: calculate logL of fixed flux model at true minimum - hoping
@@ -823,6 +826,7 @@ class quickCurve:
             s += ' %.3f'%(p[-2])
             s += ' %7.2f'%(p[-1])
             print >>file, s
+        self.logger.info('Saved lightcurve results to {}'.format(filename))
 
     def runCurve(self, runAnalysis=True, delete = False):
 
@@ -1009,7 +1013,10 @@ def cli():
                          ul_flux_dflux = float(qC.curveConf['ulfluxdf']),
                          ul_bayes_ts=float(qC.curveConf['ulbayes']), 
                          ul_cl=float(qC.curveConf['ulcl']),
-                         interim_save_filename=qC.curveConf['output'])
+                         interim_save_filename=qC.commonConf['base'] \
+                                              + '_quickCurve_' \
+                                              + str(qC.curveConf['tstep'])\
+                                              + '_lc.pickle')
         return
     elif args.mode == 'summary':
         qC = quickCurve(args.basename, True)
@@ -1017,8 +1024,15 @@ def cli():
         overrideConfig(qC.logger,qC.commonConf,argVars)
         overrideConfig(qC.logger,qC.likelihoodConf,argVars)
         overrideConfig(qC.logger,qC.curveConf,argVars)
-        qC.loadProcessedObs(qC.curveConf['output'])
-        qC.writeLC(qC.curveConf['summary'],verbosity=qC.commonConf['verbosity'])
+        qC.loadProcessedObs(qC.commonConf['base'] \
+                            + '_quickCurve_' \
+                            + str(qC.curveConf['tstep'])\
+                            + '_lc.pickle')
+        qC.writeLC(qC.commonConf['base'] \
+                            + '_quickCurve_' \
+                            + str(qC.curveConf['tstep'])\
+                            + '_lc_summary.dat',
+                    verbosity=qC.commonConf['verbosity'])
                             
 
 if __name__ == '__main__': 
