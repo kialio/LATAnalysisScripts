@@ -490,6 +490,7 @@ class quickCurve:
 
 
             lc['allfixed']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
+            lc['allfixed']['npred']=like[self.likelihoodConf['sourcename']].Npred()
             pars = dict()
             for pn in like[self.likelihoodConf['sourcename']].funcs['Spectrum'].paramNames:
                 p = like[self.likelihoodConf['sourcename']].funcs['Spectrum'].getParam(pn)
@@ -562,6 +563,7 @@ class quickCurve:
 
             lc['normfree']['nfree']=len(like.freePars(self.likelihoodConf['sourcename']))
             lc['normfree']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
+            lc['normfree']['npred']=like[self.likelihoodConf['sourcename']].Npred()
             pars = dict()
             for pn in like[self.likelihoodConf['sourcename']].funcs['Spectrum'].paramNames:
                 p = like[self.likelihoodConf['sourcename']].funcs['Spectrum'].getParam(pn)
@@ -611,6 +613,7 @@ class quickCurve:
                                                                       lc['allfree']['ts']))
             lc['allfree']['nfree']=len(like.freePars(self.likelihoodConf['sourcename']))
             lc['allfree']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
+            lc['allfree']['npred']=like[self.likelihoodConf['sourcename']].Npred()
             pars = dict()
             for pn in like[self.likelihoodConf['sourcename']].funcs['Spectrum'].paramNames:
                 p = like[self.likelihoodConf['sourcename']].funcs['Spectrum'].getParam(pn)
@@ -697,6 +700,7 @@ class quickCurve:
                 val.append(lc['normfree']['flux'])
                 val.append(lc['normfree']['pars'][np]['error']*scale)
             val.append(lc['normfree']['ts'])
+            val.append(lc['normfree']['npred'])
             val.append(lc['allfree']['flux'])
             val.append(lc['allfree']['pars'][np]['error']*scale)
             for p in lc['allfree']['pars']:
@@ -705,6 +709,7 @@ class quickCurve:
                     val.append(lc['allfree']['pars'][p]['value'])
                     val.append(lc['allfree']['pars'][p]['error'])
             val.append(lc['allfree']['ts'])
+            val.append(lc['allfree']['npred'])
 
             allfixed_logL += lc['allfixed']['logL']
             dchi2_specfree += 2*(lc['allfree']['logL']-lc['normfree']['logL'])
@@ -737,7 +742,7 @@ class quickCurve:
 
         if(abs(dchi2_normfree-dchi2_normfree_alt) > 0.01):
             self.logger.warn("Warning: normfree log likelhood calculations differ by more than 0.01")
-            self.logger.warn("{} {} {} ".format(dchi2_normfree, dchi2_normfree_alt, dchi2_normfree_ul)
+            self.logger.warn("{} {} {} ".format(dchi2_normfree, dchi2_normfree_alt, dchi2_normfree_ul))
 
         stats = dict(dchi2_specfree            = dchi2_specfree,
                      dchi2_normfree            = dchi2_normfree,
@@ -799,19 +804,22 @@ class quickCurve:
             print >>file, '%sColumn 3: Fixed spectral shape: Flux [ph/cm^2/s]'%(headstart)
             print >>file, '%sColumn 4: Fixed spectral shape: Error on Flux [ph/cm^2/s]'%(headstart)
             print >>file, '%sColumn 5: Fixed spectral shape: TS'%(headstart)
-            print >>file, '%sColumn 6: Optimized spectral shape: Flux [ph/cm^2/s]'%(headstart)
-            print >>file, '%sColumn 7: Optimized spectral shape: Error on Flux [ph/cm^2/s]'%(headstart)
-            nc=8
+            print >>file, '%sColumn 6: Fixed spectral shape: NPred'%(headstart)  
+            print >>file, '%sColumn 7: Optimized spectral shape: Flux [ph/cm^2/s]'%(headstart)
+            print >>file, '%sColumn 8: Optimized spectral shape: Error on Flux [ph/cm^2/s]'%(headstart)
+            nc=9
             for i in range(1,len(stats['pars'])):
                 pn = stats['pars'][i]
                 print >>file, '%sColumn %d: Optimized spectral shape: %s'%(headstart,nc+i-1,pn)
                 print >>file, '%sColumn %d: Optimized spectral shape: Error on %s'%(headstart,nc+i,pn)
                 nc+=2
             print >>file, '%sColumn %d: Optimized spectral shape: TS'%(headstart,nc+i-1)
+            print >>file, '%sColumn %d: Optimized spectral shape: NPred'%(headstart,nc+i)  
         for p in lc:
-            s = '%.3f %.3f %.3e %.3e %7.2f'%(p[0],p[1],p[2],p[3],p[4])
-            for i in range(5,len(p)-1):
+            s = '%.3f %.3f %.3e %.3e %7.2f %.3f'%(p[0],p[1],p[2],p[3],p[4],p[5])
+            for i in range(6,len(p)-2):
                 s += ' %.3e'%(p[i])
+            s += ' %.3f'%(p[-2])
             s += ' %7.2f'%(p[-1])
             print >>file, s
 
