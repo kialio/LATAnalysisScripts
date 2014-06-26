@@ -641,7 +641,7 @@ class quickCurve:
             self.lc.append(lc)
         self.logger.info('Loaded fit details from {}'.format(filename))
 
-    def generateLC(self, verbosity=0):
+    def generateLC(self):
         # First: calculate logL of fixed flux model at true minimum - hoping
         # it lies somewhere in the profile we computed
         first = True
@@ -659,10 +659,12 @@ class quickCurve:
         prof_max_val = -p[1]/(2*p[0])
         prof_max_logL = p[2]-p[1]*p[1]/(4*p[0])
         if (prof_max_val<min(profile_x)) or (prof_max_val>max(profile_x)):
-            self.logger.warning("Warning: corrected minimum {} is outside profile range [{} to {}]".format(prof_max_val,
-                                                                                                          min(profile_x),
-                                                                                                          max(profile_x)))
-            self.logger.warning("{}, {}".format(profile_x, profile_y))
+            self.logger.warning("Warning: corrected minimum {} is outside ".format(prof_max_val)\
+                              + "profile range [{} to {}]".format(min(profile_x),
+                                                                  max(profile_x)))
+            self.logger.warning("profile x: {}".format(profile_x))
+            self.logger.warning("profile y: {}".format(profile_y))
+
 
         profile_fity = sp.polyval(p,profile_x)
         profile_max_diff = max(map(lambda x,y:abs(x-y),profile_y,profile_fity))
@@ -670,8 +672,9 @@ class quickCurve:
             self.logger.warning("Warning: large difference between profile and fit: {}".format(profile_max_diff))
             self.logger.warning("{},{},{}".format(profile_x, profile_y, profile_fity))
 
-        if verbosity>0:
-            self.logger.info("{},{},{}".format(profile_x, profile_y, profile_fity))
+        self.logger.debug("profile_x: {}".format(profile_x))
+        self.logger.debug("profile_y: {}".format(profile_y))
+        self.logger.debug("profile_fity: {}".format(profile_fity))
 
         # Second: process data for LC, accumulating required values to
         # allow calculation of variability stats
@@ -765,9 +768,9 @@ class quickCurve:
 
     
     def writeLC(self, filename=None, lc=None, stats=None,
-                header=True, headstart='% ', verbosity=0):
+                header=True, headstart='% '):
         if lc == None or stats == None:
-            [lc, stats] = self.generateLC(verbosity=verbosity)
+            [lc, stats] = self.generateLC()
         #file = sys.stdout
         if filename != None:
             file=open(filename,'w')
@@ -1031,8 +1034,7 @@ def cli():
         qC.writeLC(qC.commonConf['base'] \
                             + '_quickCurve_' \
                             + str(qC.curveConf['tstep'])\
-                            + '_lc_summary.dat',
-                    verbosity=qC.commonConf['verbosity'])
+                            + '_lc_summary.dat')
                             
 
 if __name__ == '__main__': 
