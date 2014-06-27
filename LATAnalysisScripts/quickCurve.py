@@ -689,6 +689,7 @@ class quickCurve:
         allfixed_val       = 0
         npar_specfree      = 0
         npar_normfree      = 0
+        npar_spec_normfree = 0
         first = True
 
         for lc in self.lc:
@@ -706,8 +707,15 @@ class quickCurve:
             else:
                 val.append(lc['normfree']['flux'])
                 val.append(lc['normfree']['pars'][np]['error']*scale)
+            for p in lc['normfree']['pars']:
+              if p not in ('Scale','LowerLimit','UpperLimit') and p != np: 
+                if first: 
+                  pars.append(p)
+                  npar_spec_normfree += 1
+                val.append(lc['normfree']['pars'][p]['value'])
             val.append(lc['normfree']['ts'])
             val.append(lc['normfree']['npred'])
+
             val.append(lc['allfree']['flux'])
             val.append(lc['allfree']['pars'][np]['error']*scale)
             for p in lc['allfree']['pars']:
@@ -756,6 +764,7 @@ class quickCurve:
                      dchi2_normfree_ul         = dchi2_normfree_ul,
                      npar_specfree             = npar_specfree,
                      npar_normfree             = npar_normfree,
+                     npar_spec_normfree        = npar_spec_normfree,
                      pars                      = pars,
                      prof_x                    = profile_x,
                      prof_y                    = profile_y,
@@ -810,24 +819,35 @@ class quickCurve:
             print >>file, '%sColumn 2: End of time bin [MJD]'%(headstart)
             print >>file, '%sColumn 3: Fixed spectral shape: Flux [ph/cm^2/s]'%(headstart)
             print >>file, '%sColumn 4: Fixed spectral shape: Error on Flux [ph/cm^2/s]'%(headstart)
-            print >>file, '%sColumn 5: Fixed spectral shape: TS'%(headstart)
-            print >>file, '%sColumn 6: Fixed spectral shape: NPred'%(headstart)  
-            print >>file, '%sColumn 7: Optimized spectral shape: Flux [ph/cm^2/s]'%(headstart)
-            print >>file, '%sColumn 8: Optimized spectral shape: Error on Flux [ph/cm^2/s]'%(headstart)
-            nc=9
-            for i in range(1,len(stats['pars'])):
+            h = '%sTStart TStop FxdFlx FxdFlxErr'%(headstart)
+            nc = 5
+            for i in range(1,stats['npar_spec_normfree']+1):
+              pn = stats['pars'][i]
+              print >>file, '%sColumn %d: Fixed spectral shape: %s'%(headstart,nc+i-1,pn)
+              h += ' Fxd{}'.format(pn) 
+              nc+=1
+            print >>file, '%sColumn %d: Fixed spectral shape: TS'%(headstart,nc+i-1)
+            print >>file, '%sColumn %d: Fixed spectral shape: NPred'%(headstart,nc+i)  
+            print >>file, '%sColumn %d: Optimized spectral shape: Flux [ph/cm^2/s]'%(headstart,nc+i+1)
+            print >>file, '%sColumn %d: Optimized spectral shape: Error on Flux [ph/cm^2/s]'%(headstart, nc+i+2)
+            nc+=3
+            h += ' FxdTS FxdNprd FrFlx FrFlxErr'
+            for i in range(stats['npar_spec_normfree']+1,len(stats['pars'])):
                 pn = stats['pars'][i]
                 print >>file, '%sColumn %d: Optimized spectral shape: %s'%(headstart,nc+i-1,pn)
                 print >>file, '%sColumn %d: Optimized spectral shape: Error on %s'%(headstart,nc+i,pn)
+                h += ' Fr{} Fr{}Err'.format(pn,pn) 
                 nc+=2
             print >>file, '%sColumn %d: Optimized spectral shape: TS'%(headstart,nc+i-1)
             print >>file, '%sColumn %d: Optimized spectral shape: NPred'%(headstart,nc+i)  
+            h += ' FrTS FrNprd'
+            print >>file, h
         for p in lc:
-            s = '%.3f %.3f %.3e %.3e %7.2f %.3f'%(p[0],p[1],p[2],p[3],p[4],p[5])
-            for i in range(6,len(p)-2):
+            s = '%.3f %.3f %.3e %.3e %.3e %.2f %.3f'%(p[0],p[1],p[2],p[3],p[4],p[5],p[6])
+            for i in range(7,len(p)-2):
                 s += ' %.3e'%(p[i])
             s += ' %.3f'%(p[-2])
-            s += ' %7.2f'%(p[-1])
+            s += ' %.2f'%(p[-1])
             print >>file, s
         self.logger.info('Saved lightcurve results to {}'.format(filename))
 
