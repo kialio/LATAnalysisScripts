@@ -715,6 +715,7 @@ class quickCurve:
                 val.append(lc['normfree']['pars'][p]['value'])
             val.append(lc['normfree']['ts'])
             val.append(lc['normfree']['npred'])
+            val.append(lc['normfree']['fitstat'])
 
             val.append(lc['allfree']['flux'])
             val.append(lc['allfree']['pars'][np]['error']*scale)
@@ -725,7 +726,8 @@ class quickCurve:
                     val.append(lc['allfree']['pars'][p]['error'])
             val.append(lc['allfree']['ts'])
             val.append(lc['allfree']['npred'])
-
+            val.append(lc['allfree']['fitstat'])
+        
             allfixed_logL += lc['allfixed']['logL']
             dchi2_specfree += 2*(lc['allfree']['logL']-lc['normfree']['logL'])
             dchi2_normfree_alt += lc['normfree']['logL']
@@ -814,7 +816,6 @@ class quickCurve:
             print >>file, '%sVariable spectrum:     chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
             print >>file, '%sProfile minimum: %f (search range: %f to %f)'%(headstart,stats['prof_max_val'],min(stats['prof_x']),max(stats['prof_x']))
             print >>file, '%sLogL correction: %f (WRT logL @ prescribed val of %g)'%(headstart,stats['prof_corr_logL'],stats['allfixed_val'])
-
             print >>file, '%sColumn 1: Start of time bin [MJD]'%(headstart)
             print >>file, '%sColumn 2: End of time bin [MJD]'%(headstart)
             print >>file, '%sColumn 3: Fixed spectral shape: Flux [ph/cm^2/s]'%(headstart)
@@ -823,31 +824,35 @@ class quickCurve:
             nc = 5
             for i in range(1,stats['npar_spec_normfree']+1):
               pn = stats['pars'][i]
-              print >>file, '%sColumn %d: Fixed spectral shape: %s'%(headstart,nc+i-1,pn)
+              print >>file, '%sColumn %d: Fixed spectral shape: %s'%(headstart,nc,pn)
               h += ' Fxd{}'.format(pn) 
               nc+=1
-            print >>file, '%sColumn %d: Fixed spectral shape: TS'%(headstart,nc+i-1)
-            print >>file, '%sColumn %d: Fixed spectral shape: NPred'%(headstart,nc+i)  
-            print >>file, '%sColumn %d: Optimized spectral shape: Flux [ph/cm^2/s]'%(headstart,nc+i+1)
-            print >>file, '%sColumn %d: Optimized spectral shape: Error on Flux [ph/cm^2/s]'%(headstart, nc+i+2)
-            nc+=3
-            h += ' FxdTS FxdNprd FrFlx FrFlxErr'
+            print >>file, '%sColumn %d: Fixed spectral shape: TS'%(headstart,nc)
+            print >>file, '%sColumn %d: Fixed spectral shape: NPred'%(headstart,nc+1)  
+            print >>file, '%sColumn %d: Fixed spectral shape: FitStat'%(headstart,nc+2)  
+            print >>file, '%sColumn %d: Optimized spectral shape: Flux [ph/cm^2/s]'%(headstart,nc+3)
+            print >>file, '%sColumn %d: Optimized spectral shape: Error on Flux [ph/cm^2/s]'%(headstart, nc+4)
+            nc+=5
+            h += ' FxdTS FxdNprd FxdFitSt FrFlx FrFlxErr'
             for i in range(stats['npar_spec_normfree']+1,len(stats['pars'])):
                 pn = stats['pars'][i]
-                print >>file, '%sColumn %d: Optimized spectral shape: %s'%(headstart,nc+i-1,pn)
-                print >>file, '%sColumn %d: Optimized spectral shape: Error on %s'%(headstart,nc+i,pn)
+                print >>file, '%sColumn %d: Optimized spectral shape: %s'%(headstart,nc,pn)
+                print >>file, '%sColumn %d: Optimized spectral shape: Error on %s'%(headstart,nc+1,pn)
                 h += ' Fr{} Fr{}Err'.format(pn,pn) 
                 nc+=2
-            print >>file, '%sColumn %d: Optimized spectral shape: TS'%(headstart,nc+i-1)
-            print >>file, '%sColumn %d: Optimized spectral shape: NPred'%(headstart,nc+i)  
-            h += ' FrTS FrNprd'
+            print >>file, '%sColumn %d: Optimized spectral shape: TS'%(headstart,nc)
+            print >>file, '%sColumn %d: Optimized spectral shape: NPred'%(headstart,nc+1)
+            print >>file, '%sColumn %d: Optimized spectral shape: FitStat'%(headstart,nc+2)  
+            h += ' FrTS FrNprd FrFitSt'
             print >>file, h
         for p in lc:
-            s = '%.3f %.3f %.3e %.3e %.3e %.2f %.3f'%(p[0],p[1],p[2],p[3],p[4],p[5],p[6])
-            for i in range(7,len(p)-2):
-                s += ' %.3e'%(p[i])
-            s += ' %.3f'%(p[-2])
-            s += ' %.2f'%(p[-1])
+            s = '%.3f %.3f %.3e %.3e'%(p[0],p[1],p[2],p[3])
+            for i in range(4,4 + stats['npar_spec_normfree']):
+              s += ' %.3f'%(p[i])
+            s += ' %.3f %.3f %d %.3e %.3e'%(p[i+1],p[i+2],p[i+3],p[i+4],p[i+5])
+            for j in range(i+6,len(p)-3):
+              s += ' %.3f'%(p[j])
+            s += ' %.3f %.3f %d'%(p[-3],p[-2],p[-1])
             print >>file, s
         self.logger.info('Saved lightcurve results to {}'.format(filename))
 
