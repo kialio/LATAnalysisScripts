@@ -78,8 +78,6 @@ class quickAnalysis:
             commonConfig.setdefault(k, dC.defaultCommonConfig[k])
         for k in dC.defaultAnalysisConfig:
             analysisConfig.setdefault(k, dC.defaultAnalysisConfig[k])
-        self.commonConf = commonConfig
-        self.analysisConf = analysisConfig
 
         self.logger = Logger(base, self.__class__.__name__,ll(commonConfig['verbosity'])).get()
         self.logger.info("This is quickLike version {}.".format(__version__))
@@ -102,6 +100,9 @@ class quickAnalysis:
                 analysisConfig = qU.checkConfig(self.logger,analysisConfig,analysisConfigRead)
             except(KeyError):
                 sys.exit()
+        
+        self.commonConf = commonConfig
+        self.analysisConf = analysisConfig
         
         logString = "Created quickAnalysis object: "
         for variable, value in commonConfig.iteritems():
