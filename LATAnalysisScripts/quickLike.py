@@ -460,7 +460,7 @@ class quickLike:
         print self.ul[source].results
         self.logger.info(source+" UL: "+str(self.ul[source].results[0]))
 
-    def removeWeak(self,mySource = '',tslimit=0,distlimit=0,RemoveFree=False,RemoveFixed=False,recalc=True):
+    def removeWeak(self,mySource = '',tslimit=0,npredlimit=0,distlimit=0,RemoveFree=False,RemoveFixed=False,recalc=True):
 
         """This function has two main uses: it will print out details
         on all of the sources in your model and it will remove sources
@@ -512,9 +512,10 @@ class quickLike:
         if(recalc):
             self.sourceDetails = {}
 
-            self.logger.info("Calculating TS values for all sources.  This could take a bit.")
+            self.logger.info("Calculating TS/NPred values for all sources.  This could take a bit.")
             for name in self.MIN.sourceNames():
                 sourceTS = self.MIN.Ts(name)
+                sourceNPred = self.MIN.NpredValue(name)
                 if(self.MIN.model[name].src.getType() == 'Point'):
                     distance = self.MIN._separation(self.MIN.model[mySource].src,self.MIN.model[name].src)
                 if(np.shape(self.MIN.freePars(name))[0] > 0):
@@ -522,7 +523,8 @@ class quickLike:
                 else:
                     free = False
                 
-                self.sourceDetails[name] = {'TS' : sourceTS, 
+                self.sourceDetails[name] = {'TS' : sourceTS,
+                                            'NPred' : sourceNPred, 
                                             'dist' : distance,
                                             'free' : free}
 
@@ -533,10 +535,14 @@ class quickLike:
                 indexFree = "Free"
                 if( (details['TS'] < tslimit) and (details['dist'] > distlimit) and RemoveFree ):
                     remove = True
+                if( (details['NPred'] < npredlimit) and (details['dist'] > distlimit) and RemoveFree ):
+                    remove = True    
             else:
                 indexFree = "Fixed"
                 if( (details['TS'] < tslimit) and (details['dist'] > distlimit) and RemoveFixed ):
                     remove = True
+                if( (details['NPred'] < npredlimit) and (details['dist'] > distlimit) and RemoveFree ):
+                    remove = True    
             logString =  "{}, TS: {}, Frozen?: {}, Distance: {}".format(source,details['TS'],indexFree,details['dist'])
             if( remove ):
                 self.logger.info("Removing " + logString)
