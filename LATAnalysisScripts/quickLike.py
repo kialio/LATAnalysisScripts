@@ -120,6 +120,7 @@ class quickLike:
         
         self.ret = re.compile('\n')
         self.fitbit = False
+        self._init_psf()
         self.Print()
         
     def writeConfig(self):
@@ -675,6 +676,16 @@ class quickLike:
         self.logger.info('Saved 2D Model as {}_2DModel.png.'.format(self.commonConf['base']))
         Plot2DModel(self.MIN,filename="{}_2DModel.png".format(self.commonConf['base']))
 
+    def plotSigMaps(self):
+
+        if hasattr(self,'sigmaMap'):
+            from LATAnalysisScripts.quickPlot2 import PlotSigMaps
+            self.logger.info('Saved Significance Plots as {}_SigMaps.png.'.format(self.commonConf['base']))
+            PlotSigMaps(self,filename="{}_SigMaps.png".format(self.commonConf['base']))
+        else:
+            self.logger.error('You need to run calcSigMaps first.')
+
+
     def decodeRetCode(self, optimizer, retCode):
 
         """Decodes the return codes from the Minuit and New Minuit fit
@@ -722,6 +733,79 @@ class quickLike:
                 failure = "Full accurate covariance matrix (After MIGRAD, this is the indication of normal convergence.)"
 
             return failure
+
+    def _init_psf(self):
+
+        '''Eventually, should caulculate the PSF for the IRFs used.'''
+
+        from scipy import interpolate
+
+        psf_data = np.array([[29.378069628779578, 11.974138435550062],
+            [53.123991394359386, 7.957256520655659],
+            [93.21305548209773, 5.218638956603347],
+            [168.5559881858929, 3.333502332614621],
+            [295.7537313410467, 2.073929041512339],
+            [524.1755314484437, 1.3074112382033989],
+            [947.8599776522383, 0.8027497013599825],
+            [1679.9281120535993, 0.5127712463425323],
+            [2977.4001732388747, 0.3452772300468028],
+            [5383.995040496365, 0.2549696862936114],
+            [9542.258178354516, 0.19331232401691525],
+            [16575.885731063016, 0.15655123158441375],
+            [29973.964322973727, 0.13364545640595094],
+            [53660.061093243254, 0.1234818289581322],
+            [95103.75714811166, 0.12512043461577865],
+            [166872.09599510877, 0.13016787553232645],
+            [304797.6595808452, 0.13903680232834606]])
+
+        self.psf = interpolate.interp1d(psf_data[:,0],psf_data[:,1])
+
+
+    def calcSigMaps(self, ccube, modelcube, save=False):
+
+        from quickUtils import poisson_lnl,smooth
+        import pyfits
+
+        ccube_hdu = pyfits.open(ccube)
+        model_hdu = pyfits.open(modelcube)
+
+        modelSmoothed = np.zeros_like(model_hdu[0].data,dtype=np.float32)
+        countSmoothed = np.zeros_like(model_hdu[0].data,dtype=np.float32)
+        tsSmoothed = np.zeros_like(model_hdu[0].data,dtype=np.float32)
+        residSmoothed = np.zeros_like(model_hdu[0].data,dtype=np.float32)
+        sigmaSmoothed = np.zeros_like(model_hdu[0].data,dtype=np.float32)
+
+        for Ebin,Emin in enumerate(ccube_hdu[1].data['E_MIN']):
+            Emax = ccube_hdu[1].data['E_MAX'][Ebin]
+            psf = self.psf(Emin/1000.)
+            if psf > 0.5:
+                print "Setting Smoothing to 0.5 Degree."
+                psf = 0.5
+            deg_per_pix = 0.1
+    
+            modelSmoothed[Ebin],var = smooth(model_hdu[0].data[Ebin],psf,deg_per_pix, summed=True)
+            countSmoothed[Ebin],var = smooth(ccube_hdu[0].data[Ebin].astype(np.float32),psf, deg_per_pix, summed=True)
+            tsSmoothed[Ebin] = 2.0*(poisson_lnl(countSmoothed[Ebin],countSmoothed[Ebin]) - 
+                poisson_lnl(countSmoothed[Ebin],modelSmoothed[Ebin]))
+            residSmoothed[Ebin] = countSmoothed[Ebin] - modelSmoothed[Ebin]
+            sigmaSmoothed[Ebin] = np.sqrt(tsSmoothed[Ebin])
+            sigmaSmoothed[Ebin][residSmoothed[Ebin]<0.] *= -1.
+
+        psf = 0.2
+        deg_per_pix = 0.1
+        modelFullSmoothed,var = smooth(np.sum(model_hdu[0].data,axis=0),psf,deg_per_pix, summed=True)
+        countFullSmoothed,var = smooth(np.sum(ccube_hdu[0].data.astype(np.float32),axis=0),psf,deg_per_pix, summed=True)
+
+        tsFullSmoothed = 2.0*(poisson_lnl(countFullSmoothed,countFullSmoothed) - 
+            poisson_lnl(countFullSmoothed,modelFullSmoothed))
+        residFullSmoothed = countFullSmoothed - modelFullSmoothed
+        sigmaFullSmoothed = np.sqrt(tsFullSmoothed)
+        sigmaFullSmoothed[residFullSmoothed<0.] *= -1.
+
+        self.sigmaMaps = sigmaSmoothed
+        self.sigmaMap = sigmaFullSmoothed
+        self.energyBins = ccube_hdu[1].data
+
 
 def printCLIHelp():
     """This function prints out the help for the CLI."""

@@ -56,3 +56,36 @@ def Plot2DModel(like,filename='2DModel.png'):
     
     plt.savefig(filename)
     plt.show()
+
+def PlotSigMaps(quickLikeObj,filename="SigMaps.png"):
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    fig, axs = plt.subplots(nrows=15, ncols=4,figsize=(20,60))
+    for idx,ax in enumerate(axs):
+        for offset in [0,1]:    
+            Ebin = idx*2 + offset
+            Emax = quickLikeObj.energyBins['E_MAX'][Ebin]
+            Emin = quickLikeObj.energyBins['E_MIN'][Ebin]
+            psf = quickLikeObj.psf(Emin/1000.)
+            if psf > 0.5:
+                psf = 0.5
+            deg_per_pix = 0.1
+    
+            column = offset*2
+        
+            im = ax[column].imshow(quickLikeObj.sigmaMaps[Ebin],vmin=-5,vmax=5,interpolation='none')    
+            ax[column].contour(quickLikeObj.sigmaMaps[Ebin],[5],colors=('w'))
+            ax[column].set_title('E = {:.2f} - {:.2f} MeV'.format(Emin/1000.,Emax/1000.))
+            h = ax[column+1].hist(quickLikeObj.sigmaMaps[Ebin].flatten(),bins=np.linspace(-5,5,30))
+            ax[column+1].set_title('Smoothing = {:.2f} Deg.'.format(float(psf)))
+            ax[column+1].set_xlim([-6,6])
+            x0, x1 = ax[column+1].get_xlim()
+            y0, y1 = ax[column+1].get_ylim()
+            ax[column+1].set_aspect((x1-x0)/(y1-y0))
+    
+    cax = fig.add_axes([0.1, 0.05, 0.8, 0.01])
+    fig.colorbar(im, cax=cax, orientation='horizontal')
+    plt.savefig(filename)
+    plt.show()

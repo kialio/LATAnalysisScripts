@@ -319,6 +319,68 @@ def runCMAP(quickLogger,
     
         runCommand(evtbin,quickLogger,run)
 
+def smooth(im,psf,deg_per_pix,compute_var=False,summed=False):
+    
+    '''Smooth a 2-d array with a gaussian kernel.
+   
+    im: 2-d numpy array
+    sigma: width of the gaussian in degrees
+    deg_per_pix: pixel size in degrees
+    
+    Function taken from M. Wood's gammatools: 
+    (https://github.com/woodmd/gammatools).    
+    '''
+    sigma = psf / deg_per_pix
+            
+    from scipy import ndimage
+
+    # Construct a kernel
+    nk =41
+    fn = lambda t, s: 1./(2*np.pi*s**2)*np.exp(-t**2/(s**2*2.0))
+    b = np.abs(np.linspace(0,nk-1,nk) - (nk-1)/2.)
+    k = np.zeros((nk,nk)) + np.sqrt(b[np.newaxis,:]**2 +
+                                        b[:,np.newaxis]**2)
+    k = fn(k,sigma)
+    k /= np.sum(k)
+
+    im = ndimage.convolve(im,k,mode='nearest')
+
+    if compute_var:
+        var = ndimage.convolve(im, k**2, mode='wrap')
+    else:
+        var = np.zeros(im.shape)
+            
+    if summed: im /= np.sum(k**2)
+            
+    return im,var
+
+
+def poisson_lnl(nc,mu):
+    """Log-likelihood function for a poisson distribution with nc
+    observed counts and expectation value mu.  Note that this function
+    can accept arguments with different lengths along each dimension
+    and will apply the standard numpy broadcasting rules during
+    evaluation.
+    
+    Function taken from M. Wood's gammatools: 
+    (https://github.com/woodmd/gammatools).
+    """
+
+    nc = np.array(nc,ndmin=1)
+    mu = np.array(mu,ndmin=1)
+
+    shape = max(nc.shape,mu.shape)
+
+    lnl = np.zeros(shape)
+    mu = mu*np.ones(shape)
+    nc = nc*np.ones(shape)
+
+    msk = nc>0
+
+    lnl[msk] = nc[msk]*np.log(mu[msk])-mu[msk]
+    lnl[~msk] = -mu[~msk]
+    return lnl
+
 class quickMath:
 
     '''This class is used in the quickCurve script and are various
