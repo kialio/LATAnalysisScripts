@@ -879,7 +879,7 @@ class quickCurve:
                 pool = Pool(processes = int(self.commonConf['multicore']))
                 pool.map(runAnalysisStepMP,binsinfo)
             else:
-                self.logget.info("Spawning {} jobs.".format(len(bins)))
+                self.logger.info("Spawning {} jobs.".format(len(bins)))
                 for bininfo in binsinfo:
                     runAnalysisStepMP(bininfo)
 
