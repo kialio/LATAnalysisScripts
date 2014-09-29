@@ -39,7 +39,7 @@ __version__ = LAS.__version__
 
 import sys
 import os
-from gt_apps import filter, maketime, expMap, expCube, evtbin, srcMaps
+from gt_apps import filter, maketime, expMap, expCube, evtbin, srcMaps, gtexpcube2
 import quickUtils as qU
 
 from LATAnalysisScripts import defaultConfig as dC
@@ -217,7 +217,7 @@ class quickAnalysis:
         else:
             qU.runCommand(expMap,self.logger,run)
 
-    def runCCUBE(self, run=True,nbins=30):
+    def runCCUBE(self, run=True,nbins=30, **kwargs):
 
         """Generates a counts cube.  The dimensions of which are the
         largest square subtended by the ROI.  Note that if the ROI is
@@ -251,6 +251,10 @@ class quickAnalysis:
         evtbin['enumbins'] = nbins
         evtbin['scfile'] = self.commonConf['base']+"_SC.fits"
 
+	#Override settings above with kwargs if they exist
+	for name, value in kwargs.items():
+		evtbin[name] = value
+
         qU.runCommand(evtbin,self.logger,run)
 
     def runCMAP(self, run=True):
@@ -270,7 +274,7 @@ class quickAnalysis:
                    self.analysisConf['nxpix'],
                    self.analysisConf['nypix'])
 
-    def runExpCube(self,run=True,nbins=30, ExpBuffer=30):
+    def runExpCube(self,run=True,nbins=30, ExpBuffer=30, **kwargs):
 
         """Generates a binned exposure map that is 30 degrees larger
         than the ROI.  The binned exposure map needs to take into
@@ -282,7 +286,31 @@ class quickAnalysis:
         nbins variable."""
 
         npix = qU.NumberOfPixels(float(self.analysisConf['rad'])+ExpBuffer, float(self.analysisConf['binsize']))
+	
+	gtexpcube2['infile'] = self.commonConf['base']+"_ltcube.fits"
+	gtexpcube2['cmap'] = "none"
+	gtexpcube2['outfile'] = self.commonConf['base']+"_BinnedExpMap.fits"
+	gtexpcube2['irfs'] = self.commonConf['irfs']
+	gtexpcube2['xref'] = str(self.analysisConf['ra'])
+	gtexpcube2['yref'] = str(self.analysisConf['dec'])
+	gtexpcube2['nxpix'] = str(npix)
+	gtexpcube2['nypix'] = str(npix)
+	gtexpcube2['binsz'] = str(self.analysisConf['binsize'])
+	gtexpcube2['coordsys'] = "CEL"
+	gtexpcube2['axisrot'] = 0
+	gtexpcube2['proj'] = "AIT"
+	gtexpcube2['ebinalg'] = "LOG"
+	gtexpcube2['emin'] = str(self.analysisConf['emin'])
+	gtexpcube2['emax'] = str(self.analysisConf['emax'])
+	gtexpcube2['enumbins'] = str(nbins)
 
+	#Override settings above with kwargs if they exist
+	for name, value in kwargs.items():
+		gtexpcube2[name] = value
+	
+	qU.runCommand(gtexpcube2, self.logger, run)
+	
+	"""
         cmd = "gtexpcube2 infile="+self.commonConf['base']+"_ltcube.fits"\
             +" cmap=none"\
             +" outfile="+self.commonConf['base']+"_BinnedExpMap.fits"\
@@ -304,7 +332,7 @@ class quickAnalysis:
             os.system(cmd)
             self.logger.info(cmd)
         else:
-            print cmd
+            print cmd"""
 
     def generateXMLmodel(self):
         
@@ -321,13 +349,16 @@ class quickAnalysis:
             self.logger.critical("One or more needed files do not exist")
             exit()
 
-    def runSrcMaps(self, run=True):
+    def runSrcMaps(self, run=True, makeModel=True, **kwargs):
 
         """Generates a source map for your region.  Checks to make
         sure that there's an XML model to be had and if not, creates
         one from the 2FGL."""
 
-        self.generateXMLmodel()
+	if makeModel:
+		self.generateXMLmodel()
+	"""
+	# This clashes with quickCurve. If you want this functionality back, put it in runAll() and the cli
 
         try:
             qU.checkForFiles(self.logger,[self.commonConf['base']+"_CCUBE.fits",
@@ -336,7 +367,7 @@ class quickAnalysis:
                                        self.commonConf['base']+"_SC.fits",])
         except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")
-            sys.exit()
+            sys.exit()"""
 
         srcMaps['scfile'] = self.commonConf['base']+"_SC.fits"
         srcMaps['expcube'] = self.commonConf['base']+"_ltcube.fits"
@@ -347,6 +378,10 @@ class quickAnalysis:
         srcMaps['irfs'] = self.commonConf['irfs']
         srcMaps['rfactor'] = 4
         srcMaps['emapbnds'] = "yes"
+
+	#Override settings from kwargs if they exist
+	for name, value in kwargs.items():
+		srcMaps[name] = value
 
         qU.runCommand(srcMaps,self.logger,run)
 

@@ -117,7 +117,7 @@ def runAnalysisStepMP(bininfo):
                       "ltzmax" : analysisConf["ltzmax"]}
     commonConfig = {"base" : commonConf["base"],
                     "eventclass" : commonConf["eventclass"],
-                    "binned" : False,
+                    "binned" : commonConf["binned"],
                     "irfs" : commonConf["irfs"],
                     "verbosity" : 2,
                     "multicore" : 0}
@@ -134,15 +134,37 @@ def runAnalysisStepMP(bininfo):
     qA_bin.runGTI(True, 
                   evfile=dir + "/" + commonConf['base']+'_filtered.fits',
                   outfile=dir + "/" + commonConf['base']+'_filtered_gti.fits')
-    logger.debug("Calculating livetime for bin {}".format(bin))
-    qA_bin.runLTCube(True,
-                     evfile = dir + "/" + commonConf['base']+'_filtered_gti.fits',
-                     outfile = dir + "/" + commonConf['base']+'_ltcube.fits')
-    logger.debug("Making exposure map for bin {}".format(bin))
-    qA_bin.runExpMap(True,
-                     evfile = dir + "/" + commonConf['base']+'_filtered_gti.fits',
-                     expcube = dir + "/" + commonConf['base']+'_ltcube.fits',
-                     outfile = dir + "/" + commonConf['base']+'_expMap.fits')
+
+    if commonConfig["binned"]:
+	    logger.debug("Calculating 3D Counts Map for bin {}".format(bin))
+	    qA_bin.runCCUBE(True,
+			    evfile=dir + "/" + commonConf['base'] + '_filtered_gti.fits',
+			    outfile=dir + "/" + commonConf['base'] + '_CCUBE.fits')
+	    logger.debug("Calculating livetime cube for bin {}".format(bin))
+	    qA_bin.runLTCube(True,
+			    evfile=dir + "/" + commonConf['base'] + '_filtered_gti.fits',
+			    outfile=dir + "/" + commonConf['base'] + '_ltcube.fits')
+	    logger.debug("Calculating binned exposure map for bin {}".format(bin))
+	    qA_bin.runExpCube(True,
+			    infile = dir + "/" + commonConf['base'] + '_ltcube.fits',
+			    outfile = dir + "/" + commonConf['base'] + '_BinnedExpMap.fits')
+	    logger.debug("Calculating source maps for bin {}".format(bin))
+	    qA_bin.runSrcMaps(True, makeModel=False,
+			    expcube = dir + "/" + commonConf['base'] + '_ltcube.fits',
+			    cmap = dir + "/" + commonConf['base'] + '_CCUBE.fits',
+			    srcmdl = curveConf['model'],
+			    bexpmap = dir + "/" + commonConf['base'] + '_BinnedExpMap.fits',
+			    outfile = dir + "/" + commonConf['base'] + '_srcMaps.fits')
+    else:
+	    logger.debug("Calculating livetime for bin {}".format(bin))
+	    qA_bin.runLTCube(True,
+        	             evfile = dir + "/" + commonConf['base']+'_filtered_gti.fits',
+                	     outfile = dir + "/" + commonConf['base']+'_ltcube.fits')
+	    logger.debug("Making exposure map for bin {}".format(bin))
+	    qA_bin.runExpMap(True,
+        	             evfile = dir + "/" + commonConf['base']+'_filtered_gti.fits',
+                	     expcube = dir + "/" + commonConf['base']+'_ltcube.fits',
+	                     outfile = dir + "/" + commonConf['base']+'_expMap.fits')
 
     logger.info("Finished with bin {}".format(bin))
 
