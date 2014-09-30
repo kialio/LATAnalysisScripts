@@ -147,13 +147,13 @@ def runAnalysisStepMP(bininfo):
 	    logger.debug("Calculating binned exposure map for bin {}".format(bin))
 	    qA_bin.runExpCube(True,
 			    infile = dir + "/" + commonConf['base'] + '_ltcube.fits',
-			    outfile = dir + "/" + commonConf['base'] + '_BinnedExpMap.fits')
+			    outfile = dir + "/" + commonConf['base'] + '_binExpMap.fits')
 	    logger.debug("Calculating source maps for bin {}".format(bin))
 	    qA_bin.runSrcMaps(True, makeModel=False,
 			    expcube = dir + "/" + commonConf['base'] + '_ltcube.fits',
 			    cmap = dir + "/" + commonConf['base'] + '_CCUBE.fits',
 			    srcmdl = curveConf['model'],
-			    bexpmap = dir + "/" + commonConf['base'] + '_BinnedExpMap.fits',
+			    bexpmap = dir + "/" + commonConf['base'] + '_binExpMap.fits',
 			    outfile = dir + "/" + commonConf['base'] + '_srcMaps.fits')
     else:
 	    logger.debug("Calculating livetime for bin {}".format(bin))
@@ -331,7 +331,7 @@ class quickCurve:
             raise IOError('Binned ExpMap not found: '+bemap);
         if not os.path.isfile(ecube):
             raise IOError('ExpCube not found: '+ecube);
-        obsfiles = dict(analysis  = 'unbinned',
+        obsfiles = dict(analysis  = 'binned',
                         smaps     = smaps,
                         bemap     = bemap,
                         ecube     = ecube,
