@@ -1051,7 +1051,8 @@ def cli():
             qC.globStandardObsDir(d, 
                                   nbin=int(qC.curveConf['rebin']), 
                                   analysis=analysis,
-                                  sliding_window = qC.curveConf['sliding'])
+                                  sliding_window = qC.curveConf['sliding'],
+				  irfs=commonConf['irfs'])
         if(qC.curveConf['ulchi2']<0): 
             qC.curveConf['ulchi2']=None
             qC.logger.info("Profile likelihood upper limit disabled.")
