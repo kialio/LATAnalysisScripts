@@ -1052,7 +1052,7 @@ def cli():
                                   nbin=int(qC.curveConf['rebin']), 
                                   analysis=analysis,
                                   sliding_window = qC.curveConf['sliding'],
-				  irfs=commonConf['irfs'])
+				  irfs=qC.commonConf['irfs'])
         if(qC.curveConf['ulchi2']<0): 
             qC.curveConf['ulchi2']=None
             qC.logger.info("Profile likelihood upper limit disabled.")
