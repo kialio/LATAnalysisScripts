@@ -510,10 +510,9 @@ class quickCurve:
                     lc['allfixed']['fitstat'] = fitstat
                     lc['allfixed']['logL'] = like.logLike.value()
                     self.logger.info('- Fit 1 - log Like: {}'.format(lc['allfixed']['logL']))
-
-
+                    
             lc['allfixed']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
-            lc['allfixed']['npred']=like[self.likelihoodConf['sourcename']].Npred()
+            lc['allfixed']['npred']=like.NpredValue(self.likelihoodConf['sourcename'])
             pars = dict()
             for pn in like[self.likelihoodConf['sourcename']].funcs['Spectrum'].paramNames:
                 p = like[self.likelihoodConf['sourcename']].funcs['Spectrum'].getParam(pn)
@@ -586,7 +585,7 @@ class quickCurve:
 
             lc['normfree']['nfree']=len(like.freePars(self.likelihoodConf['sourcename']))
             lc['normfree']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
-            lc['normfree']['npred']=like[self.likelihoodConf['sourcename']].Npred()
+            lc['normfree']['npred']=like.NpredValue(self.likelihoodConf['sourcename'])
             pars = dict()
             for pn in like[self.likelihoodConf['sourcename']].funcs['Spectrum'].paramNames:
                 p = like[self.likelihoodConf['sourcename']].funcs['Spectrum'].getParam(pn)
@@ -636,7 +635,7 @@ class quickCurve:
                                                                       lc['allfree']['ts']))
             lc['allfree']['nfree']=len(like.freePars(self.likelihoodConf['sourcename']))
             lc['allfree']['flux']=like[self.likelihoodConf['sourcename']].flux(emin, emax)
-            lc['allfree']['npred']=like[self.likelihoodConf['sourcename']].Npred()
+            lc['allfree']['npred']=like.NpredValue(self.likelihoodConf['sourcename'])
             pars = dict()
             for pn in like[self.likelihoodConf['sourcename']].funcs['Spectrum'].paramNames:
                 p = like[self.likelihoodConf['sourcename']].funcs['Spectrum'].getParam(pn)
