@@ -34,7 +34,8 @@ def Plot2DModel(like,filename='2DModel.png'):
         ax1.loglog(E,like._srcCnts(sourceName),label='{}'.format(sN))
     plt.ylim(ymax = 2*np.max(sum_counts))
     ax1.loglog(E,sum_counts,label='Total Model')
-    ax1.errorbar(E,like._Nobs(),yerr=np.sqrt(like._Nobs()), fmt='o',label='Counts')
+    #ax1.errorbar(E,like._Nobs(),yerr=np.sqrt(like._Nobs()), fmt='o',label='Counts')
+    ax1.errorbar(E,like.nobs,yerr=np.sqrt(like.nobs), fmt='o',label='Counts')
     if len(like.sourceNames()) > 16:
         font_size = 6
     else:
@@ -44,8 +45,10 @@ def Plot2DModel(like,filename='2DModel.png'):
     plt.tick_params(axis='x',labelbottom='off')
     
     
-    resid = (like._Nobs() - sum_counts)/sum_counts
-    resid_err = (np.sqrt(like._Nobs())/sum_counts)
+    #resid = (like._Nobs() - sum_counts)/sum_counts
+    #resid_err = (np.sqrt(like._Nobs())/sum_counts)
+    resid = (like.nobs - sum_counts)/sum_counts
+    resid_err = (np.sqrt(like.nobs)/sum_counts)
 
     ax2 = plt.subplot(gs[2,0:2])
     plt.xscale('log')
@@ -66,8 +69,12 @@ def PlotSigMaps(quickLikeObj,filename="SigMaps.png"):
     for idx,ax in enumerate(axs):
         for offset in [0,1]:    
             Ebin = idx*2 + offset
-            Emax = quickLikeObj.energyBins['E_MAX'][Ebin]
-            Emin = quickLikeObj.energyBins['E_MIN'][Ebin]
+            if hasattr(quickLikeObj, 'energyBins'):
+                Emax = quickLikeObj.energyBins['E_MAX'][Ebin]
+                Emin = quickLikeObj.energyBins['E_MIN'][Ebin]
+            else:
+                Emax = quickLikeObj.energies[1:][Ebin]
+                Emin = quickLikeObj.energies[:-1][Ebin]
             psf = quickLikeObj.psf(Emin/1000.)
             if psf > 0.5:
                 psf = 0.5
