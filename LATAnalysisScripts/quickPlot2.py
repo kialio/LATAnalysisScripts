@@ -60,6 +60,32 @@ def Plot2DModel(like,filename='2DModel.png'):
     plt.savefig(filename)
     plt.show()
 
+def PSF(energy):
+
+    from scipy import interpolate
+
+    psf_data = np.array([[29.378069628779578, 11.974138435550062],
+        [53.123991394359386, 7.957256520655659],
+        [93.21305548209773, 5.218638956603347],
+        [168.5559881858929, 3.333502332614621],
+        [295.7537313410467, 2.073929041512339],
+        [524.1755314484437, 1.3074112382033989],
+        [947.8599776522383, 0.8027497013599825],
+        [1679.9281120535993, 0.5127712463425323],
+        [2977.4001732388747, 0.3452772300468028],
+        [5383.995040496365, 0.2549696862936114],
+        [9542.258178354516, 0.19331232401691525],
+        [16575.885731063016, 0.15655123158441375],
+        [29973.964322973727, 0.13364545640595094],
+        [53660.061093243254, 0.1234818289581322],
+        [95103.75714811166, 0.12512043461577865],
+        [166872.09599510877, 0.13016787553232645],
+        [304797.6595808452, 0.13903680232834606]])
+
+    f = interpolate.interp1d(psf_data[:,0],psf_data[:,1])
+
+    return f(energy)
+
 def PlotSigMaps(quickLikeObj,filename="SigMaps.png"):
 
     import matplotlib.pyplot as plt
@@ -72,10 +98,12 @@ def PlotSigMaps(quickLikeObj,filename="SigMaps.png"):
             if hasattr(quickLikeObj, 'energyBins'):
                 Emax = quickLikeObj.energyBins['E_MAX'][Ebin]
                 Emin = quickLikeObj.energyBins['E_MIN'][Ebin]
+                psf = quickLikeObj.psf(Emin/1000.)    
             else:
                 Emax = quickLikeObj.energies[1:][Ebin]
                 Emin = quickLikeObj.energies[:-1][Ebin]
-            psf = quickLikeObj.psf(Emin/1000.)
+                psf = PSF(Emin/1000.)
+
             if psf > 0.5:
                 psf = 0.5
             deg_per_pix = 0.1

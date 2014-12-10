@@ -761,13 +761,19 @@ class quickLike:
         self.psf = interpolate.interp1d(psf_data[:,0],psf_data[:,1])
 
 
-    def calcSigMaps(self, ccube, modelcube, save=False):
+    def calcSigMaps(self, save=False):
 
         from quickUtils import poisson_lnl,smooth
         import pyfits
 
-        ccube_hdu = pyfits.open(ccube)
-        model_hdu = pyfits.open(modelcube)
+        try:
+            qU.checkForFiles(self.logger,[self.commonConf['base']+'_CCUBE.fits',self.commonConf['base']+'_ModelCube.fits'])
+            ccube_hdu = pyfits.open("{}_CCUBE.fits".format(self.commonConf['base']))
+            model_hdu = pyfits.open("{}_ModelCube.fits".format(self.commonConf['base']))
+            
+        except(qU.FileNotFound):
+            self.logger.critical("One or more needed files do not exist")
+            sys.exit()
 
         modelSmoothed = np.zeros_like(model_hdu[0].data,dtype=np.float32)
         countSmoothed = np.zeros_like(model_hdu[0].data,dtype=np.float32)
