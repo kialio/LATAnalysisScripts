@@ -249,48 +249,11 @@ def runCommand(AppCommand,quickLogger,run=True,printCmd=False):
         quickLogger.info(AppCommand.command())
             
 
-
-def runModelCube(quickLogger,
-         base,
-             modelFile="",
-         irfs="P7REP_SOURCE_V15",
-             run=True):
-    
-    """Generates a model map.  You need to have already run
-    the general quickAnlysis tool and then fit your model with 
-    quickLike so that all of the needed files exsist."""
-    
-    if(modelFile):
-        model = modelFile
-    else:
-        model = base+"_likeMinuit.xml"
-
-
-    try:
-        checkForFiles(quickLogger,
-                      [base+"_srcMaps.fits",
-                       model,
-                       base+"_ltcube.fits",
-                       base+"_BinnedExpMap.fits"])
-    except(FileNotFound):
-        quickLogger.critical("One or more needed files do not exist.")
-        return
-
-    model_map['srcmaps'] = base+"_srcMaps.fits"
-    model_map['srcmdl']  = model
-    model_map['outfile'] = base+"_modelCube.fits"
-    model_map['expcube'] = base+"_ltcube.fits"
-    model_map['irfs']    = irfs
-    model_map['bexpmap'] = base+"_BinnedExpMap.fits"
-    model_map['outtype'] = "ccube"
-
-    runCommand(model_map,quickLogger,run)
-
-
 def runModelMap(quickLogger,
 	     base,
          modelFile='',
 	     irfs="P7REP_SOURCE_V15",
+         ccube=False,
          run=True):
 	
     """Generates a model map.  You need to have already run
@@ -319,7 +282,10 @@ def runModelMap(quickLogger,
     model_map['expcube'] = base+"_ltcube.fits"
     model_map['irfs']    = irfs
     model_map['bexpmap'] = base+"_BinnedExpMap.fits"
-    model_map['outtype'] = 'cmap'
+    if ccube:
+        model_map['outtype'] = 'ccube'
+    else:
+        model_map['outtype'] = 'cmap'  
   
     runCommand(model_map,quickLogger,run)
 
