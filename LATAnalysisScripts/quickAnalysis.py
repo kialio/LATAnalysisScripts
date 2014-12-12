@@ -385,11 +385,18 @@ class quickAnalysis:
 
         qU.runCommand(srcMaps,self.logger,run)
 
-    def runModel(self, run=True):
+    def runModelMap(self, run=True):
 
         """Wrapper for the same function in quickUtils"""
 
-        qU.runModel(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
+        qU.runModelMap(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
+
+
+    def runModelCube(self, run=True):
+
+        """Wrapper for the same function in quickUtils"""
+
+        qU.runModelCube(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
 
     def runAll(self, run=True):
 
@@ -457,17 +464,22 @@ from within python. For full documentation on this module execute
     diffuse models in your working directory as well as the 2FGL model
     file.
 
-%s (-m|--model) (-n |--basename=)<basename> ... Generate a model map
-    based on the model file in your config file.  You need to have
-    several files already computed.  It's best to do the runAll script
-    before trying this.
-
 %s (-c|--cmap) (-n |--basename=)<basename> {(-b |--binsize=)<binsz>} ...
     Generate a counts map for the specific analysis defined by
     <basename>.  You must have generated several files already.  It's
     best to do the runAll script (or execute this script without any
     options) first.  You can give it a bin size (in deg/bin) if you
     want.
+
+%s (--modelmap) (-n |--basename=)<basename> ... Generate a model map
+    based on the model file in your config file.  You need to have
+    several files already computed.  It's best to do the runAll script
+    before trying this.
+
+%s (--modelcube) (-n |--basename=)<basename> ... Generate a model cube
+    based on the model file in your config file.  You need to have
+    several files already computed.  It's best to do the runAll script
+    before trying this.
 
 %s --filter (-n | --basename=)<basename> ... Generated a file that has
     been event and GTI selected.
@@ -484,7 +496,7 @@ from within python. For full documentation on this module execute
     exposure map for your analysis.  You need to have already produced
     several other files.
 
-""" %(__version__,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd)
+""" %(__version__,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd,cmd)
 
 # Command-line interface             
 def cli():
@@ -492,13 +504,14 @@ def cli():
     import getopt
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hiamxcb:n:', ['help',
+        opts, args = getopt.getopt(sys.argv[1:], 'haixbc:n:', ['help',
                                                                 'analyze',
                                                                 'initialize',
                                                                 'ccube',
                                                                 'cmap',
                                                                 'sourcemap',
                                                                 'modelmap',
+                                                                'modelcube',
                                                                 'ccube',
                                                                 'bexpmap',
                                                                 'filter',
@@ -527,11 +540,17 @@ def cli():
                 qA = quickAnalysis(basename)
                 qA.writeConfig()
                 return
-            elif opt in ('-m','--modelmap'):
+            elif opt in ('--modelmap'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
                 print "Creating model map"
                 qA = quickAnalysis(basename, True)
-                qU.runModel(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
+                qU.runModelMap(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
+                return
+            elif opt in ('--modelcube'):
+                if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
+                print "Creating model cube"
+                qA = quickAnalysis(basename, True)
+                qU.runModelCube(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
                 return
             elif opt in ('--sourcemap'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")

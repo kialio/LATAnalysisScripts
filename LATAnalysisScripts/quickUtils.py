@@ -287,7 +287,6 @@ def runModelCube(quickLogger,
     runCommand(model_map,quickLogger,run)
 
 
-
 def runModelMap(quickLogger,
 	     base,
              modelFile="",
