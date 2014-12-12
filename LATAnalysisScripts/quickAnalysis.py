@@ -471,10 +471,11 @@ from within python. For full documentation on this module execute
     options) first.  You can give it a bin size (in deg/bin) if you
     want.
 
-%s (--modelmap) (-n |--basename=)<basename> ... Generate a model map
-    based on the model file in your config file.  You need to have
-    several files already computed.  It's best to do the runAll script
-    before trying this.
+%s (--modelmap) (-n |--basename=)<basename> {(-m <xml file>} ...
+Generate a model map based on the model file in your config file. You
+need to have several files already computed.  It's best to do the
+runAll script before trying this.  You can optionally pass an xml file
+name to use a different xml file.
 
 %s (--modelcube) (-n |--basename=)<basename> ... Generate a model cube
     based on the model file in your config file.  You need to have
@@ -504,7 +505,7 @@ def cli():
     import getopt
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'haixbc:n:', ['help',
+        opts, args = getopt.getopt(sys.argv[1:], 'haixbcm:n:', ['help',
                                                                 'analyze',
                                                                 'initialize',
                                                                 'ccube',
@@ -544,7 +545,12 @@ def cli():
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
                 print "Creating model map"
                 qA = quickAnalysis(basename, True)
-                qU.runModelMap(qA.logger,qA.commonConf['base'],'',False,qA.commonConf['irfs'])
+                for option,value in opts:
+                    if option in ('-m'):
+                        modelFile = value
+                    else:
+                        modelFile = ''
+                qU.runModelMap(qA.logger,qA.commonConf['base'],modelFile,False,qA.commonConf['irfs'])
                 return
             elif opt in ('--modelcube'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
