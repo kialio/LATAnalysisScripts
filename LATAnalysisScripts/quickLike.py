@@ -676,6 +676,17 @@ class quickLike:
         self.logger.info('Saved 2D Model as {}_2DModel.png.'.format(self.commonConf['base']))
         Plot2DModel(self.MIN,filename="{}_2DModel.png".format(self.commonConf['base']))
 
+
+    def plotSigMap(self):
+
+        if hasattr(self,'sigmaMap'):
+            from LATAnalysisScripts.quickPlot2 import PlotSigMap
+            self.logger.info('Saved Significance Plots as {}_SigMap.png.'.format(self.commonConf['base']))
+            PlotSigMap(self,filename="{}_SigMap.png".format(self.commonConf['base']))
+        else:
+            self.logger.error('You need to run calcSigMaps first.')
+
+
     def plotSigMaps(self):
 
         if hasattr(self,'sigmaMap'):
