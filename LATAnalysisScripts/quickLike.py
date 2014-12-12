@@ -685,7 +685,6 @@ class quickLike:
         else:
             self.logger.error('You need to run calcSigMaps first.')
 
-
     def decodeRetCode(self, optimizer, retCode):
 
         """Decodes the return codes from the Minuit and New Minuit fit
@@ -767,9 +766,9 @@ class quickLike:
         import pyfits
 
         try:
-            qU.checkForFiles(self.logger,[self.commonConf['base']+'_CCUBE.fits',self.commonConf['base']+'_ModelCube.fits'])
+            qU.checkForFiles(self.logger,[self.commonConf['base']+'_CCUBE.fits',self.commonConf['base']+'_modelCube.fits'])
             ccube_hdu = pyfits.open("{}_CCUBE.fits".format(self.commonConf['base']))
-            model_hdu = pyfits.open("{}_ModelCube.fits".format(self.commonConf['base']))
+            model_hdu = pyfits.open("{}_modelCube.fits".format(self.commonConf['base']))
             
         except(qU.FileNotFound):
             self.logger.critical("One or more needed files do not exist")

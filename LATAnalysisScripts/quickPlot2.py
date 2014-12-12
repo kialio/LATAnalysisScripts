@@ -60,6 +60,13 @@ def Plot2DModel(like,filename='2DModel.png'):
     plt.savefig(filename)
     plt.show()
 
+def PlotSigMap(quickLikeObj,filename="SigMap.png"):
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    
+
 def PlotSigMaps(quickLikeObj,filename="SigMaps.png"):
 
     import matplotlib.pyplot as plt
