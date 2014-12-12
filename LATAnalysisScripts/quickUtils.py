@@ -289,15 +289,15 @@ def runModelCube(quickLogger,
 
 def runModelMap(quickLogger,
 	     base,
-             modelFile="",
+         modelFile='',
 	     irfs="P7REP_SOURCE_V15",
-             run=True):
+         run=True):
 	
     """Generates a model map.  You need to have already run
     the general quickAnlysis tool and then fit your model with 
     quickLike so that all of the needed files exsist."""
     
-    if(modelFile):
+    if(modelFile != ''):
         model = modelFile
     else:
         model = base+"_likeMinuit.xml"

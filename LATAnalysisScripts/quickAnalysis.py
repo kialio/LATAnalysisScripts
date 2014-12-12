@@ -389,14 +389,14 @@ class quickAnalysis:
 
         """Wrapper for the same function in quickUtils"""
 
-        qU.runModelMap(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
+        qU.runModelMap(self.logger,self.commonConf['base'],'',self.commonConf['irfs'],run)
 
 
     def runModelCube(self, run=True):
 
         """Wrapper for the same function in quickUtils"""
 
-        qU.runModelCube(self.logger,self.commonConf['base'],self.commonConf['irfs'],run)
+        qU.runModelCube(self.logger,self.commonConf['base'],'',self.commonConf['irfs'],run)
 
     def runAll(self, run=True):
 
@@ -544,13 +544,13 @@ def cli():
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
                 print "Creating model map"
                 qA = quickAnalysis(basename, True)
-                qU.runModelMap(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
+                qU.runModelMap(qA.logger,qA.commonConf['base'],'',qA.commonConf['irfs'])
                 return
             elif opt in ('--modelcube'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
                 print "Creating model cube"
                 qA = quickAnalysis(basename, True)
-                qU.runModelCube(qA.logger,qA.commonConf['base'],qA.commonConf['irfs'])
+                qU.runModelCube(qA.logger,qA.commonConf['base'],'',qA.commonConf['irfs'])
                 return
             elif opt in ('--sourcemap'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
