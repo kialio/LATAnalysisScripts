@@ -65,7 +65,21 @@ def PlotSigMap(quickLikeObj,filename="SigMap.png"):
     import matplotlib.pyplot as plt
     import numpy as np
 
-    
+    fig,axs = plt.subplots(nrows=1,ncols=2,figsize=(20,20))
+
+    im = axs[0].imshow(quickLikeObj.sigmaMap, vmin=-5, vmax=5,interpolation='none')
+    axs[0].contour(quickLikeObj.sigmaMap,[5],colors=('w'))
+
+    h = axs[1].hist(quickLikeObj.sigmaMap.flatten(),bins=np.linspace(-5,5,30))
+    axs[1].set_xlim([-6,6])
+    x0, x1 = axs[1].get_xlim()
+    y0, y1 = axs[1].get_ylim()
+    axs[1].set_aspect((x1-x0)/(y1-y0))
+
+    cax = fig.add_axes([0.1, 0.26, 0.8, 0.02])
+    fig.colorbar(im, cax=cax, orientation='horizontal')
+    plt.savefig(filename)
+    plt.show()
 
 def PlotSigMaps(quickLikeObj,filename="SigMaps.png"):
 
