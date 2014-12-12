@@ -477,10 +477,11 @@ need to have several files already computed.  It's best to do the
 runAll script before trying this.  You can optionally pass an xml file
 name to use a different xml file.
 
-%s (--modelcube) (-n |--basename=)<basename> ... Generate a model cube
-    based on the model file in your config file.  You need to have
-    several files already computed.  It's best to do the runAll script
-    before trying this.
+%s (--modelcube) (-n |--basename=)<basename> {(-m <xml file>} ...
+Generate a model cube based on the model file in your config file. You
+need to have several files already computed.  It's best to do the
+runAll script before trying this.  You can optionally pass an xml file
+name to use a different xml file.
 
 %s --filter (-n | --basename=)<basename> ... Generated a file that has
     been event and GTI selected.
@@ -550,13 +551,18 @@ def cli():
                         modelFile = value
                     else:
                         modelFile = ''
-                qU.runModelMap(qA.logger,qA.commonConf['base'],modelFile,False,qA.commonConf['irfs'])
+                qU.runModelMap(qA.logger,qA.commonConf['base'],modelFile,qA.commonConf['irfs'],False)
                 return
             elif opt in ('--modelcube'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
                 print "Creating model cube"
                 qA = quickAnalysis(basename, True)
-                qU.runModelCube(qA.logger,qA.commonConf['base'],'',True,qA.commonConf['irfs'])
+                for option,value in opts:
+                    if option in ('-m'):
+                        modelFile = value
+                    else:
+                        modelFile = ''
+                qU.runModelCube(qA.logger,qA.commonConf['base'],modelFile,qA.commonConf['irfs'],True)
                 return
             elif opt in ('--sourcemap'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
