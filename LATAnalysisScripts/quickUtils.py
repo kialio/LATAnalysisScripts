@@ -278,15 +278,17 @@ def runModelMap(quickLogger,
 
     model_map['srcmaps'] = base+"_srcMaps.fits"
     model_map['srcmdl']  = model
-    model_map['outfile'] = base+"_modelMap.fits"
     model_map['expcube'] = base+"_ltcube.fits"
     model_map['irfs']    = irfs
     model_map['bexpmap'] = base+"_BinnedExpMap.fits"
     if ccube:
         model_map['outtype'] = 'ccube'
+        model_map['outfile'] = base+"_modelCube.fits"
     else:
         model_map['outtype'] = 'cmap'  
-  
+        model_map['outfile'] = base+"_modelMap.fits"
+
+
     runCommand(model_map,quickLogger,run)
 
 def runCMAP(quickLogger,
