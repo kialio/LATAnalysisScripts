@@ -562,7 +562,7 @@ def cli():
                         modelFile = value
                     else:
                         modelFile = ''
-                qU.runModelCube(qA.logger,qA.commonConf['base'],modelFile,qA.commonConf['irfs'],True)
+                qU.runModelMap(qA.logger,qA.commonConf['base'],modelFile,qA.commonConf['irfs'],True)
                 return
             elif opt in ('--sourcemap'):
                 if not haveBase: raise getopt.GetoptError("Must specify basename, printing help.")
