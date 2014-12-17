@@ -821,6 +821,8 @@ class quickLike:
         ccube_hdu[0].data = sigmaSmoothed
         ccube_hdu.writeto("{}_SigMaps.fits".format(self.commonConf['base']))
 
+        ccube_hdu[0].data = sigmaFullSmoothed
+        ccube_hdu.writeto("{}_SigMap.fits".format(self.commonConf['base']))
 
         self.sigmaMaps = sigmaSmoothed
         self.sigmaMap = sigmaFullSmoothed
