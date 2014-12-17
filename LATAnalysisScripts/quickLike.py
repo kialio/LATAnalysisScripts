@@ -818,6 +818,10 @@ class quickLike:
         sigmaFullSmoothed = np.sqrt(tsFullSmoothed)
         sigmaFullSmoothed[residFullSmoothed<0.] *= -1.
 
+        ccube_hdu[0].data = sigmaSmoothed
+        ccube_hdu.writeto("{}_SigMaps.fits".format(self.commonConf['base']))
+
+
         self.sigmaMaps = sigmaSmoothed
         self.sigmaMap = sigmaFullSmoothed
         self.energyBins = ccube_hdu[1].data
