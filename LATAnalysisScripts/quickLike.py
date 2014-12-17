@@ -795,7 +795,7 @@ class quickLike:
             Emax = ccube_hdu[1].data['E_MAX'][Ebin]
             psf = self.psf(Emin/1000.)
             if psf > 0.5:
-                print "Setting Smoothing to 0.5 Degree."
+                self.logger.warn("Setting Smoothing to 0.5 Degree.")
                 psf = 0.5
             deg_per_pix = 0.1
     
@@ -818,11 +818,13 @@ class quickLike:
         sigmaFullSmoothed = np.sqrt(tsFullSmoothed)
         sigmaFullSmoothed[residFullSmoothed<0.] *= -1.
 
-        ccube_hdu[0].data = sigmaSmoothed
-        ccube_hdu.writeto("{}_SigMaps.fits".format(self.commonConf['base']))
-
-        ccube_hdu[0].data = sigmaFullSmoothed
-        ccube_hdu.writeto("{}_SigMap.fits".format(self.commonConf['base']))
+        if save:
+            ccube_hdu[0].data = sigmaSmoothed
+            ccube_hdu.writeto("{}_SigMaps.fits".format(self.commonConf['base']), clobber = True)
+            self.logger.info("Wrote {}_SigMaps.fits.".format(self.commonConf['base']))
+            ccube_hdu[0].data = sigmaFullSmoothed
+            ccube_hdu.writeto("{}_SigMap.fits".format(self.commonConf['base']), clobber = True)
+            self.logger.info("Wrote {}_SigMap.fits.".format(self.commonConf['base']))
 
         self.sigmaMaps = sigmaSmoothed
         self.sigmaMap = sigmaFullSmoothed
