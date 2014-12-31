@@ -122,7 +122,21 @@ class quickLike:
         self.fitbit = False
         self._init_psf()
         self.Print()
-        
+
+    def __saveModel__(self):
+
+        """Private function that stores the current model into a
+        dictionary.  Used when restoring a value to its default."""
+
+        self.oldmdl = {}
+        for src in self.MIN.sourceNames():
+            parNames = pyLike.StringVector()
+            self.MIN[src].src.spectrum().getParamNames(parNames)
+            spec = {}
+            for par in parNames:
+                spec[par] = self.MIN.model[src].funcs['Spectrum'].getParam(par).value()
+                self.oldmdl[src] = spec
+
     def writeConfig(self):
 
         """Writes all of the initialization variables to the config
@@ -277,6 +291,7 @@ class quickLike:
             else:
                 self.MINobj = pyLike.Minuit(self.MIN.logLike)    
             self.pristine = LikelihoodState(self.MIN)
+            self.__saveModel__()
             self.logger.info(self.ret.subn(', ',str(self.MIN))[0])
             if(useEdisp):
                 self.MIN.logLike.set_edisp_flag(useEdisp)
@@ -543,7 +558,7 @@ class quickLike:
                 if( (details['TS'] < tslimit) and (details['dist'] > distlimit) and RemoveFixed ):
                     remove = True
                 if( (details['NPred'] < npredlimit) and (details['dist'] > distlimit) and RemoveFixed ):
-                    remove = True    
+                    remove = True   
             logString =  "{}, TS: {:.2f}, NPred: {:.2f}, Frozen?: {}, Distance: {}".format(source,details['TS'],
                                                                                     details['NPred'],
                                                                                     indexFree,
@@ -832,6 +847,18 @@ class quickLike:
         self.sigmaMaps = sigmaSmoothed
         self.sigmaMap = sigmaFullSmoothed
         self.energyBins = ccube_hdu[1].data
+
+    def restoreParam(self,source, param, setFree=True):
+
+        """This function restores a paramter to its initial value.
+        You can optionally set it to fixed (or free)."""
+
+        oldvalue = self.MIN.model[source].funcs['Spectrum'].getParam(param).value()
+        newvalue = self.oldmdl[source][param]
+
+        self.MIN.model[source].funcs['Spectrum'].setParam(param,newvalue)
+        self.logger.info('Reset the {} of {} from {} to {}.'.format(param,source,oldvalue,newvalue))
+        self.MIN.model[source].funcs['Spectrum'].getParam(param).setFree(setFree)
 
 
 def printCLIHelp():
