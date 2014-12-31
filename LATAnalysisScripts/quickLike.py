@@ -544,7 +544,7 @@ class quickLike:
                     remove = True
                 if( (details['NPred'] < npredlimit) and (details['dist'] > distlimit) and RemoveFixed ):
                     remove = True    
-            logString =  "{}, TS: {}, NPred: {}, Frozen?: {}, Distance: {}".format(source,details['TS'],
+            logString =  "{}, TS: {:.2f}, NPred: {:.2f}, Frozen?: {}, Distance: {}".format(source,details['TS'],
                                                                                     details['NPred'],
                                                                                     indexFree,
                                                                                     details['dist'])
