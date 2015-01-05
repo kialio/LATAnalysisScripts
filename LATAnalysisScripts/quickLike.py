@@ -285,11 +285,11 @@ class quickLike:
                 self.MIN = BAn.BinnedAnalysis(self.obs,model,optimizer=opt)
             else:
                 self.MIN = UbAn.UnbinnedAnalysis(self.obs,model,optimizer=opt)
-            self.MIN.tol = float(self.likelihoodConf['mintol'])
-            if(new):
-                self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
-            else:
-                self.MINobj = pyLike.Minuit(self.MIN.logLike)    
+            self.MIN.tol = float(self.likelihoodConf['mintol'])            
+            #if(new):
+            #    self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
+            #else:
+            #    self.MINobj = pyLike.Minuit(self.MIN.logLike)    
             self.pristine = LikelihoodState(self.MIN)
             self.__saveModel__()
             self.logger.info(self.ret.subn(', ',str(self.MIN))[0])
@@ -374,6 +374,8 @@ class quickLike:
             self.logger.critical("MIN object does not exist.  Create it first with the initMIN function.")
             return
 
+        self.MINobj = pyLike.NewMinuit(self.MIN.logLike)
+        
         if(isinstance(self.MINobj,pyLike.Minuit)):
             opt = 'Minuit'
         else:
