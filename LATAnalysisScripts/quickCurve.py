@@ -815,7 +815,11 @@ class quickCurve:
             except ValueError:
                 self.logger.warning("Chi^2 Probability of Variable Flux (no UL) not well defined.  Setting to 0.")
                 prob = 0.
-            sigma = sqrt(MyMath.chi2invc(prob,1))
+            try:
+                sigma = sqrt(MyMath.chi2invc(prob,1))
+            except RuntimeError:
+                self.logger.warning("Significance for Variable Flux (no UL) not well defined.  Setting to 0.")
+                sigma = 0
             print >>file, '%sVariable flux (no UL): chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
             chi2 = stats['dchi2_normfree_ul']
             ndof = stats['npar_normfree']
@@ -824,16 +828,24 @@ class quickCurve:
             except ValueError:
                 self.logger.warning("Chi^2 Probability of Variable Flux (w/UL) not well defined.  Setting to 0.")
                 prob = 0.
-            sigma = sqrt(MyMath.chi2invc(prob,1))
+            try:
+                sigma = sqrt(MyMath.chi2invc(prob,1))
+            except RuntimeError:
+                self.logger.warning("Significance for Variable Flux (w/UL) not well defined.  Setting to 0.")
+                sigma = 0
             print >>file, '%sVariable flux (w/UL):  chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
             chi2 = stats['dchi2_specfree']
             ndof = stats['npar_specfree']
             try:
                 prob = MyMath.chi2cdfc(chi2,ndof)
             except ValueError:
-                self.logger.critical("Chi^2 Probability not well defined.  Setting to 0.")
+                self.logger.critical("Chi^2 Probability with Variable Index not well defined.  Setting to 0.")
                 prob = 0.
-            sigma = sqrt(MyMath.chi2invc(prob,1))
+            try:
+                sigma = sqrt(MyMath.chi2invc(prob,1))
+            except RuntimeError:
+                self.logger.warning("Significance with Variable Index not well defined.  Setting to 0.")
+                sigma = 0
             print >>file, '%sVariable spectrum:     chi^2=%.3f (%d DOF) - Pr(>X)=%g (~%g sigma)'%(headstart,chi2,ndof,prob,sigma)
             print >>file, '%sProfile minimum: %f (search range: %f to %f)'%(headstart,stats['prof_max_val'],min(stats['prof_x']),max(stats['prof_x']))
             print >>file, '%sLogL correction: %f (WRT logL @ prescribed val of %g)'%(headstart,stats['prof_corr_logL'],stats['allfixed_val'])

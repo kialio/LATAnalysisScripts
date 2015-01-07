@@ -415,7 +415,7 @@ class quickMath:
         for i in range(1,quickMath._def_itmax):
             actr += 1.0
             dsum *= x/actr
-            # print i,dsum,sum,sum+dsum
+            #print i,dsum,sum,sum+dsum
             sum  += dsum
             if math.fabs(dsum) < quickMath._def_reltol*math.fabs(sum):
                 return sum*math.exp(a*math.log(x) - x - math.lgamma(a))
@@ -551,7 +551,7 @@ class quickMath:
             xnext = xtest - (ftest-ffind)/dfdxtest
             if xnext <= 0.0:
                 xnext = 0.5*(xtest+0.0)
-    #        print i, xtest, ftest, dfdxtest, xnext, ffind, math.fabs(xnext-xtest), 10*quickMath._def_reltol*(xnext+xtest)
+            #print i, xtest, ftest, dfdxtest, xnext, ffind, math.fabs(xnext-xtest), 10*quickMath._def_reltol*(xnext+xtest)
             if math.fabs(xnext-xtest) < 0.5*quickMath._def_reltol*(xnext+xtest):
                 return xnext
             xtest = xnext
