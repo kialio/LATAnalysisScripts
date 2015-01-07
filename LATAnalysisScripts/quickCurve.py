@@ -11,7 +11,7 @@ At any time execute
 
 > quickCurve -h 
 
-for help.
+for help
 
 First, generate a default config file
 
@@ -374,7 +374,8 @@ class quickCurve:
                       interim_save_filename=None):
 
         self.logger.info("Processing all observations.")
-        for f in self.obsfiles:
+        for idx,f in enumerate(self.obsfiles):
+            self.logger.info("Working on observation {} of {}.".format(idx+1,len(self.obsfiles)))
             lc = dict()
             lc['config'] = dict()
             lc['config']['fix_shape']       = fix_shape
