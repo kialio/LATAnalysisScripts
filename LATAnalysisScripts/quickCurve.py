@@ -597,14 +597,17 @@ class quickCurve:
             lc['normfree']['pars'] = pars
             ul_type = None
             if ul_bayes_ts != None and lc['normfree']['ts'] < ul_bayes_ts:
-
                 ul_type = 'bayesian'
-                [ul_flux, ul_results] = \
-                    IUL.calc_int(like,self.likelihoodConf['sourcename'],cl=ul_cl,
-                                                skip_global_opt=True,
-                                                verbosity = max(int(self.commonConf['verbosity'])-2,0),
-                                                emin=emin, emax=emax,
-                                            poi_values = lc['profile']['value'])
+                try:
+                    [ul_flux, ul_results] = IUL.calc_int(like,self.likelihoodConf['sourcename'],
+                                                         cl=ul_cl,skip_global_opt=True,
+                                                         verbosity = max(int(self.commonConf['verbosity'])-2,0),
+                                                         emin=emin, emax=emax,
+                                                         poi_values = lc['profile']['value'])
+                except ValueError:
+                    self.logger.warn("Value error calculating Integral UL.  Setting to 0.")
+                    ul_flux = 0.
+                    ul_results = 0.
             elif ( ul_flux_dflux != None and \
                    lc['normfree']['flux_dflux'] < ul_flux_dflux ) or \
                    ( ul_chi2_ts != None and lc['normfree']['ts'] < ul_chi2_ts):
