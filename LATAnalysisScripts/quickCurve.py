@@ -718,11 +718,11 @@ class quickCurve:
         first = True
 
         for lc in self.lc:
-            np=lc['original']['normpar_name']
+            normpar_name=lc['original']['normpar_name']
             if first:
-                pars.append(np)
+                pars.append(normpar_name)
                 allfixed_val = lc['original']['normpar_init_value']
-            scale=lc['normfree']['flux']/lc['normfree']['pars'][np]['value']
+            scale=lc['normfree']['flux']/lc['normfree']['pars'][normpar_name]['value']
             val = []
             val.append(lc['t_min']/86400 + 51910)
             val.append(lc['t_max']/86400 + 51910)
@@ -731,9 +731,9 @@ class quickCurve:
                 val.append(0)
             else:
                 val.append(lc['normfree']['flux'])
-                val.append(lc['normfree']['pars'][np]['error']*scale)
+                val.append(lc['normfree']['pars'][normpar_name]['error']*scale)
             for p in lc['normfree']['pars']:
-              if p not in ('Scale','LowerLimit','UpperLimit') and p != np: 
+              if p not in ('Scale','LowerLimit','UpperLimit') and p != normpar_name: 
                 if first: 
                   pars.append(p)
                   npar_spec_normfree += 1
@@ -743,9 +743,9 @@ class quickCurve:
             val.append(lc['normfree']['fitstat'])
 
             val.append(lc['allfree']['flux'])
-            val.append(lc['allfree']['pars'][np]['error']*scale)
+            val.append(lc['allfree']['pars'][normpar_name]['error']*scale)
             for p in lc['allfree']['pars']:
-                if p != np and lc['allfree']['pars'][p]['free'] == True:
+                if p != normpar_name and lc['allfree']['pars'][p]['free'] == True:
                     if first: pars.append(p)
                     val.append(lc['allfree']['pars'][p]['value'])
                     val.append(lc['allfree']['pars'][p]['error'])
@@ -766,7 +766,11 @@ class quickCurve:
             if (lc['normfree'].has_key('ul') and
                 lc['normfree']['ul']['type'] == 'bayesian'):
                 # Arbitrarily assume a quadratic is an OK fit
-                y = lc['normfree']['ul']['results']['poi_chi2_equiv']
+                try:
+                    y = lc['normfree']['ul']['results']['poi_chi2_equiv']
+                except TypeError:
+                    self.logger.warn("No upper limit for this bin.  Setting to 0.")
+                    y = np.zeros_like(profile_x)
                 p = sp.polyfit(profile_x, y, 2);
                 dchi2_normfree_ul += sp.polyval(p, prof_max_val)
             else:
