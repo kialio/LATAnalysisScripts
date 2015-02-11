@@ -861,7 +861,7 @@ class quickCurve:
             print >>file, '%sColumn 2: End of time bin [MJD]'%(headstart)
             print >>file, '%sColumn 3: Fixed spectral shape: Flux [ph/cm^2/s]'%(headstart)
             print >>file, '%sColumn 4: Fixed spectral shape: Error on Flux [ph/cm^2/s]'%(headstart)
-            h = '%sTStart TStop FxdFlx FxdFlxErr'%(headstart)
+            h = 'TStart TStop FxdFlx FxdFlxErr'
             nc = 5
             for i in range(1,stats['npar_spec_normfree']+1):
               pn = stats['pars'][i]
