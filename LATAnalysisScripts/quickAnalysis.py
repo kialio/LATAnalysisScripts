@@ -244,7 +244,7 @@ class quickAnalysis:
         evtbin['xref'] = self.analysisConf['ra']
         evtbin['yref'] = self.analysisConf['dec']
         evtbin['axisrot'] = 0
-        evtbin['proj'] = 'AIT'
+        evtbin['proj'] = self.analysisConf['proj']
         evtbin['ebinalg'] = 'LOG'
         evtbin['emin'] = self.analysisConf['emin']
         evtbin['emax'] = self.analysisConf['emax']
@@ -272,7 +272,8 @@ class quickAnalysis:
                    self.analysisConf['ra'],
                    self.analysisConf['dec'],
                    self.analysisConf['nxpix'],
-                   self.analysisConf['nypix'])
+                   self.analysisConf['nypix'],
+				   self.analysisConf['proj'])
 
     def runExpCube(self,run=True,nbins=30, ExpBuffer=30, **kwargs):
 
@@ -298,7 +299,7 @@ class quickAnalysis:
 	gtexpcube2['binsz'] = str(self.analysisConf['binsize'])
 	gtexpcube2['coordsys'] = "CEL"
 	gtexpcube2['axisrot'] = 0
-	gtexpcube2['proj'] = "AIT"
+	gtexpcube2['proj'] = str(self.analysisConf['proj'])
 	gtexpcube2['ebinalg'] = "LOG"
 	gtexpcube2['emin'] = str(self.analysisConf['emin'])
 	gtexpcube2['emax'] = str(self.analysisConf['emax'])

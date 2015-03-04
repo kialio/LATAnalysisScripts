@@ -128,7 +128,7 @@ def readConfig(quickLogger,basename):
         if(config.has_section('common')):
             quickLogger.info('Reading common variables...')
             commonDictionary = dict(config.items('common'))
-            if( commonDictionary['binned'] in ['True', 'true', '1', 'yes']):
+            if( commonDictionary['binned'] in ['True', 'true', '1', 'yes', 'y']):
                 commonDictionary['binned'] = True
             else:
                 commonDictionary['binned'] = False
@@ -299,6 +299,7 @@ def runCMAP(quickLogger,
             dec,
             nxpix,
             nypix,
+			proj,
             run=True):
             	
         """Generates a counts map.  The dimensions of which are the
@@ -322,7 +323,7 @@ def runCMAP(quickLogger,
         evtbin['xref'] = ra
         evtbin['yref'] = dec
         evtbin['axisrot'] = 0
-        evtbin['proj'] = 'AIT'
+        evtbin['proj'] = proj
     
         runCommand(evtbin,quickLogger,run)
 
