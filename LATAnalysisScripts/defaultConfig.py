@@ -26,7 +26,7 @@ defaultAnalysisConfig = {"ra" : 0,
                          "nxpix" : -1,
                          "nypix" : -1,
                          "filter" : "DATA_QUAL==1 && LAT_CONFIG==1",
-                         "roicut" : "yes"
+                         "roicut" : "yes",
 						 "proj" : "AIT"}
 
 defaultCurveConfig = {'tstart'  : 0,
