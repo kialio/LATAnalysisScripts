@@ -243,8 +243,8 @@ def runCommand(AppCommand,quickLogger,run=True,printCmd=False):
     prints out what the function would run."""
 
     if(run):
-        AppCommand.run(print_command=printCmd)
         quickLogger.info(AppCommand.command())
+        AppCommand.run(print_command=printCmd)
     else:
         quickLogger.info(AppCommand.command())
             
