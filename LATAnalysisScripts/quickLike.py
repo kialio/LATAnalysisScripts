@@ -693,8 +693,8 @@ class quickLike:
             It saves the figure as <basename_2DModel.png>."""
 
         from LATAnalysisScripts.quickPlot2 import Plot2DModel
-        self.logger.info('Saved 2D Model as {}_2DModel.png.'.format(self.commonConf['base']))
         Plot2DModel(self.MIN,filename="{}_2DModel.png".format(self.commonConf['base']))
+        self.logger.info('Saved 2D Model as {}_2DModel.png.'.format(self.commonConf['base']))
 
 
     def plotSigMap(self):
