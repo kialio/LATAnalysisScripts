@@ -701,8 +701,8 @@ class quickLike:
 
         if hasattr(self,'sigmaMap'):
             from LATAnalysisScripts.quickPlot2 import PlotSigMap
-            self.logger.info('Saved Significance Plots as {}_SigMap.png.'.format(self.commonConf['base']))
             PlotSigMap(self,filename="{}_SigMap.png".format(self.commonConf['base']))
+            self.logger.info('Saved Significance Plots as {}_SigMap.png.'.format(self.commonConf['base']))
         else:
             self.logger.error('You need to run calcSigMaps first.')
 
@@ -711,8 +711,8 @@ class quickLike:
 
         if hasattr(self,'sigmaMap'):
             from LATAnalysisScripts.quickPlot2 import PlotSigMaps
-            self.logger.info('Saved Significance Plots as {}_SigMaps.png.'.format(self.commonConf['base']))
             PlotSigMaps(self,filename="{}_SigMaps.png".format(self.commonConf['base']))
+            self.logger.info('Saved Significance Plots as {}_SigMaps.png.'.format(self.commonConf['base']))
         else:
             self.logger.error('You need to run calcSigMaps first.')
 
