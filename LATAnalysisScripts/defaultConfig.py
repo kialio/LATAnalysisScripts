@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 defaultCommonConfig = {	"base" : 'MySource',
-                        "eventclass" : 2,
+                        "eventclass" : 128,
+                        "eventtype" : 3,
                         "binned" : False,
                         "irfs" : "P7SOURCE_V6",
                         "verbosity" : 4,
@@ -27,7 +28,7 @@ defaultAnalysisConfig = {"ra" : 0,
                          "nypix" : -1,
                          "filter" : "DATA_QUAL==1 && LAT_CONFIG==1",
                          "roicut" : "yes",
-						 "proj" : "AIT"}
+            						 "proj" : "AIT"}
 
 defaultCurveConfig = {'tstart'  : 0,
                       'tstop'   : 0,

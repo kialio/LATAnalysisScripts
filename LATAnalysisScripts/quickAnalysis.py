@@ -128,6 +128,7 @@ class quickAnalysis:
 
         filter['rad'] = self.analysisConf['rad']
         filter['evclass'] = self.commonConf['eventclass']
+        filter['evtype'] = self.commonConf['eventtype']
         filter['evclsmin'] = 0
         filter['evclsmax'] = 10
         filter['infile'] = "@"+self.commonConf['base']+".list"
@@ -287,29 +288,29 @@ class quickAnalysis:
         nbins variable."""
 
         npix = qU.NumberOfPixels(float(self.analysisConf['rad'])+ExpBuffer, float(self.analysisConf['binsize']))
-	
-	gtexpcube2['infile'] = self.commonConf['base']+"_ltcube.fits"
-	gtexpcube2['cmap'] = "none"
-	gtexpcube2['outfile'] = self.commonConf['base']+"_BinnedExpMap.fits"
-	gtexpcube2['irfs'] = self.commonConf['irfs']
-	gtexpcube2['xref'] = str(self.analysisConf['ra'])
-	gtexpcube2['yref'] = str(self.analysisConf['dec'])
-	gtexpcube2['nxpix'] = str(npix)
-	gtexpcube2['nypix'] = str(npix)
-	gtexpcube2['binsz'] = str(self.analysisConf['binsize'])
-	gtexpcube2['coordsys'] = "CEL"
-	gtexpcube2['axisrot'] = 0
-	gtexpcube2['proj'] = str(self.analysisConf['proj'])
-	gtexpcube2['ebinalg'] = "LOG"
-	gtexpcube2['emin'] = str(self.analysisConf['emin'])
-	gtexpcube2['emax'] = str(self.analysisConf['emax'])
-	gtexpcube2['enumbins'] = str(nbins)
 
-	#Override settings above with kwargs if they exist
-	for name, value in kwargs.items():
-		gtexpcube2[name] = value
+    	gtexpcube2['infile'] = self.commonConf['base']+"_ltcube.fits"
+    	gtexpcube2['cmap'] = self.commonConf['base']+'_CCUBE.fits'
+    	gtexpcube2['outfile'] = self.commonConf['base']+"_BinnedExpMap.fits"
+    	gtexpcube2['irfs'] = self.commonConf['irfs']
+    	gtexpcube2['xref'] = str(self.analysisConf['ra'])
+    	gtexpcube2['yref'] = str(self.analysisConf['dec'])
+    	gtexpcube2['nxpix'] = str(npix)
+    	gtexpcube2['nypix'] = str(npix)
+    	gtexpcube2['binsz'] = str(self.analysisConf['binsize'])
+    	gtexpcube2['coordsys'] = "CEL"
+    	gtexpcube2['axisrot'] = 0
+    	gtexpcube2['proj'] = str(self.analysisConf['proj'])
+    	gtexpcube2['ebinalg'] = "LOG"
+    	gtexpcube2['emin'] = str(self.analysisConf['emin'])
+    	gtexpcube2['emax'] = str(self.analysisConf['emax'])
+    	gtexpcube2['enumbins'] = str(nbins)
+
+    	#Override settings above with kwargs if they exist
+    	for name, value in kwargs.items():
+    		gtexpcube2[name] = value
 	
-	qU.runCommand(gtexpcube2, self.logger, run)
+    	qU.runCommand(gtexpcube2, self.logger, run)
 	
 	"""
         cmd = "gtexpcube2 infile="+self.commonConf['base']+"_ltcube.fits"\

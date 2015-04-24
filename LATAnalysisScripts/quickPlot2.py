@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-def Plot2DModel(like,filename='2DModel.png'):
+def Plot2DModel(like,filename='2DModel.png', printData=False):
 
     '''This function plots out the model and data counts
     along with the models of each source.  It takes a 
@@ -50,7 +50,11 @@ def Plot2DModel(like,filename='2DModel.png'):
     resid = (like.nobs - sum_counts)/sum_counts
     resid_err = (np.sqrt(like.nobs)/sum_counts)
 
-    ax2 = plt.subplot(gs[2,0:2])
+    if printData:
+        for line in zip(E,like.nobs,sum_counts,resid,resid_err):
+            print line 
+
+    ax2 = plt.subplot(gs[2,0:2],sharex=ax1)
     plt.xscale('log')
     ax2.errorbar(E,resid,yerr=resid_err,fmt='o')
     ax2.axhline(0.0,ls=':')
