@@ -147,7 +147,8 @@ def runAnalysisStepMP(bininfo):
 	    logger.debug("Calculating binned exposure map for bin {}".format(bin))
 	    qA_bin.runExpCube(True,
 			    infile = dir + "/" + commonConf['base'] + '_ltcube.fits',
-			    outfile = dir + "/" + commonConf['base'] + '_binExpMap.fits')
+			    outfile = dir + "/" + commonConf['base'] + '_binExpMap.fits',
+                cmap = dir + "/" + commonConf['base'] + '_CCUBE.fits')
 	    logger.debug("Calculating source maps for bin {}".format(bin))
 	    qA_bin.runSrcMaps(True, makeModel=False,
 			    expcube = dir + "/" + commonConf['base'] + '_ltcube.fits',
